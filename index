@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Mall Spritz Dodge — 9:16 Prototype</title>
+<style>
+  :root{
+    --w:1080; --h:1920; /* logical canvas size (9:16) */
+    --ui: clamp(14px, 2.2vw, 22px);
+    --accent:#8be9fd; --accent2:#ff79c6; --gold:#f7c66b;
+  }
+  html,body{height:100%;margin:0;background:#0a0920;color:#fff;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+  .frame{
+    position:fixed; inset:0; display:grid; place-items:center;
+    background:#000;
+  }
+  canvas{
+    width: min(100vw, calc(100vh*9/16));
+    height:min(100vh, calc(100vw*16/9));
+    image-rendering: pixelated; image-rendering: crisp-edges;
+    background:#1b1f3a;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,.5);
+  }
+  .hud{
+    position:fixed; inset:auto 0 0 0; display:flex; gap:10px; 
+    justify-content:center; padding:18px 16px 28px; pointer-events:none;
+  }
+  .btn{
+    pointer-events:auto; user-select:none; -webkit-tap-highlight-color: transparent;
+    font-weight:700; letter-spacing:.4px;
+    border:2px solid rgba(255,255,255,.25);
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.25));
+    color:#fff; padding:14px 18px; border-radius:12px; min-width:110px;
+    backdrop-filter: blur(8px);
+  }
+  .btn:active{transform:translateY(1px)}
+  .topbar{
+    position:fixed; left:50%; top:10px; transform:translateX(-50%);
+    display:flex; gap:16px; align-items:center; padding:8px 12px;
+    background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.18);
+    border-radius:12px; font-size:var(--ui); backdrop-filter: blur(8px);
+  }
+  .pill{padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12)}
+  .good{color:#9cffb5}
+  .bad{color:#ff9aa8}
+</style>
+</head>
+<body>
+<div class="frame">
+  <canvas id="game" width="1080" height="1920" aria-label="Mall Spritz Dodge"></canvas>
+</div>
+
+<div class="topbar">
+  <div>Round: <span id="round">1</span></div>
+  <div class="pill good">Dodges: <span id="dodges">0</span></div>
+  <div class="pill bad">Hits: <span id="hits">0</span></div>
+</div>
+
+<div class="hud" id="hud">
+  <button class="btn" data-lane="0">⬅︎ Left</button>
+  <button class="btn" data-lane="1">• Center •</button>
+  <button class="btn" data-lane="2">Right ➡︎</button>
+</div>
+
+<script>
+/* ====== SETTINGS ====== */
+// Put your 9:16 pixel-mall image URL here (GitHub raw, Imgur, etc.)
+const BG_URL = ""; // e.g., "https://your.cdn/pixel_mall_1080x1920.png"
+const DIFFICULTY = 0.45; // AI chance to aim where player was last time (0..1)
+const ROUND_PAUSE_MS = 750;
+
+/* ====== BASIC ENGINE ====== */
+const W = 1080, H = 1920;
+const cnv = document.getElementById('game');
+const ctx = cnv.getContext('2d');
+
+const lanes = [ W*0.25, W*0.5, W*0.75 ];
+const groundY = H*0.82;
+const originY = H*0.18;
+
+let bgImg = null;
+if (BG_URL) {
+  bgImg = new Image();
+  bgImg.crossOrigin = "anonymous";
+  bgImg.src = BG_URL;
+  bgImg.onload = () => {};
+}
+
+const state = {
+  round: 1,
+  dodges: 0,
+  hits: 0,
+  playerLane: 1,
+  aiLane: 1,
+  phase: "idle", // "idle" | "flying" | "resolve" | "pause"
+  t: 0,
+  particles: [],
+  lastPlayerChoice: 1
+};
+
+// simple helper
+function lerp(a,b,t){return a+(b-a)*t}
+function easeOutCubic(x){return 1 - Math.pow(1 - x, 3)}
+function rand(a,b){return a+Math.random()*(b-a)}
+
+/* ====== SPRITES (simple pixel-ish) ====== */
+function drawHijabi(x,y){
+  // body
+  ctx.fillStyle = "#1b2c5e";
+  ctx.fillRect(x-38, y-110, 76, 110);
+  // headscarf
+  ctx.fillStyle = "#6fa3ff";
+  ctx.fillRect(x-42, y-160, 84, 60);
+  // face
+  ctx.fillStyle = "#f4d3b0";
+  ctx.fillRect(x-28, y-148, 56, 40);
+  // bag
+  ctx.fillStyle = "#ff79c6";
+  ctx.fillRect(x+30, y-60, 26, 38);
+}
+
+function drawPerfumeGuy(x,y){
+  // torso
+  ctx.fillStyle = "#3a2d1c";
+  ctx.fillRect(x-38, y-100, 76, 100);
+  // head
+  ctx.fillStyle = "#eac39a";
+  ctx.fillRect(x-26, y-140, 52, 40);
+  // arm holding bottle
+  ctx.fillStyle = "#eac39a";
+  ctx.fillRect(x+24, y-90, 34, 18);
+  // bottle
+  ctx.fillStyle = "#9ad7ff";
+  ctx.fillRect(x+50, y-94, 16, 28);
+  ctx.fillStyle = "#c8f1ff";
+  ctx.fillRect(x+52, y-98, 12, 6);
+}
+
+function spawnSpritz(fromX, fromY, laneX){
+  const spray = [];
+  const steps = 70;
+  for (let i=0;i<70;i++){
+    spray.push({
+      x: fromX + rand(-4,4),
+      y: fromY + rand(-6,2),
+      r: rand(2,5),
+      life: 1,
+      laneX
+    });
+  }
+  state.particles.push({kind:"mist", pts:spray, t:0});
+}
+
+function updateParticles(dt){
+  for (const p of state.particles){
+    p.t += dt;
+    if (p.kind === "mist"){
+      const T = Math.min(1, p.t/0.9);
+      for (const dot of p.pts){
+        const tx = p.pts.laneX || 0; // not used
+      }
+    }
+  }
+  // remove old
+  state.particles = state.particles.filter(p => p.t < 1.2);
+}
+
+function drawParticles(){
+  for (const p of state.particles){
+    if (p.kind !== "mist") continue;
+    const T = Math.min(1, p.t/0.9);
+    const a = 1 - Math.min(1, (p.t-0.2)/0.7);
+    ctx.globalAlpha = Math.max(0, a);
+    for (const d of p.pts){
+      // travel down from sprayer toward chosen lane
+      const targetX = lanes[state.aiLane] + (Math.random()*28-14);
+      const targetY = groundY - 170 + (Math.random()*40-20);
+      const x = lerp(d.x, targetX, easeOutCubic(T));
+      const y = lerp(d.y, targetY, T);
+      ctx.fillStyle = "rgba(170,220,255,0.9)";
+      ctx.fillRect(x|0, y|0, d.r|0, d.r|0);
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ====== ROUND FLOW ====== */
+const ui = document.getElementById('hud');
+ui.addEventListener('click', (e)=>{
+  const lane = e.target?.dataset?.lane;
+  if (lane==null) return;
+  if (state.phase !== "idle") return;
+
+  state.playerLane = Number(lane);
+  // AI picks lane (leans toward player's last lane with DIFFICULTY bias)
+  if (Math.random() < DIFFICULTY){
+    state.aiLane = state.lastPlayerChoice;
+  }else{
+    state.aiLane = Math.floor(Math.random()*3);
+  }
+  state.lastPlayerChoice = state.playerLane;
+
+  // start spray animation
+  state.phase = "flying";
+  state.t = 0;
+  spawnSpritz(lanes[state.aiLane]+56, originY-82, lanes[state.aiLane]);
+});
+
+function resolveRound(){
+  const hit = (state.playerLane === state.aiLane);
+  if (hit) state.hits++; else state.dodges++;
+  document.getElementById('hits').textContent = state.hits;
+  document.getElementById('dodges').textContent = state.dodges;
+
+  // quick flash feedback
+  flash(hit ? "#ff3b58" : "#3bff82");
+
+  // pause then next
+  state.phase = "pause";
+  setTimeout(()=>{
+    state.round++;
+    document.getElementById('round').textContent = state.round;
+    state.phase = "idle";
+    state.t = 0;
+  }, ROUND_PAUSE_MS);
+}
+
+/* ====== FLASH ====== */
+let flashColor = null; let flashT = 0;
+function flash(color){
+  flashColor = color; flashT = 0.0;
+}
+
+/* ====== DRAW LOOP ====== */
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.033, (now-last)/1000); last = now;
+  state.t += dt;
+
+  // background
+  if (bgImg && bgImg.complete){
+    // cover
+    const scale = Math.max(W/bgImg.width, H/bgImg.height);
+    const bw = bgImg.width*scale, bh = bgImg.height*scale;
+    const bx = (W-bw)/2, by = (H-bh)/2;
+    ctx.drawImage(bgImg, bx, by, bw, bh);
+  } else {
+    // fallback pixel gradient
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"#141947"); g.addColorStop(.5,"#1e2b7a"); g.addColorStop(1,"#2a1e55");
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    // light rows to mimic roof ribs
+    ctx.fillStyle = "rgba(255,255,255,.07)";
+    for(let y=160;y<900;y+=70){ ctx.fillRect(0,y,W,8) }
+  }
+
+  // lane guides (subtle)
+  ctx.globalAlpha = 0.06;
+  ctx.fillStyle = "#fff";
+  for (const x of lanes) ctx.fillRect(x-4, 0, 8, H);
+  ctx.globalAlpha = 1;
+
+  // characters
+  drawPerfumeGuy(lanes[state.aiLane], originY);
+  drawHijabi(lanes[state.playerLane], groundY);
+
+  // particles
+  updateParticles(dt);
+  drawParticles();
+
+  // perfume stream indicator during flight
+  if (state.phase === "flying"){
+    const t = Math.min(1, state.t/0.75);
+    const x = lanes[state.aiLane];
+    const y = lerp(originY-60, groundY-140, easeOutCubic(t));
+    // stream
+    ctx.strokeStyle = "rgba(160,220,255,.55)";
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(x+52, originY-86);
+    ctx.quadraticCurveTo(x+110, (originY+groundY)/2 - 120, x, y);
+    ctx.stroke();
+
+    if (t>=1){
+      state.phase = "resolve";
+      state.t = 0;
+      resolveRound();
+    }
+  }
+
+  // flash layer
+  if (flashColor){
+    flashT += dt;
+    const a = Math.max(0, 0.35 - flashT*0.5);
+    if (a<=0){ flashColor=null; }
+    else{
+      ctx.fillStyle = flashColor;
+      ctx.globalAlpha = a;
+      ctx.fillRect(0,0,W,H);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
