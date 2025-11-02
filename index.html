@@ -28,7 +28,7 @@
             position: relative;
             width: 360px;
             height: 640px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
             overflow: hidden;
             border: 2px solid #8b5cf6;
             border-radius: 20px;
@@ -71,8 +71,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             transition: all 0.5s ease;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%);
+            z-index: 1;
         }
 
         /* Character */
@@ -89,6 +101,9 @@
             height: 120px;
             filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
             animation: float 3s ease-in-out infinite;
+            font-size: 80px;
+            text-align: center;
+            line-height: 120px;
         }
 
         @keyframes float {
@@ -107,6 +122,7 @@
             border: 1px solid #8b5cf6;
             width: 140px;
             backdrop-filter: blur(10px);
+            z-index: 45;
         }
 
         .leaderboard h3 {
@@ -170,6 +186,7 @@
             padding: 15px;
             border-radius: 15px;
             border: 1px solid #8b5cf6;
+            backdrop-filter: blur(10px);
         }
 
         .choices {
@@ -194,6 +211,7 @@
             align-items: center;
             gap: 5px;
             min-height: 60px;
+            backdrop-filter: blur(10px);
         }
 
         .choice-btn:hover {
@@ -236,6 +254,7 @@
             border: 2px solid #8b5cf6;
             max-width: 300px;
             animation: popIn 0.5s ease;
+            backdrop-filter: blur(10px);
         }
 
         @keyframes popIn {
@@ -316,6 +335,7 @@
             border: 2px solid #f59e0b;
             z-index: 2000;
             max-width: 200px;
+            backdrop-filter: blur(10px);
         }
 
         .admin-panel h3 {
@@ -346,6 +366,22 @@
             background: #4b5563;
             transform: translateY(-1px);
         }
+
+        /* Scene Title */
+        .scene-title {
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 15px;
+            border-radius: 12px;
+            border: 1px solid #8b5cf6;
+            font-size: 12px;
+            font-weight: bold;
+            color: #8b5cf6;
+            z-index: 45;
+            backdrop-filter: blur(10px);
+        }
     </style>
 </head>
 <body>
@@ -360,6 +396,10 @@
 
         <!-- Background -->
         <div class="background" id="background"></div>
+        <div class="background-overlay"></div>
+        
+        <!-- Scene Title -->
+        <div class="scene-title" id="sceneTitle">المشهد ١: بوابة الأفنيوز</div>
         
         <!-- Character -->
         <div class="character-container">
@@ -430,9 +470,12 @@
     <div class="admin-panel" id="adminPanel">
         <h3>🛠️ لوحة التحكم</h3>
         <div class="admin-controls">
-            <button onclick="loadScene(0)">المشهد 1: البداية</button>
-            <button onclick="loadScene(1)">المشهد 2: الوحش</button>
-            <button onclick="loadScene(2)">المشهد 3: المدير</button>
+            <button onclick="loadScene(0)">المشهد 1: البوابة</button>
+            <button onclick="loadScene(1)">المشهد 2: بريستيج</button>
+            <button onclick="loadScene(2)">المشهد 3: الجاردنز</button>
+            <button onclick="loadScene(3)">المشهد 4: السوق</button>
+            <button onclick="loadScene(4)">المشهد 5: المنتدى</button>
+            <button onclick="loadScene(5)">المشهد 6: المدير</button>
             <button onclick="simulateVote(1)">🎯 تصويت 1</button>
             <button onclick="simulateVote(2)">🎯 تصويت 2</button>
             <button onclick="simulateVote(3)">🎯 تصويت 3</button>
@@ -440,41 +483,83 @@
     </div>
 
     <script>
-        // Game Data
+        // Game Data with 6 different Avenues backgrounds
         const gameScenes = [
             {
                 scene_id: 0,
-                background: "linear-gradient(45deg, #0f0c29, #302b63, #24243e)",
+                background: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
                 character: "👸",
-                narration: "🪩 مرحباً في مجمع الأفنيوز السحري! أنا نور، بطلة هذا العالم الخيالي. معاً سنواجه التحديات! أي سلاح نختار للبداية؟",
+                title: "المشهد ١: بوابة الأفنيوز السحرية",
+                narration: "🪩 مرحباً في مجمع الأفنيوز السحري! أنا نور، بطلة هذا العالم الخيالي. أمامنا البوابة الرئيسية المضيئة. أي سلاح نختار لبداية رحلتنا؟",
                 choices: [
-                    {id: 1, text: "🗡️ سلاح المول", result: "💫 ممتاز! سلاح المول يتألق بقوة. نحن جاهزون للمغامرة!"},
-                    {id: 2, text: "🛡️ درع الأمن", result: "🛡️ اختيار حكيم! الدرع سيوفر لنا الحماية في رحلتنا."},
-                    {id: 3, text: "☕ قنبلة القهوة", result: "💥 رائحة القهوة السحرية تملأ المكان! هذا سيكون مفيداً."}
+                    {id: 1, text: "🗡️ سلاح المول", result: "💫 ممتاز! سلاح المول يتألق بقوة تحت الأضواء. نحن جاهزون للمغامرة!"},
+                    {id: 2, text: "🛡️ درع الأمن", result: "🛡️ اختيار حكيم! الدرع سيوفر لنا الحماية في رحلتنا عبر الممرات."},
+                    {id: 3, text: "☕ قنبلة القهوة", result: "💥 رائحة القهوة السحرية تملأ المكان! هذا سيكون مفيداً ضد الوحوش."}
                 ],
                 correct_choice: 1
             },
             {
                 scene_id: 1,
-                background: "linear-gradient(45deg, #1e3c72, #2a5298, #1e3c72)",
+                background: "https://images.unsplash.com/photo-1555529771-7888783a18d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
                 character: "👸",
-                narration: "🚨 إنتبهوا! وحش الأمن القادم من منطقة بريستيج يهاجمنا! إنه يحرس العطور النادرة. ماذا نفعل؟",
+                title: "المشهد ٢: قاعة بريستيج",
+                narration: "💎 دخلنا إلى قاعة بريستيج الفاخرة! إنها تلمع بالذهب والعطور. لكن انتبهوا! وحش العطور الفاخرة يهاجم!",
                 choices: [
-                    {id: 1, text: "🗡️ هجوم سريع", result: "⚡ هجوم رائع! الوحش تراجع لكنه لم يهزم بعد."},
-                    {id: 2, text: "🛡️ الدفاع", result: "🛡️ حصانة ممتازة! لكن الوحش لا يزال يهاجم."},
-                    {id: 3, text: "☕ قهوة التشتيت", result: "🎯 رائحة القهوة أربكت الوحش! فرصة مثالية للهروب."}
+                    {id: 1, text: "🗡️ هجوم سريع", result: "⚡ هجوم رائع بين المحلات الفاخرة! الوحش تراجع لكنه لم يهزم بعد."},
+                    {id: 2, text: "🛡️ الدفاع", result: "🛡️ حصانة ممتازة خلف عروض المجوهرات! لكن الوحش لا يزال يهاجم."},
+                    {id: 3, text: "☕ قهوة التشتيت", result: "🎯 رائحة القهوة الفاخرة أربكت الوحش! فرصة مثالية للتقدم."}
                 ],
                 correct_choice: 1
             },
             {
                 scene_id: 2,
-                background: "linear-gradient(45deg, #667eea, #764ba2, #667eea)",
+                background: "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
                 character: "👸",
-                narration: "👑 هذه المواجهة الأخيرة! 'المدير' يظهر في قاعة بريستيج. إنه الأقوى! اختاروا السلاح بحكمة...",
+                title: "المشهد ٣: حدائق الأفنيوز",
+                narration: "🌿 وصلنا إلى منطقة الجاردنز! الأشجار والنوافير تحيط بنا. تنين الأوراق يهاجم من بين الأشجار!",
                 choices: [
-                    {id: 1, text: "🗡️ الهجوم النهائي", result: "🎊 نجاح مذهل! 'المدير' هزم وأعاد العطور المسروقة. انتصرنا!"},
-                    {id: 2, text: "🛡️ الدفاع الاستراتيجي", result: "🛡️ دفاع قوي لكن 'المدير' لا يزال مسيطراً. نحتاج هجوماً!"},
-                    {id: 3, text: "☕ قهوة الصداقة", result: "☕ فكرة لطيفة لكن 'المدير' لا يشرب القهوة! الهجوم ضروري."}
+                    {id: 1, text: "🗡️ قطع الأوراق", result: "🍃 سيفك يقطع الأوراق المتطايرة! التنين يتراجع نحو النافورة."},
+                    {id: 2, text: "🛡️ درع الطبيعة", result: "🌳 استخدمت قوة الطبيعة للدفاع! الأوراق تتساقط حولك."},
+                    {id: 3, text: "☕ قهوة الورود", result: "🌹 رائحة قهوة الورود أربكت التنين! فرصة للهروب."}
+                ],
+                correct_choice: 1
+            },
+            {
+                scene_id: 3,
+                background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                character: "👸",
+                title: "المشهد ٤: السوق المركزي",
+                narration: "🛍️ نحن الآن في السوق المركزي! المحلات تحيط بنا من كل جانب. وحوش العروض الخاصة تهاجم من كل اتجاه!",
+                choices: [
+                    {id: 1, text: "🗡️ هجوم دائري", result: "🌀 هجوم ممتاز! دورت حول الوحوش بين المحلات."},
+                    {id: 2, text: "🛡️ درع التسوق", result: "🛒 استخدمت عربات التسوق كدرع! فكرة ذكية."},
+                    {id: 3, text: "☕ قهوة التنزيلات", result: "🏷️ رائحة القهوة جذبت الوحوش نحو العروض! هربوا."}
+                ],
+                correct_choice: 1
+            },
+            {
+                scene_id: 4,
+                background: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                character: "👸",
+                title: "المشهد ٥: ساحة المنتدى",
+                narration: "🎭 وصلنا إلى الساحة المركزية! المكان واسع والجميع يشاهدنا. وحش الجمهور يهاجم من المنصة الرئيسية!",
+                choices: [
+                    {id: 1, text: "🗡️ هجوم جماهيري", result: "👏 الهجوم كان مذهلاً! الجمهور يصفق لك."},
+                    {id: 2, text: "🛡️ درع الشهرة", result: "🌟 استخدمت شهرتك كدرع! الوحش مرتبك."},
+                    {id: 3, text: "☕ قهوة النجوم", result: "🎬 رائحة قهوة النجوم أربكت الوحش! انسحب."}
+                ],
+                correct_choice: 1
+            },
+            {
+                scene_id: 5,
+                background: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2080&q=80",
+                character: "👸",
+                title: "المشهد ٦: مواجهة المدير",
+                narration: "👑 هذه المواجهة النهائية! 'المدير' يظهر في مكتبه الفاخر. إنه الأقوى ويحرس كنوز الأفنيوز! اختاروا السلاح بحكمة...",
+                choices: [
+                    {id: 1, text: "🗡️ الهجوم النهائي", result: "🎊 نجاح مذهل! 'المدير' هزم وأعاد الكنوز المسروقة. انتصرنا وحمينا الأفنيوز!"},
+                    {id: 2, text: "🛡️ الدفاع الاستراتيجي", result: "🛡️ دفاع قوي لكن 'المدير' لا يزال مسيطراً. نحتاج لهجوم حاسم!"},
+                    {id: 3, text: "☕ قهوة المفاوضات", result: "☕ فكرة دبلوماسية لكن 'المدير' لا يهتم! الهجوم ضروري لإنقاذ المول."}
                 ],
                 correct_choice: 1
             }
@@ -493,6 +578,7 @@
         const resultText = document.getElementById('resultText');
         const resultTitle = document.getElementById('resultTitle');
         const nextSceneBtn = document.getElementById('nextSceneBtn');
+        const sceneTitle = document.getElementById('sceneTitle');
 
         // Initialize Game
         function initGame() {
@@ -507,10 +593,11 @@
             currentScene = sceneIndex;
             const scene = gameScenes[sceneIndex];
             
-            // Update UI
-            backgroundEl.style.background = scene.background;
+            // Update UI with background image
+            backgroundEl.style.backgroundImage = `url('${scene.background}')`;
             characterEl.textContent = scene.character;
             narrationEl.textContent = scene.narration;
+            sceneTitle.textContent = scene.title;
             
             // Create choice buttons
             choicesEl.innerHTML = '';
