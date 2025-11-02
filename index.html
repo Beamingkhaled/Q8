@@ -1,311 +1,608 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Mall Spritz Dodge — 9:16 Prototype</title>
-<style>
-  :root{
-    --w:1080; --h:1920; /* logical canvas size (9:16) */
-    --ui: clamp(14px, 2.2vw, 22px);
-    --accent:#8be9fd; --accent2:#ff79c6; --gold:#f7c66b;
-  }
-  html,body{height:100%;margin:0;background:#0a0920;color:#fff;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-  .frame{
-    position:fixed; inset:0; display:grid; place-items:center;
-    background:#000;
-  }
-  canvas{
-    width: min(100vw, calc(100vh*9/16));
-    height:min(100vh, calc(100vw*16/9));
-    image-rendering: pixelated; image-rendering: crisp-edges;
-    background:#1b1f3a;
-    border-radius: 18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,.5);
-  }
-  .hud{
-    position:fixed; inset:auto 0 0 0; display:flex; gap:10px; 
-    justify-content:center; padding:18px 16px 28px; pointer-events:none;
-  }
-  .btn{
-    pointer-events:auto; user-select:none; -webkit-tap-highlight-color: transparent;
-    font-weight:700; letter-spacing:.4px;
-    border:2px solid rgba(255,255,255,.25);
-    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.25));
-    color:#fff; padding:14px 18px; border-radius:12px; min-width:110px;
-    backdrop-filter: blur(8px);
-  }
-  .btn:active{transform:translateY(1px)}
-  .topbar{
-    position:fixed; left:50%; top:10px; transform:translateX(-50%);
-    display:flex; gap:16px; align-items:center; padding:8px 12px;
-    background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.18);
-    border-radius:12px; font-size:var(--ui); backdrop-filter: blur(8px);
-  }
-  .pill{padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12)}
-  .good{color:#9cffb5}
-  .bad{color:#ff9aa8}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avenues & Dragons | TikTok Live Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', 'Poppins', sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            position: relative;
+            width: 360px;
+            height: 640px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            border: 2px solid #8b5cf6;
+            border-radius: 20px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, #1a1a2e, #16213e, #0f3460);
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            border-bottom: 2px solid #8b5cf6;
+        }
+
+        .timer, .viewers, .sponsor {
+            background: rgba(139, 92, 246, 0.3);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            color: #8b5cf6;
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Background */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #0f0c29, #302b63, #24243e);
+            transition: all 0.5s ease;
+        }
+
+        /* Character */
+        .character-container {
+            position: absolute;
+            bottom: 150px;
+            left: 20px;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+
+        .character {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #8b5cf6;
+            width: 140px;
+            backdrop-filter: blur(10px);
+        }
+
+        .leaderboard h3 {
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #8b5cf6;
+        }
+
+        .player {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 10px;
+            padding: 3px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .rank {
+            font-weight: bold;
+            margin-left: 5px;
+            color: #f59e0b;
+        }
+
+        .avatar {
+            margin-left: 5px;
+        }
+
+        .name {
+            flex: 1;
+            font-size: 9px;
+        }
+
+        .score {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        /* Game Content */
+        .game-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            padding: 20px;
+            z-index: 40;
+        }
+
+        .narration {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #8b5cf6;
+        }
+
+        .choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .choice-btn {
+            background: linear-gradient(45deg, #8b5cf6, #6366f1);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 8px;
+            color: white;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-height: 60px;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .choice-btn:active {
+            transform: translateY(0);
+        }
+
+        .choice-btn.selected {
+            background: linear-gradient(45deg, #f59e0b, #f97316);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .icon {
+            font-size: 16px;
+        }
+
+        /* Result Popup */
+        .result-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background: linear-gradient(135deg, #1e1b4b, #3730a3);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #8b5cf6;
+            max-width: 300px;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #resultTitle {
+            color: #f59e0b;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        #resultText {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        #nextSceneBtn {
+            background: linear-gradient(45deg, #10b981, #059669);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #nextSceneBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Particles */
+        #particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 1s ease-out forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #f59e0b;
+            z-index: 2000;
+            max-width: 200px;
+        }
+
+        .admin-panel h3 {
+            color: #f59e0b;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .admin-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+        }
+
+        .admin-controls button {
+            background: #374151;
+            border: none;
+            border-radius: 6px;
+            padding: 8px;
+            color: white;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-controls button:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
-<div class="frame">
-  <canvas id="game" width="1080" height="1920" aria-label="Mall Spritz Dodge"></canvas>
-</div>
+    <div class="game-container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="timer">⏱️ 00:30</div>
+            <div class="logo">Avenues & Dragons</div>
+            <div class="viewers">👁️ 1.2K</div>
+            <div class="sponsor">🪩 Prestige</div>
+        </div>
 
-<div class="topbar">
-  <div>Round: <span id="round">1</span></div>
-  <div class="pill good">Dodges: <span id="dodges">0</span></div>
-  <div class="pill bad">Hits: <span id="hits">0</span></div>
-</div>
+        <!-- Background -->
+        <div class="background" id="background"></div>
+        
+        <!-- Character -->
+        <div class="character-container">
+            <div class="character" id="character">👸</div>
+        </div>
 
-<div class="hud" id="hud">
-  <button class="btn" data-lane="0">⬅︎ Left</button>
-  <button class="btn" data-lane="1">• Center •</button>
-  <button class="btn" data-lane="2">Right ➡︎</button>
-</div>
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <h3>🏆 أبطال القاعة</h3>
+            <div class="player-list">
+                <div class="player">
+                    <span class="rank">1</span>
+                    <span class="avatar">👑</span>
+                    <span class="name">نور_الكويت</span>
+                    <span class="score">1.5K</span>
+                </div>
+                <div class="player">
+                    <span class="rank">2</span>
+                    <span class="avatar">⚔️</span>
+                    <span class="name">أحمد_المول</span>
+                    <span class="score">1.2K</span>
+                </div>
+                <div class="player">
+                    <span class="rank">3</span>
+                    <span class="avatar">🛡️</span>
+                    <span class="name">فاطمة_السحر</span>
+                    <span class="score">800</span>
+                </div>
+            </div>
+        </div>
 
-<script>
-/* ====== SETTINGS ====== */
-// Put your 9:16 pixel-mall image URL here (GitHub raw, Imgur, etc.)
-const BG_URL = ""; // e.g., "https://your.cdn/pixel_mall_1080x1920.png"
-const DIFFICULTY = 0.45; // AI chance to aim where player was last time (0..1)
-const ROUND_PAUSE_MS = 750;
+        <!-- Game Content -->
+        <div class="game-content">
+            <div class="narration" id="narration">
+                مرحباً في مجمع الأفنيوز السحري! اختاروا سلاحكم للبداية...
+            </div>
+            
+            <div class="choices" id="choices">
+                <button class="choice-btn" data-choice="1">
+                    <span class="icon">🗡️</span>
+                    <span class="text">سلاح المول</span>
+                </button>
+                <button class="choice-btn" data-choice="2">
+                    <span class="icon">🛡️</span>
+                    <span class="text">درع الأمن</span>
+                </button>
+                <button class="choice-btn" data-choice="3">
+                    <span class="icon">☕</span>
+                    <span class="text">قنبلة القهوة</span>
+                </button>
+            </div>
+        </div>
 
-/* ====== BASIC ENGINE ====== */
-const W = 1080, H = 1920;
-const cnv = document.getElementById('game');
-const ctx = cnv.getContext('2d');
+        <!-- Particles Container -->
+        <div id="particles"></div>
+    </div>
 
-const lanes = [ W*0.25, W*0.5, W*0.75 ];
-const groundY = H*0.82;
-const originY = H*0.18;
+    <!-- Result Popup -->
+    <div class="result-popup" id="resultPopup">
+        <div class="popup-content">
+            <h3 id="resultTitle">نتيجة المعركة!</h3>
+            <p id="resultText"></p>
+            <button id="nextSceneBtn">➡️ التالي</button>
+        </div>
+    </div>
 
-let bgImg = null;
-if (BG_URL) {
-  bgImg = new Image();
-  bgImg.crossOrigin = "anonymous";
-  bgImg.src = BG_URL;
-  bgImg.onload = () => {};
-}
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <h3>🛠️ لوحة التحكم</h3>
+        <div class="admin-controls">
+            <button onclick="loadScene(0)">المشهد 1: البداية</button>
+            <button onclick="loadScene(1)">المشهد 2: الوحش</button>
+            <button onclick="loadScene(2)">المشهد 3: المدير</button>
+            <button onclick="simulateVote(1)">🎯 تصويت 1</button>
+            <button onclick="simulateVote(2)">🎯 تصويت 2</button>
+            <button onclick="simulateVote(3)">🎯 تصويت 3</button>
+        </div>
+    </div>
 
-const state = {
-  round: 1,
-  dodges: 0,
-  hits: 0,
-  playerLane: 1,
-  aiLane: 1,
-  phase: "idle", // "idle" | "flying" | "resolve" | "pause"
-  t: 0,
-  particles: [],
-  lastPlayerChoice: 1
-};
+    <script>
+        // Game Data
+        const gameScenes = [
+            {
+                scene_id: 0,
+                background: "linear-gradient(45deg, #0f0c29, #302b63, #24243e)",
+                character: "👸",
+                narration: "🪩 مرحباً في مجمع الأفنيوز السحري! أنا نور، بطلة هذا العالم الخيالي. معاً سنواجه التحديات! أي سلاح نختار للبداية؟",
+                choices: [
+                    {id: 1, text: "🗡️ سلاح المول", result: "💫 ممتاز! سلاح المول يتألق بقوة. نحن جاهزون للمغامرة!"},
+                    {id: 2, text: "🛡️ درع الأمن", result: "🛡️ اختيار حكيم! الدرع سيوفر لنا الحماية في رحلتنا."},
+                    {id: 3, text: "☕ قنبلة القهوة", result: "💥 رائحة القهوة السحرية تملأ المكان! هذا سيكون مفيداً."}
+                ],
+                correct_choice: 1
+            },
+            {
+                scene_id: 1,
+                background: "linear-gradient(45deg, #1e3c72, #2a5298, #1e3c72)",
+                character: "👸",
+                narration: "🚨 إنتبهوا! وحش الأمن القادم من منطقة بريستيج يهاجمنا! إنه يحرس العطور النادرة. ماذا نفعل؟",
+                choices: [
+                    {id: 1, text: "🗡️ هجوم سريع", result: "⚡ هجوم رائع! الوحش تراجع لكنه لم يهزم بعد."},
+                    {id: 2, text: "🛡️ الدفاع", result: "🛡️ حصانة ممتازة! لكن الوحش لا يزال يهاجم."},
+                    {id: 3, text: "☕ قهوة التشتيت", result: "🎯 رائحة القهوة أربكت الوحش! فرصة مثالية للهروب."}
+                ],
+                correct_choice: 1
+            },
+            {
+                scene_id: 2,
+                background: "linear-gradient(45deg, #667eea, #764ba2, #667eea)",
+                character: "👸",
+                narration: "👑 هذه المواجهة الأخيرة! 'المدير' يظهر في قاعة بريستيج. إنه الأقوى! اختاروا السلاح بحكمة...",
+                choices: [
+                    {id: 1, text: "🗡️ الهجوم النهائي", result: "🎊 نجاح مذهل! 'المدير' هزم وأعاد العطور المسروقة. انتصرنا!"},
+                    {id: 2, text: "🛡️ الدفاع الاستراتيجي", result: "🛡️ دفاع قوي لكن 'المدير' لا يزال مسيطراً. نحتاج هجوماً!"},
+                    {id: 3, text: "☕ قهوة الصداقة", result: "☕ فكرة لطيفة لكن 'المدير' لا يشرب القهوة! الهجوم ضروري."}
+                ],
+                correct_choice: 1
+            }
+        ];
 
-// simple helper
-function lerp(a,b,t){return a+(b-a)*t}
-function easeOutCubic(x){return 1 - Math.pow(1 - x, 3)}
-function rand(a,b){return a+Math.random()*(b-a)}
+        // Game State
+        let currentScene = 0;
+        let gameActive = true;
 
-/* ====== SPRITES (simple pixel-ish) ====== */
-function drawHijabi(x,y){
-  // body
-  ctx.fillStyle = "#1b2c5e";
-  ctx.fillRect(x-38, y-110, 76, 110);
-  // headscarf
-  ctx.fillStyle = "#6fa3ff";
-  ctx.fillRect(x-42, y-160, 84, 60);
-  // face
-  ctx.fillStyle = "#f4d3b0";
-  ctx.fillRect(x-28, y-148, 56, 40);
-  // bag
-  ctx.fillStyle = "#ff79c6";
-  ctx.fillRect(x+30, y-60, 26, 38);
-}
+        // DOM Elements
+        const backgroundEl = document.getElementById('background');
+        const characterEl = document.getElementById('character');
+        const narrationEl = document.getElementById('narration');
+        const choicesEl = document.getElementById('choices');
+        const resultPopup = document.getElementById('resultPopup');
+        const resultText = document.getElementById('resultText');
+        const resultTitle = document.getElementById('resultTitle');
+        const nextSceneBtn = document.getElementById('nextSceneBtn');
 
-function drawPerfumeGuy(x,y){
-  // torso
-  ctx.fillStyle = "#3a2d1c";
-  ctx.fillRect(x-38, y-100, 76, 100);
-  // head
-  ctx.fillStyle = "#eac39a";
-  ctx.fillRect(x-26, y-140, 52, 40);
-  // arm holding bottle
-  ctx.fillStyle = "#eac39a";
-  ctx.fillRect(x+24, y-90, 34, 18);
-  // bottle
-  ctx.fillStyle = "#9ad7ff";
-  ctx.fillRect(x+50, y-94, 16, 28);
-  ctx.fillStyle = "#c8f1ff";
-  ctx.fillRect(x+52, y-98, 12, 6);
-}
+        // Initialize Game
+        function initGame() {
+            loadScene(0);
+            nextSceneBtn.addEventListener('click', nextScene);
+        }
 
-function spawnSpritz(fromX, fromY, laneX){
-  const spray = [];
-  const steps = 70;
-  for (let i=0;i<70;i++){
-    spray.push({
-      x: fromX + rand(-4,4),
-      y: fromY + rand(-6,2),
-      r: rand(2,5),
-      life: 1,
-      laneX
-    });
-  }
-  state.particles.push({kind:"mist", pts:spray, t:0});
-}
+        // Load a specific scene
+        function loadScene(sceneIndex) {
+            if (sceneIndex >= gameScenes.length) sceneIndex = 0;
+            
+            currentScene = sceneIndex;
+            const scene = gameScenes[sceneIndex];
+            
+            // Update UI
+            backgroundEl.style.background = scene.background;
+            characterEl.textContent = scene.character;
+            narrationEl.textContent = scene.narration;
+            
+            // Create choice buttons
+            choicesEl.innerHTML = '';
+            scene.choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.innerHTML = `
+                    <span class="icon">${choice.text.split(' ')[0]}</span>
+                    <span class="text">${choice.text.split(' ').slice(1).join(' ')}</span>
+                `;
+                button.setAttribute('data-choice', choice.id);
+                button.addEventListener('click', () => makeChoice(choice.id));
+                choicesEl.appendChild(button);
+            });
+            
+            // Hide result popup
+            resultPopup.style.display = 'none';
+            gameActive = true;
+        }
 
-function updateParticles(dt){
-  for (const p of state.particles){
-    p.t += dt;
-    if (p.kind === "mist"){
-      const T = Math.min(1, p.t/0.9);
-      for (const dot of p.pts){
-        const tx = p.pts.laneX || 0; // not used
-      }
-    }
-  }
-  // remove old
-  state.particles = state.particles.filter(p => p.t < 1.2);
-}
+        // Player makes a choice
+        function makeChoice(choiceId) {
+            if (!gameActive) return;
+            
+            gameActive = false;
+            const scene = gameScenes[currentScene];
+            const choice = scene.choices.find(c => c.id === choiceId);
+            
+            // Visual feedback
+            const selectedBtn = document.querySelector(`[data-choice="${choiceId}"]`);
+            selectedBtn.classList.add('selected');
+            createParticles(selectedBtn);
+            
+            // Show result after delay
+            setTimeout(() => {
+                showResult(choice.result, choiceId === scene.correct_choice);
+            }, 1000);
+        }
 
-function drawParticles(){
-  for (const p of state.particles){
-    if (p.kind !== "mist") continue;
-    const T = Math.min(1, p.t/0.9);
-    const a = 1 - Math.min(1, (p.t-0.2)/0.7);
-    ctx.globalAlpha = Math.max(0, a);
-    for (const d of p.pts){
-      // travel down from sprayer toward chosen lane
-      const targetX = lanes[state.aiLane] + (Math.random()*28-14);
-      const targetY = groundY - 170 + (Math.random()*40-20);
-      const x = lerp(d.x, targetX, easeOutCubic(T));
-      const y = lerp(d.y, targetY, T);
-      ctx.fillStyle = "rgba(170,220,255,0.9)";
-      ctx.fillRect(x|0, y|0, d.r|0, d.r|0);
-    }
-    ctx.globalAlpha = 1;
-  }
-}
- 
-/* ====== ROUND FLOW ====== */
-const ui = document.getElementById('hud');
-ui.addEventListener('click', (e)=>{
-  const lane = e.target?.dataset?.lane;
-  if (lane==null) return;
-  if (state.phase !== "idle") return;
+        // Show result popup
+        function showResult(result, isCorrect) {
+            resultTitle.textContent = isCorrect ? '🎉 نجاح!' : '💡 محاولة جيدة';
+            resultTitle.style.color = isCorrect ? '#10b981' : '#f59e0b';
+            resultText.textContent = result;
+            resultPopup.style.display = 'flex';
+        }
 
-  state.playerLane = Number(lane);
-  // AI picks lane (leans toward player's last lane with DIFFICULTY bias)
-  if (Math.random() < DIFFICULTY){
-    state.aiLane = state.lastPlayerChoice;
-  }else{
-    state.aiLane = Math.floor(Math.random()*3);
-  }
-  state.lastPlayerChoice = state.playerLane;
+        // Move to next scene
+        function nextScene() {
+            loadScene(currentScene + 1);
+        }
 
-  // start spray animation
-  state.phase = "flying";
-  state.t = 0;
-  spawnSpritz(lanes[state.aiLane]+56, originY-82, lanes[state.aiLane]);
-});
+        // Create particle effects
+        function createParticles(element) {
+            const rect = element.getBoundingClientRect();
+            const particlesContainer = document.getElementById('particles');
+            
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const startX = rect.left + rect.width / 2;
+                const startY = rect.top + rect.height / 2;
+                
+                particle.style.left = startX + 'px';
+                particle.style.top = startY + 'px';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 100;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', tx + 'px');
+                particle.style.setProperty('--ty', ty + 'px');
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
 
-function resolveRound(){
-  const hit = (state.playerLane === state.aiLane);
-  if (hit) state.hits++; else state.dodges++;
-  document.getElementById('hits').textContent = state.hits;
-  document.getElementById('dodges').textContent = state.dodges;
+        // Admin functions
+        function simulateVote(choice) {
+            if (gameActive) makeChoice(choice);
+        }
 
-  // quick flash feedback
-  flash(hit ? "#ff3b58" : "#3bff82");
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
 
-  // pause then next
-  state.phase = "pause";
-  setTimeout(()=>{
-    state.round++;
-    document.getElementById('round').textContent = state.round;
-    state.phase = "idle";
-    state.t = 0;
-  }, ROUND_PAUSE_MS);
-}
-
-/* ====== FLASH ====== */
-let flashColor = null; let flashT = 0;
-function flash(color){
-  flashColor = color; flashT = 0.0;
-}
-
-/* ====== DRAW LOOP ====== */
-let last = performance.now();
-function loop(now){
-  const dt = Math.min(0.033, (now-last)/1000); last = now;
-  state.t += dt;
-
-  // background
-  if (bgImg && bgImg.complete){
-    // cover
-    const scale = Math.max(W/bgImg.width, H/bgImg.height);
-    const bw = bgImg.width*scale, bh = bgImg.height*scale;
-    const bx = (W-bw)/2, by = (H-bh)/2;
-    ctx.drawImage(bgImg, bx, by, bw, bh);
-  } else {
-    // fallback pixel gradient
-    const g = ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,"#141947"); g.addColorStop(.5,"#1e2b7a"); g.addColorStop(1,"#2a1e55");
-    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-    // light rows to mimic roof ribs
-    ctx.fillStyle = "rgba(255,255,255,.07)";
-    for(let y=160;y<900;y+=70){ ctx.fillRect(0,y,W,8) }
-  }
-
-  // lane guides (subtle)
-  ctx.globalAlpha = 0.06;
-  ctx.fillStyle = "#fff";
-  for (const x of lanes) ctx.fillRect(x-4, 0, 8, H);
-  ctx.globalAlpha = 1;
-
-  // characters
-  drawPerfumeGuy(lanes[state.aiLane], originY);
-  drawHijabi(lanes[state.playerLane], groundY);
-
-  // particles
-  updateParticles(dt);
-  drawParticles();
-
-  // perfume stream indicator during flight
-  if (state.phase === "flying"){
-    const t = Math.min(1, state.t/0.75);
-    const x = lanes[state.aiLane];
-    const y = lerp(originY-60, groundY-140, easeOutCubic(t));
-    // stream
-    ctx.strokeStyle = "rgba(160,220,255,.55)";
-    ctx.lineWidth = 10;
-    ctx.beginPath();
-    ctx.moveTo(x+52, originY-86);
-    ctx.quadraticCurveTo(x+110, (originY+groundY)/2 - 120, x, y);
-    ctx.stroke();
-
-    if (t>=1){
-      state.phase = "resolve";
-      state.t = 0;
-      resolveRound();
-    }
-  }
-
-  // flash layer
-  if (flashColor){
-    flashT += dt;
-    const a = Math.max(0, 0.35 - flashT*0.5);
-    if (a<=0){ flashColor=null; }
-    else{
-      ctx.fillStyle = flashColor;
-      ctx.globalAlpha = a;
-      ctx.fillRect(0,0,W,H);
-      ctx.globalAlpha = 1;
-    }
-  }
-
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-</script>
+        // Export for global access
+        window.loadScene = loadScene;
+        window.simulateVote = simulateVote;
+    </script>
 </body>
 </html>
