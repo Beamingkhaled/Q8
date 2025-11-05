@@ -1,695 +1,541 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avenues & Dragons | TikTok Live Game</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Avenues & Dragons | TikTok Live</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#fff; --vio:#8b5cf6; --vio2:#6366f1; --gold:#f59e0b; --succ:#10b981; --danger:#ef4444; --bg:#000;
+      --glass:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{background:#000;color:var(--ink);font-family:'Tajawal','Poppins',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
 
-        body {
-            font-family: 'Tajawal', 'Poppins', sans-serif;
-            background: #000;
-            color: white;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    /* 9:16 canvas */
+    .game{position:relative;width:min(100vw,54rem);aspect-ratio:9/16;background:#000;border:2px solid var(--vio);border-radius:20px;overflow:hidden;isolation:isolate}
 
-        .game-container {
-            position: relative;
-            width: 360px;
-            height: 640px;
-            background: #000;
-            overflow: hidden;
-            border: 2px solid #8b5cf6;
-            border-radius: 20px;
-        }
+    /* Top bar + Hype */
+    .top{position:absolute;inset:0 0 auto 0;display:flex;align-items:center;gap:8px;padding:8px 12px;z-index:100;background:linear-gradient(90deg,#1a1a2e,#16213e,#0f3460);border-bottom:2px solid var(--vio)}
+    .chip{background:rgba(139,92,246,.3);padding:4px 8px;border-radius:12px;font-weight:800;font-size:.8rem;white-space:nowrap}
+    .logo{margin-inline:auto;font-family:'Poppins',sans-serif;font-weight:800;color:var(--vio);text-shadow:0 0 12px rgba(139,92,246,.5)}
+    .hypeWrap{position:absolute;inset:auto 12px auto 12px;top:40px;z-index:100}
+    .hypeBar{height:10px;background:rgba(255,255,255,.12);border:1px solid var(--vio);border-radius:8px;overflow:hidden}
+    .hypeBar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--vio),var(--vio2));transition:width .25s ease}
+    .hypeLabel{display:flex;justify-content:space-between;font-size:.72rem;margin-top:4px;opacity:.9}
 
-        /* Top Bar */
-        .top-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(90deg, #1a1a2e, #16213e, #0f3460);
-            padding: 8px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            border-bottom: 2px solid #8b5cf6;
-        }
+    /* Background crossfade */
+    .bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .4s ease}
+    .bg.next{opacity:0}
+    .overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.7) 0%,rgba(0,0,0,.35) 50%,rgba(0,0,0,.7) 100%);z-index:1}
+    /* subtle drift */
+    @keyframes drift{0%{transform:scale(1.05) translate(0,0)}50%{transform:scale(1.05) translate(6px,-6px)}100%{transform:scale(1.05) translate(0,0)}}
+    .bg{animation:drift 12s ease-in-out infinite}
 
-        .timer, .viewers, .sponsor {
-            background: rgba(139, 92, 246, 0.3);
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+    /* Scene title */
+    .scene{position:absolute;top:64px;right:10px;background:rgba(0,0,0,.8);padding:8px 14px;border-radius:12px;border:1px solid var(--vio);font-weight:800;color:var(--vio);z-index:45;backdrop-filter:blur(10px);font-size:.82rem}
 
-        .logo {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 800;
-            color: #8b5cf6;
-            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-        }
+    /* Character */
+    .actorWrap{position:absolute;bottom:24%;left:16px;z-index:50}
+    .actor{width:120px;height:120px;line-height:120px;text-align:center;font-size:80px;filter:drop-shadow(0 0 12px rgba(255,255,255,.55));animation:float 3s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
-        /* Background */
-        .background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            transition: all 0.5s ease;
-        }
+    /* Leaderboard + vote meters */
+    .board{position:absolute;top:64px;left:10px;background:rgba(0,0,0,.8);padding:10px;border-radius:12px;border:1px solid var(--vio);width:160px;backdrop-filter:blur(10px);z-index:45}
+    .board h3{font-size:.82rem;margin-bottom:8px;text-align:center;color:var(--vio)}
+    .row{display:flex;align-items:center;gap:6px;margin-bottom:6px;background:var(--glass);padding:4px;border-radius:6px;font-size:.72rem}
+    .rank{font-weight:800;color:var(--gold)}
+    .score{margin-inline-start:auto;color:var(--succ);font-weight:800}
+    .meters{display:grid;gap:6px;margin-top:8px}
+    .meter{height:10px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden}
+    .meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--vio),var(--vio2));transition:width .3s ease}
 
-        .background-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%);
-            z-index: 1;
-        }
+    /* Boss HP (shows on boss scenes) */
+    .boss{position:absolute;top:98px;left:50%;transform:translateX(-50%);min-width:50%;background:rgba(0,0,0,.7);padding:6px 10px;border:1px solid var(--danger);border-radius:10px;z-index:46;display:none}
+    .boss h4{font-size:.8rem;margin-bottom:4px;color:#ffb4b4;text-align:center}
+    .bossBar{height:12px;background:rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+    .bossBar>span{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ef4444,#f97316);transition:width .25s ease}
 
-        /* Character */
-        .character-container {
-            position: absolute;
-            bottom: 150px;
-            left: 20px;
-            z-index: 50;
-            transition: all 0.3s ease;
-        }
+    /* Game content */
+    .hud{position:absolute;inset:auto 0 0 0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.92));z-index:40}
+    .narr{min-height:88px;background:rgba(0,0,0,.7);border:1px solid var(--vio);border-radius:14px;padding:14px;text-align:center;font-size:1rem;line-height:1.6;margin-bottom:10px;backdrop-filter:blur(10px)}
+    .choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .btn{background:linear-gradient(45deg,var(--vio),var(--vio2));border:none;border-radius:12px;padding:12px 8px;color:#fff;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:64px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(139,92,246,.35)}
+    .btn.selected{background:linear-gradient(45deg,#f59e0b,#f97316);box-shadow:0 0 20px rgba(245,158,11,.6)}
+    .icon{font-size:1rem}
 
-        .character {
-            width: 120px;
-            height: 120px;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
-            animation: float 3s ease-in-out infinite;
-            font-size: 80px;
-            text-align: center;
-            line-height: 120px;
-        }
+    /* Prompt ticker */
+    .ticker{margin-top:10px;font-size:.9rem;opacity:.9;text-align:center}
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
+    /* Popup */
+    .popup{position:absolute;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000}
+    .card{background:linear-gradient(135deg,#1e1b4b,#3730a3);padding:24px;border-radius:18px;border:2px solid var(--vio);max-width:320px;text-align:center;backdrop-filter:blur(10px);animation:pop .5s ease}
+    @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+    .card h3{margin-bottom:10px}
+    .ok{background:linear-gradient(45deg,#10b981,#059669);border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer}
 
-        /* Leaderboard */
-        .leaderboard {
-            position: absolute;
-            top: 50px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #8b5cf6;
-            width: 140px;
-            backdrop-filter: blur(10px);
-            z-index: 45;
-        }
+    /* Particles & Confetti */
+    #fx{position:absolute;inset:0;pointer-events:none;z-index:30}
+    .spark{position:absolute;width:8px;height:8px;background:var(--vio);border-radius:50%;animation:spark 1s ease-out forwards}
+    @keyframes spark{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}}
+    .conf{position:absolute;width:8px;height:12px;background:currentColor;transform:rotate(var(--rot));animation:fall 900ms ease-out forwards}
+    @keyframes fall{to{transform:translate(var(--tx),var(--ty)) rotate(calc(var(--rot) + 180deg));opacity:0}}
 
-        .leaderboard h3 {
-            font-size: 12px;
-            margin-bottom: 8px;
-            text-align: center;
-            color: #8b5cf6;
-        }
+    /* Admin panel */
+    .admin{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.9);padding:12px;border-radius:10px;border:2px solid var(--gold);z-index:2000;max-width:230px;backdrop-filter:blur(10px);display:none}
+    .admin h3{color:var(--gold);text-align:center;margin-bottom:8px}
+    .grid{display:grid;gap:6px}
+    .admin button{background:#374151;border:none;border-radius:6px;padding:8px;color:#fff;font-size:.8rem;cursor:pointer}
+    .admin button:hover{background:#4b5563}
 
-        .player {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-            font-size: 10px;
-            padding: 3px;
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.1);
-        }
+    /* Fever + Sudden Death FX */
+    body[data-fever="1"] .game{filter:saturate(1.4) brightness(1.1);box-shadow:0 0 40px rgba(139,92,246,.6) inset}
+    .sudden{position:absolute;inset:0;z-index:999;pointer-events:none;display:none}
+    .sudden.show{display:block;background:rgba(239,68,68,.1)}
+    .suddenText{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;background:#7f1d1d;padding:10px 14px;border:2px solid #ef4444;border-radius:12px}
 
-        .rank {
-            font-weight: bold;
-            margin-left: 5px;
-            color: #f59e0b;
-        }
+    /* Shake utility */
+    @keyframes shakeK{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+    .shake{animation:shakeK .5s}
 
-        .avatar {
-            margin-left: 5px;
-        }
-
-        .name {
-            flex: 1;
-            font-size: 9px;
-        }
-
-        .score {
-            color: #10b981;
-            font-weight: bold;
-        }
-
-        /* Game Content */
-        .game-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-            padding: 20px;
-            z-index: 40;
-        }
-
-        .narration {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            text-align: center;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid #8b5cf6;
-            backdrop-filter: blur(10px);
-        }
-
-        .choices {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-
-        .choice-btn {
-            background: linear-gradient(45deg, #8b5cf6, #6366f1);
-            border: none;
-            border-radius: 12px;
-            padding: 12px 8px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            min-height: 60px;
-            backdrop-filter: blur(10px);
-        }
-
-        .choice-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
-        }
-
-        .choice-btn:active {
-            transform: translateY(0);
-        }
-
-        .choice-btn.selected {
-            background: linear-gradient(45deg, #f59e0b, #f97316);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
-        }
-
-        .icon {
-            font-size: 16px;
-        }
-
-        /* Result Popup */
-        .result-popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .popup-content {
-            background: linear-gradient(135deg, #1e1b4b, #3730a3);
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            border: 2px solid #8b5cf6;
-            max-width: 300px;
-            animation: popIn 0.5s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        #resultTitle {
-            color: #f59e0b;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        #resultText {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        #nextSceneBtn {
-            background: linear-gradient(45deg, #10b981, #059669);
-            border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        #nextSceneBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        /* Particles */
-        #particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 30;
-        }
-
-        .particle {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            background: #8b5cf6;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: particleFloat 1s ease-out forwards;
-        }
-
-        @keyframes particleFloat {
-            0% {
-                transform: translate(0, 0) scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(var(--tx), var(--ty)) scale(0);
-                opacity: 0;
-            }
-        }
-
-        /* Admin Panel */
-        .admin-panel {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #f59e0b;
-            z-index: 2000;
-            max-width: 200px;
-            backdrop-filter: blur(10px);
-        }
-
-        .admin-panel h3 {
-            color: #f59e0b;
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .admin-controls {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 5px;
-        }
-
-        .admin-controls button {
-            background: #374151;
-            border: none;
-            border-radius: 6px;
-            padding: 8px;
-            color: white;
-            font-size: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .admin-controls button:hover {
-            background: #4b5563;
-            transform: translateY(-1px);
-        }
-
-        /* Scene Title */
-        .scene-title {
-            position: absolute;
-            top: 60px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 8px 15px;
-            border-radius: 12px;
-            border: 1px solid #8b5cf6;
-            font-size: 12px;
-            font-weight: bold;
-            color: #8b5cf6;
-            z-index: 45;
-            backdrop-filter: blur(10px);
-        }
-    </style>
+    @media (max-width:420px){
+      .board{width:150px}
+      .actor{width:110px;height:110px;line-height:110px;font-size:72px}
+      .narr{font-size:.95rem;min-height:78px}
+    }
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="timer">⏱️ 00:30</div>
-            <div class="logo">Avenues & Dragons</div>
-            <div class="viewers">👁️ 1.2K</div>
-            <div class="sponsor">🪩 Prestige</div>
-        </div>
-
-        <!-- Background -->
-        <div class="background" id="background"></div>
-        <div class="background-overlay"></div>
-        
-        <!-- Scene Title -->
-        <div class="scene-title" id="sceneTitle">المشهد ١: بوابة الأفنيوز</div>
-        
-        <!-- Character -->
-        <div class="character-container">
-            <div class="character" id="character">👸</div>
-        </div>
-
-        <!-- Leaderboard -->
-        <div class="leaderboard">
-            <h3>🏆 أبطال القاعة</h3>
-            <div class="player-list">
-                <div class="player">
-                    <span class="rank">1</span>
-                    <span class="avatar">👑</span>
-                    <span class="name">نور_الكويت</span>
-                    <span class="score">1.5K</span>
-                </div>
-                <div class="player">
-                    <span class="rank">2</span>
-                    <span class="avatar">⚔️</span>
-                    <span class="name">أحمد_المول</span>
-                    <span class="score">1.2K</span>
-                </div>
-                <div class="player">
-                    <span class="rank">3</span>
-                    <span class="avatar">🛡️</span>
-                    <span class="name">فاطمة_السحر</span>
-                    <span class="score">800</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Game Content -->
-        <div class="game-content">
-            <div class="narration" id="narration">
-                مرحباً في مجمع الأفنيوز السحري! اختاروا سلاحكم للبداية...
-            </div>
-            
-            <div class="choices" id="choices">
-                <button class="choice-btn" data-choice="1">
-                    <span class="icon">🗡️</span>
-                    <span class="text">سلاح المول</span>
-                </button>
-                <button class="choice-btn" data-choice="2">
-                    <span class="icon">🛡️</span>
-                    <span class="text">درع الأمن</span>
-                </button>
-                <button class="choice-btn" data-choice="3">
-                    <span class="icon">☕</span>
-                    <span class="text">قنبلة القهوة</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Particles Container -->
-        <div id="particles"></div>
+  <div class="game" id="root" aria-live="polite">
+    <!-- Top -->
+    <div class="top">
+      <div class="chip" id="timer">⏱️ 00:30</div>
+      <div class="logo">Avenues & Dragons</div>
+      <div class="chip" id="viewers">👁️ 1.2K</div>
+      <div class="chip" id="runChip">🏅 Runs: <b id="runs">0</b></div>
+      <div class="chip" id="sponsor">🪩 Prestige</div>
+    </div>
+    <div class="hypeWrap">
+      <div class="hypeBar"><span id="hypeFill"></span></div>
+      <div class="hypeLabel"><span>🔥 Hype</span><span id="hypePct">0%</span></div>
     </div>
 
-    <!-- Result Popup -->
-    <div class="result-popup" id="resultPopup">
-        <div class="popup-content">
-            <h3 id="resultTitle">نتيجة المعركة!</h3>
-            <p id="resultText"></p>
-            <button id="nextSceneBtn">➡️ التالي</button>
-        </div>
+    <!-- Backgrounds -->
+    <div class="bg" id="bgA"></div>
+    <div class="bg next" id="bgB"></div>
+    <div class="overlay"></div>
+
+    <!-- Scene title -->
+    <div class="scene" id="sceneTitle">المشهد ١: بوابة الأفنيوز</div>
+
+    <!-- Boss HP -->
+    <div class="boss" id="bossBox">
+      <h4>🧿 المدير — صحة الزعيم</h4>
+      <div class="bossBar"><span id="bossHPBar"></span></div>
     </div>
 
-    <!-- Admin Panel -->
-    <div class="admin-panel" id="adminPanel">
-        <h3>🛠️ لوحة التحكم</h3>
-        <div class="admin-controls">
-            <button onclick="loadScene(0)">المشهد 1: البوابة</button>
-            <button onclick="loadScene(1)">المشهد 2: بريستيج</button>
-            <button onclick="loadScene(2)">المشهد 3: الجاردنز</button>
-            <button onclick="loadScene(3)">المشهد 4: السوق</button>
-            <button onclick="loadScene(4)">المشهد 5: المنتدى</button>
-            <button onclick="loadScene(5)">المشهد 6: المدير</button>
-            <button onclick="simulateVote(1)">🎯 تصويت 1</button>
-            <button onclick="simulateVote(2)">🎯 تصويت 2</button>
-            <button onclick="simulateVote(3)">🎯 تصويت 3</button>
-        </div>
+    <!-- Character -->
+    <div class="actorWrap"><div class="actor" id="actor" aria-label="الشخصية">👸</div></div>
+
+    <!-- Board -->
+    <div class="board">
+      <h3>🏆 أبطال القاعة</h3>
+      <div class="row"><span class="rank">1</span><span>👑</span><span>نور_الكويت</span><span class="score">1.5K</span></div>
+      <div class="row"><span class="rank">2</span><span>⚔️</span><span>أحمد_المول</span><span class="score">1.2K</span></div>
+      <div class="row"><span class="rank">3</span><span>🛡️</span><span>فاطمة_السحر</span><span class="score">800</span></div>
+      <div class="meters">
+        <div class="meter"><span id="bar1"></span></div>
+        <div class="meter"><span id="bar2"></span></div>
+        <div class="meter"><span id="bar3"></span></div>
+      </div>
     </div>
 
-    <script>
-        // Game Data with 6 different Avenues backgrounds
-        const gameScenes = [
-            {
-                scene_id: 0,
-                background: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-                character: "👸",
-                title: "المشهد ١: بوابة الأفنيوز السحرية",
-                narration: "🪩 مرحباً في مجمع الأفنيوز السحري! أنا نور، بطلة هذا العالم الخيالي. أمامنا البوابة الرئيسية المضيئة. أي سلاح نختار لبداية رحلتنا؟",
-                choices: [
-                    {id: 1, text: "🗡️ سلاح المول", result: "💫 ممتاز! سلاح المول يتألق بقوة تحت الأضواء. نحن جاهزون للمغامرة!"},
-                    {id: 2, text: "🛡️ درع الأمن", result: "🛡️ اختيار حكيم! الدرع سيوفر لنا الحماية في رحلتنا عبر الممرات."},
-                    {id: 3, text: "☕ قنبلة القهوة", result: "💥 رائحة القهوة السحرية تملأ المكان! هذا سيكون مفيداً ضد الوحوش."}
-                ],
-                correct_choice: 1
-            },
-            {
-                scene_id: 1,
-                background: "https://images.unsplash.com/photo-1555529771-7888783a18d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
-                character: "👸",
-                title: "المشهد ٢: قاعة بريستيج",
-                narration: "💎 دخلنا إلى قاعة بريستيج الفاخرة! إنها تلمع بالذهب والعطور. لكن انتبهوا! وحش العطور الفاخرة يهاجم!",
-                choices: [
-                    {id: 1, text: "🗡️ هجوم سريع", result: "⚡ هجوم رائع بين المحلات الفاخرة! الوحش تراجع لكنه لم يهزم بعد."},
-                    {id: 2, text: "🛡️ الدفاع", result: "🛡️ حصانة ممتازة خلف عروض المجوهرات! لكن الوحش لا يزال يهاجم."},
-                    {id: 3, text: "☕ قهوة التشتيت", result: "🎯 رائحة القهوة الفاخرة أربكت الوحش! فرصة مثالية للتقدم."}
-                ],
-                correct_choice: 1
-            },
-            {
-                scene_id: 2,
-                background: "https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-                character: "👸",
-                title: "المشهد ٣: حدائق الأفنيوز",
-                narration: "🌿 وصلنا إلى منطقة الجاردنز! الأشجار والنوافير تحيط بنا. تنين الأوراق يهاجم من بين الأشجار!",
-                choices: [
-                    {id: 1, text: "🗡️ قطع الأوراق", result: "🍃 سيفك يقطع الأوراق المتطايرة! التنين يتراجع نحو النافورة."},
-                    {id: 2, text: "🛡️ درع الطبيعة", result: "🌳 استخدمت قوة الطبيعة للدفاع! الأوراق تتساقط حولك."},
-                    {id: 3, text: "☕ قهوة الورود", result: "🌹 رائحة قهوة الورود أربكت التنين! فرصة للهروب."}
-                ],
-                correct_choice: 1
-            },
-            {
-                scene_id: 3,
-                background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-                character: "👸",
-                title: "المشهد ٤: السوق المركزي",
-                narration: "🛍️ نحن الآن في السوق المركزي! المحلات تحيط بنا من كل جانب. وحوش العروض الخاصة تهاجم من كل اتجاه!",
-                choices: [
-                    {id: 1, text: "🗡️ هجوم دائري", result: "🌀 هجوم ممتاز! دورت حول الوحوش بين المحلات."},
-                    {id: 2, text: "🛡️ درع التسوق", result: "🛒 استخدمت عربات التسوق كدرع! فكرة ذكية."},
-                    {id: 3, text: "☕ قهوة التنزيلات", result: "🏷️ رائحة القهوة جذبت الوحوش نحو العروض! هربوا."}
-                ],
-                correct_choice: 1
-            },
-            {
-                scene_id: 4,
-                background: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-                character: "👸",
-                title: "المشهد ٥: ساحة المنتدى",
-                narration: "🎭 وصلنا إلى الساحة المركزية! المكان واسع والجميع يشاهدنا. وحش الجمهور يهاجم من المنصة الرئيسية!",
-                choices: [
-                    {id: 1, text: "🗡️ هجوم جماهيري", result: "👏 الهجوم كان مذهلاً! الجمهور يصفق لك."},
-                    {id: 2, text: "🛡️ درع الشهرة", result: "🌟 استخدمت شهرتك كدرع! الوحش مرتبك."},
-                    {id: 3, text: "☕ قهوة النجوم", result: "🎬 رائحة قهوة النجوم أربكت الوحش! انسحب."}
-                ],
-                correct_choice: 1
-            },
-            {
-                scene_id: 5,
-                background: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2080&q=80",
-                character: "👸",
-                title: "المشهد ٦: مواجهة المدير",
-                narration: "👑 هذه المواجهة النهائية! 'المدير' يظهر في مكتبه الفاخر. إنه الأقوى ويحرس كنوز الأفنيوز! اختاروا السلاح بحكمة...",
-                choices: [
-                    {id: 1, text: "🗡️ الهجوم النهائي", result: "🎊 نجاح مذهل! 'المدير' هزم وأعاد الكنوز المسروقة. انتصرنا وحمينا الأفنيوز!"},
-                    {id: 2, text: "🛡️ الدفاع الاستراتيجي", result: "🛡️ دفاع قوي لكن 'المدير' لا يزال مسيطراً. نحتاج لهجوم حاسم!"},
-                    {id: 3, text: "☕ قهوة المفاوضات", result: "☕ فكرة دبلوماسية لكن 'المدير' لا يهتم! الهجوم ضروري لإنقاذ المول."}
-                ],
-                correct_choice: 1
-            }
-        ];
+    <!-- HUD -->
+    <div class="hud">
+      <div class="narr" id="narr">مرحباً في مجمع الأفنيوز السحري! اختاروا سلاحكم للبداية...</div>
+      <div class="choices" id="choices"></div>
+      <div class="ticker" id="ticker">اكتبوا <b>سيف</b> / <b>درع</b> / <b>قهوة</b> لاختياركم!</div>
+    </div>
 
-        // Game State
-        let currentScene = 0;
-        let gameActive = true;
+    <!-- FX & Overlays -->
+    <div id="fx"></div>
+    <div class="sudden" id="sudden"><div class="suddenText">⚠️ تعادل! اكتبوا <b>برق</b> الآن لكسر التعادل</div></div>
 
-        // DOM Elements
-        const backgroundEl = document.getElementById('background');
-        const characterEl = document.getElementById('character');
-        const narrationEl = document.getElementById('narration');
-        const choicesEl = document.getElementById('choices');
-        const resultPopup = document.getElementById('resultPopup');
-        const resultText = document.getElementById('resultText');
-        const resultTitle = document.getElementById('resultTitle');
-        const nextSceneBtn = document.getElementById('nextSceneBtn');
-        const sceneTitle = document.getElementById('sceneTitle');
+    <!-- Popup -->
+    <div class="popup" id="popup" role="dialog" aria-modal="true">
+      <div class="card">
+        <h3 id="popTitle">🎉 نجاح!</h3>
+        <p id="popText"></p>
+        <button class="ok" id="nextBtn">➡️ التالي</button>
+      </div>
+    </div>
 
-        // Initialize Game
-        function initGame() {
-            loadScene(0);
-            nextSceneBtn.addEventListener('click', nextScene);
+    <!-- Admin (?admin=1) -->
+    <div class="admin" id="admin">
+      <h3>🛠️ لوحة التحكم</h3>
+      <div class="grid" id="adminScenes"></div>
+      <div class="grid" style="margin-top:6px">
+        <button onclick="simulateVote(1)">🎯 تصويت 1</button>
+        <button onclick="simulateVote(2)">🎯 تصويت 2</button>
+        <button onclick="simulateVote(3)">🎯 تصويت 3</button>
+        <button onclick="onGift('rose','نور')">🌹 Rose</button>
+        <button onclick="onGift('gg','أحمد')">🎁 GG</button>
+        <button onclick="onGift('fireworks','فاطمة')">🎉 Fireworks</button>
+        <button onclick="onGift('mic','المستشار')">🎤 Mic</button>
+        <button onclick="triggerFever()">🔥 Fever</button>
+        <button onclick="simulateKeyword('برق')">⚡ برق</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ========= DATA ========= */
+    const scenes = [
+      { id:0, bg:"https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=2000&q=80", actor:"👸",
+        title:"المشهد ١: بوابة الأفنيوز السحرية",
+        narr:"🪩 أهلاً! أنا نور. أمامنا البوابة المضيئة—اختاروا بداية الرحلة!",
+        choices:[
+          {id:1, text:"🗡️ سلاح المول", result:"💫 السلاح يتألق—انطلقت المغامرة!" },
+          {id:2, text:"🛡️ درع الأمن", result:"🛡️ حماية ممتازة للممرات." },
+          {id:3, text:"☕ قنبلة القهوة", result:"💥 رائحة القهوة تُربك الوحوش." }
+        ],
+        correct:1
+      },
+      { id:1, bg:"https://images.unsplash.com/photo-1555529771-7888783a18d3?auto=format&fit=crop&w=2000&q=80", actor:"👸",
+        title:"المشهد ٢: قاعة بريستيج",
+        narr:"💎 بريستيج يلمع… ووحش العطور يهاجم!",
+        choices:[
+          {id:1, text:"🗡️ هجوم سريع", result:"⚡ تراجع الوحش وسط المحلات." },
+          {id:2, text:"🛡️ الدفاع", result:"🛡️ حصانة وراء المجوهرات." },
+          {id:3, text:"☕ قهوة التشتيت", result:"🎯 أربكته الرائحة—تقدّم!" }
+        ],
+        correct:1
+      },
+      { id:2, bg:"https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?auto=format&fit=crop&w=2000&q=80", actor:"👸",
+        title:"المشهد ٣: حدائق الأفنيوز",
+        narr:"🌿 تنين الأوراق يظهر بين الأشجار!",
+        choices:[
+          {id:1, text:"🗡️ قطع الأوراق", result:"🍃 التنين يتراجع للنافورة." },
+          {id:2, text:"🛡️ درع الطبيعة", result:"🌳 أوراق تتساقط حولك." },
+          {id:3, text:"☕ قهوة الورود", result:"🌹 ارتباك سريع—افتح الطريق." }
+        ],
+        correct:1
+      },
+      { id:3, bg:"https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=2000&q=80", actor:"👸",
+        title:"المشهد ٤: السوق المركزي",
+        narr:"🛍️ وحوش العروض الخاصة من كل اتجاه!",
+        choices:[
+          {id:1, text:"🗡️ هجوم دائري", result:"🌀 التفاف ممتاز بين المحلات." },
+          {id:2, text:"🛡️ درع التسوق", result:"🛒 عربات كدرع ذكي." },
+          {id:3, text:"☕ قهوة التنزيلات", result:"🏷️ انجذبوا للعروض." }
+        ],
+        correct:1
+      },
+      { id:4, bg:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=80", actor:"👸",
+        title:"المشهد ٥: ساحة المنتدى",
+        narr:"🎭 الجميع يشاهد—وحش الجمهور يهجم من المنصة!",
+        choices:[
+          {id:1, text:"🗡️ هجوم جماهيري", result:"👏 تصفيق مدوٍ!" },
+          {id:2, text:"🛡️ درع الشهرة", result:"🌟 ارتباك عند الوحش." },
+          {id:3, text:"☕ قهوة النجوم", result:"🎬 انسحاب سريع." }
+        ],
+        correct:1
+      },
+      { id:5, bg:"https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=2000&q=80", actor:"👸",
+        title:"المشهد ٦: مواجهة المدير",
+        narr:"👑 النهائي! المدير يحرس الكنوز—اختاروا بحكمة…",
+        choices:[
+          {id:1, text:"🗡️ الهجوم النهائي", result:"🎊 هُزم المدير وأُعيدت الكنوز!" },
+          {id:2, text:"🛡️ الدفاع الاستراتيجي", result:"🛡️ قوي لكنه ما زال مسيطر." },
+          {id:3, text:"☕ قهوة المفاوضات", result:"☕ لا يهتم—الهجوم ضروري." }
+        ],
+        correct:1, boss:true
+      }
+    ];
+
+    /* ========= STATE ========= */
+    const root   = document.getElementById('root');
+    const bgA    = document.getElementById('bgA');
+    const bgB    = document.getElementById('bgB');
+    const sceneTitle = document.getElementById('sceneTitle');
+    const actor  = document.getElementById('actor');
+    const narr   = document.getElementById('narr');
+    const choicesEl = document.getElementById('choices');
+    const timerEl= document.getElementById('timer');
+    const popup  = document.getElementById('popup');
+    const popTitle = document.getElementById('popTitle');
+    const popText  = document.getElementById('popText');
+    const nextBtn  = document.getElementById('nextBtn');
+
+    const hypeFill = document.getElementById('hypeFill');
+    const hypePct  = document.getElementById('hypePct');
+
+    const bar1 = document.getElementById('bar1');
+    const bar2 = document.getElementById('bar2');
+    const bar3 = document.getElementById('bar3');
+    const bossBox = document.getElementById('bossBox');
+    const bossHPBar = document.getElementById('bossHPBar');
+    const ticker = document.getElementById('ticker');
+    const fx = document.getElementById('fx');
+    const sudden = document.getElementById('sudden');
+
+    const admin = document.getElementById('admin');
+    const adminScenes = document.getElementById('adminScenes');
+    const qs = new URLSearchParams(location.search);
+    if(qs.get('admin')==='1') admin.style.display='block';
+
+    // Audio scaffold (replace sources with your files)
+    const SFX = {
+      tick:new Audio('sfx/tick.mp3'),
+      win:new Audio('sfx/win.mp3'),
+      lose:new Audio('sfx/lose.mp3'),
+      fever:new Audio('sfx/fever.mp3')
+    };
+
+    let current=0, usingA=true;
+    let votes = {1:0,2:0,3:0};
+    let timer=null, timeLeft=30;
+    let hype=0, combo=0, fever=false;
+    let bossHP=100;
+    let oneTimeShield=false;
+    let advisor=null, advisorUntil=0, advisorMult=2;
+    const RUNS_KEY='ad_runs'; let runs = Number(localStorage.getItem(RUNS_KEY)||0);
+    document.getElementById('runs').textContent = runs;
+
+    /* ========= HELPERS ========= */
+    function setBG(url){
+      const currentBG = usingA?bgA:bgB;
+      const nextBG = usingA?bgB:bgA;
+      const img = new Image();
+      img.onload = ()=>{
+        nextBG.style.backgroundImage = `url('${url}')`;
+        nextBG.style.opacity = 1;
+        currentBG.style.opacity = 0;
+        usingA = !usingA;
+      };
+      img.src = url;
+    }
+    function fmtTime(s){const mm=String(Math.floor(s/60)).padStart(2,'0'); const ss=String(s%60).padStart(2,'0'); return `${mm}:${ss}`;}
+    function updateTimer(){timerEl.textContent = `⏱️ ${fmtTime(timeLeft)}`;}
+    function updateMeters(){
+      const total = votes[1]+votes[2]+votes[3] || 1;
+      bar1.style.width = (votes[1]/total*100).toFixed(1)+'%';
+      bar2.style.width = (votes[2]/total*100).toFixed(1)+'%';
+      bar3.style.width = (votes[3]/total*100).toFixed(1)+'%';
+    }
+    function resetVotes(){votes={1:0,2:0,3:0}; updateMeters();}
+    function renderBoss(){ bossBox.style.display = scenes[current].boss ? 'block':'none'; bossHPBar.style.width = bossHP+'%'; }
+    function addHype(n){ hype = Math.min(100, hype + n); hypeFill.style.width = hype+'%'; hypePct.textContent = Math.round(hype)+'%'; if(hype>=100 && !fever) triggerFever(); }
+    function triggerFever(){ fever=true; document.body.dataset.fever="1"; SFX.fever?.play?.(); setTimeout(()=>{ fever=false; document.body.dataset.fever="0"; hype=0; hypeFill.style.width='0%'; hypePct.textContent='0%'; },15000); }
+    function shake(sel){ const el=document.querySelector(sel); el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),500); }
+    function flash(){ const f=document.createElement('div'); f.style="position:absolute;inset:0;background:#fff;opacity:.6;z-index:1200;"; root.appendChild(f); setTimeout(()=>f.remove(),120); }
+    function sparks(x,y){ for(let i=0;i<15;i++){ const p=document.createElement('div'); p.className='spark'; p.style.left=x+'px'; p.style.top=y+'px'; const ang=Math.random()*Math.PI*2; const dist=50+Math.random()*100; p.style.setProperty('--tx',Math.cos(ang)*dist+'px'); p.style.setProperty('--ty',Math.sin(ang)*dist+'px'); fx.appendChild(p); setTimeout(()=>p.remove(),1000); } }
+    function confetti(){ const rect=root.getBoundingClientRect(); for(let i=0;i<40;i++){ const c=document.createElement('div'); c.className='conf'; c.style.color = ['#8b5cf6','#6366f1','#f59e0b','#10b981'][i%4]; c.style.left = (rect.width*0.5)+'px'; c.style.top = '0px'; c.style.setProperty('--tx',(Math.random()*rect.width - rect.width/2)+'px'); c.style.setProperty('--ty',(rect.height*0.9)+'px'); c.style.setProperty('--rot',(Math.random()*360)+'deg'); fx.appendChild(c); setTimeout(()=>c.remove(),900); } }
+
+    /* ========= TICKER ========= */
+    const prompts = [
+      "اكتبوا <b>سيف</b> / <b>درع</b> / <b>قهوة</b> لاختياركم!",
+      "أول متبرع الآن = <b>المستشار</b> لمدة ٣٠ ثانية (صوته ×٢)!",
+      "تعادل؟ اكتبوا <b>برق</b> لكسر التعادل!",
+      "ارفعوا الهايب لتشغيل <b>Fever Time</b> 🔥"
+    ];
+    let pIndex=0;
+    setInterval(()=>{ pIndex=(pIndex+1)%prompts.length; ticker.innerHTML=prompts[pIndex]; },5000);
+
+    /* ========= TIMER / SUDDEN DEATH ========= */
+    function startTimer(s=30){
+      clearInterval(timer);
+      timeLeft=s; updateTimer();
+      let suddenShown=false;
+      timer=setInterval(()=>{
+        if(timeLeft<=0){
+          clearInterval(timer);
+          const top = topVoted() ?? 1;
+          makeChoice(top,true); return;
         }
+        timeLeft--; updateTimer();
 
-        // Load a specific scene
-        function loadScene(sceneIndex) {
-            if (sceneIndex >= gameScenes.length) sceneIndex = 0;
-            
-            currentScene = sceneIndex;
-            const scene = gameScenes[sceneIndex];
-            
-            // Update UI with background image
-            backgroundEl.style.backgroundImage = `url('${scene.background}')`;
-            characterEl.textContent = scene.character;
-            narrationEl.textContent = scene.narration;
-            sceneTitle.textContent = scene.title;
-            
-            // Create choice buttons
-            choicesEl.innerHTML = '';
-            scene.choices.forEach(choice => {
-                const button = document.createElement('button');
-                button.className = 'choice-btn';
-                button.innerHTML = `
-                    <span class="icon">${choice.text.split(' ')[0]}</span>
-                    <span class="text">${choice.text.split(' ').slice(1).join(' ')}</span>
-                `;
-                button.setAttribute('data-choice', choice.id);
-                button.addEventListener('click', () => makeChoice(choice.id));
-                choicesEl.appendChild(button);
-            });
-            
-            // Hide result popup
-            resultPopup.style.display = 'none';
-            gameActive = true;
+        // last 10s tick
+        if(timeLeft===10) SFX.tick?.play?.();
+        if(timeLeft<10 && timeLeft%2===0) SFX.tick?.play?.();
+
+        // Sudden Death (<=3s and tie or zero)
+        const tied = isTie();
+        if(timeLeft<=3 && tied && !suddenShown){
+          sudden.classList.add('show'); suddenShown=true;
         }
+        if(!tied){ sudden.classList.remove('show'); }
+      },1000);
+    }
+    function isTie(){
+      const arr=[votes[1],votes[2],votes[3]];
+      const max=Math.max(...arr);
+      const countMax = arr.filter(v=>v===max).length;
+      return max===0 || countMax>1;
+    }
+    function simulateKeyword(word){
+      if(word==='برق' && timeLeft<=3){ // break tie by adding 1 to random tied
+        const arr=[{id:1,v:votes[1]},{id:2,v:votes[2]},{id:3,v:votes[3]}];
+        const max=Math.max(votes[1],votes[2],votes[3]);
+        const tied=arr.filter(o=>o.v===max);
+        const pick = tied[Math.floor(Math.random()*tied.length)]?.id || 1;
+        votes[pick]+=1; updateMeters();
+      }
+    }
 
-        // Player makes a choice
-        function makeChoice(choiceId) {
-            if (!gameActive) return;
-            
-            gameActive = false;
-            const scene = gameScenes[currentScene];
-            const choice = scene.choices.find(c => c.id === choiceId);
-            
-            // Visual feedback
-            const selectedBtn = document.querySelector(`[data-choice="${choiceId}"]`);
-            selectedBtn.classList.add('selected');
-            createParticles(selectedBtn);
-            
-            // Show result after delay
-            setTimeout(() => {
-                showResult(choice.result, choiceId === scene.correct_choice);
-            }, 1000);
-        }
+    /* ========= ADMIN ========= */
+    function buildAdmin(){
+      adminScenes.innerHTML='';
+      scenes.forEach((s,i)=>{ const b=document.createElement('button'); b.textContent=`المشهد ${i+1}: ${s.title.replace(/المشهد \\d+:\\s?/,'')}`; b.onclick=()=>loadScene(i,true); adminScenes.appendChild(b); });
+    }
+    buildAdmin();
 
-        // Show result popup
-        function showResult(result, isCorrect) {
-            resultTitle.textContent = isCorrect ? '🎉 نجاح!' : '💡 محاولة جيدة';
-            resultTitle.style.color = isCorrect ? '#10b981' : '#f59e0b';
-            resultText.textContent = result;
-            resultPopup.style.display = 'flex';
-        }
+    /* ========= BUILD SCENE ========= */
+    function loadScene(i, fromAdmin=false){
+      if(i>=scenes.length) i=0;
+      current=i; resetVotes(); combo=0; oneTimeShield=false;
+      const s=scenes[i];
+      setBG(s.bg);
+      sceneTitle.textContent = s.title;
+      actor.textContent = s.actor;
+      narr.textContent = s.narr;
+      choicesEl.innerHTML='';
+      s.choices.forEach(ch=>{
+        const btn=document.createElement('button');
+        btn.className='btn';
+        const [icon,...label]=ch.text.split(' ');
+        btn.innerHTML = `<span class="icon">${icon}</span><span class="text">${label.join(' ')}</span>`;
+        btn.dataset.choice=ch.id;
+        btn.onclick=()=> makeChoice(ch.id);
+        choicesEl.appendChild(btn);
+      });
+      if(s.boss){ bossHP=100; } renderBoss();
+      popup.style.display='none';
+      startTimer( (s.boss && fever)?20:30 ); // example: same timer; adjust if needed
+    }
 
-        // Move to next scene
-        function nextScene() {
-            loadScene(currentScene + 1);
-        }
+    /* ========= VOTING & RESULT ========= */
+    function simulateVote(id, username=null){
+      if(!timer) return;
+      const mult = (advisor && Date.now()<advisorUntil && username===advisor) ? advisorMult : 1;
+      votes[id] += 1*mult + Math.floor(Math.random()*2); // tiny burst
+      updateMeters();
 
-        // Create particle effects
-        function createParticles(element) {
-            const rect = element.getBoundingClientRect();
-            const particlesContainer = document.getElementById('particles');
-            
-            for (let i = 0; i < 15; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                
-                const startX = rect.left + rect.width / 2;
-                const startY = rect.top + rect.height / 2;
-                
-                particle.style.left = startX + 'px';
-                particle.style.top = startY + 'px';
-                
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 50 + Math.random() * 100;
-                const tx = Math.cos(angle) * distance;
-                const ty = Math.sin(angle) * distance;
-                
-                particle.style.setProperty('--tx', tx + 'px');
-                particle.style.setProperty('--ty', ty + 'px');
-                
-                particlesContainer.appendChild(particle);
-                
-                setTimeout(() => particle.remove(), 1000);
-            }
-        }
+      const btn = choicesEl.querySelector(`[data-choice="${id}"]`);
+      if(btn){ pulse(btn); buttonSparks(btn); }
+      addHype(4);
+    }
+    function pulse(el){ el.animate([{transform:'scale(1)'},{transform:'scale(1.05)'},{transform:'scale(1)'}],{duration:180}); }
+    function buttonSparks(btn){
+      const container=root.getBoundingClientRect();
+      const r=btn.getBoundingClientRect();
+      const x=r.left+r.width/2-container.left;
+      const y=r.top+r.height/2-container.top;
+      sparks(x,y);
+    }
+    function topVoted(){
+      const arr=[{id:1,v:votes[1]},{id:2,v:votes[2]},{id:3,v:votes[3]}].sort((a,b)=>b.v-a.v);
+      return arr[0].v>0 ? arr[0].id : null;
+    }
 
-        // Admin functions
-        function simulateVote(choice) {
-            if (gameActive) makeChoice(choice);
-        }
+    function makeChoice(choiceId, auto=false){
+      if(!timer) return;
+      clearInterval(timer);
+      const s=scenes[current];
+      const choice=s.choices.find(c=>c.id===choiceId);
+      const correct = (choiceId===s.correct) || (oneTimeShield && (oneTimeShield=false, true));
 
-        // Initialize game when page loads
-        document.addEventListener('DOMContentLoaded', initGame);
+      // UI
+      const btn=choicesEl.querySelector(`[data-choice="${choiceId}"]`);
+      if(btn){ btn.classList.add('selected'); buttonSparks(btn); }
+      if(correct){
+        combo++; addHype(7+combo*1);
+        flash();
+        SFX.win?.play?.();
+      }else{
+        combo=0; shake('#root');
+        SFX.lose?.play?.();
+      }
 
-        // Export for global access
-        window.loadScene = loadScene;
-        window.simulateVote = simulateVote;
-    </script>
+      // Boss damage via correct or gifts
+      if(s.boss && correct){
+        damageBoss(35); // chunk from correct
+      }
+
+      // show popup
+      setTimeout(()=>{
+        popTitle.textContent = correct ? '🎉 نجاح!' : '💡 محاولة جيدة';
+        popTitle.style.color = correct ? '#10b981' : '#f59e0b';
+        popText.textContent = choice?.result || '';
+        popup.style.display='flex';
+      },600);
+    }
+
+    function nextScene(){
+      if(current===scenes.length-1){ // run end
+        runs++; localStorage.setItem(RUNS_KEY,String(runs)); document.getElementById('runs').textContent=runs;
+      }
+      loadScene(current+1);
+    }
+    nextBtn.addEventListener('click', nextScene);
+
+    /* ========= BOSS ========= */
+    function damageBoss(n){
+      if(!scenes[current].boss) return;
+      bossHP=Math.max(0,bossHP-n); renderBoss();
+      if(bossHP===0){
+        // Auto mark as success on boss down
+        setTimeout(()=>makeChoice(scenes[current].correct,true),200);
+      }
+    }
+
+    /* ========= GIFTS & ROLES =========
+       Map your live events to onGift(type, user)
+       rose -> +3 to choice 1, gg -> +3 to choice 2,
+       fireworks -> +3 to choice 3 + confetti, mic -> oneTimeShield
+    */
+    function onGift(type, user='مشاهد'){
+      if(!timer) return;
+      switch(type){
+        case 'rose': for(let i=0;i<3;i++) simulateVote(1,user); addHype(5); break;
+        case 'gg': for(let i=0;i<3;i++) simulateVote(2,user); addHype(5); break;
+        case 'fireworks': for(let i=0;i<3;i++) simulateVote(3,user); confetti(); addHype(10); break;
+        case 'mic':
+          oneTimeShield=true;
+          toast(`🎙️ بركة ${user}! الخطأ القادم محسوب صح.`); break;
+      }
+      // boss chip from big gifts
+      if(type==='fireworks' && scenes[current].boss) damageBoss(12);
+      // first gift in scene becomes advisor if none
+      if(!advisor){ setAdvisor(user, 30_000); }
+    }
+
+    function setAdvisor(user, ms){
+      advisor=user; advisorUntil=Date.now()+ms;
+      toast(`👑 ${user} صار <b>المستشار</b> (${Math.round(ms/1000)}s) — صوته ×${advisorMult}`);
+      setTimeout(()=>{ if(Date.now()>=advisorUntil) { toast(`⌛ انتهت صلاحية المستشار ${advisor}`); advisor=null; } }, ms+200);
+    }
+
+    /* ========= TOAST ========= */
+    function toast(html){
+      const t=document.createElement('div');
+      t.style.cssText="position:absolute;top:120px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);padding:8px 12px;border:1px solid #8b5cf6;border-radius:10px;z-index:1500";
+      t.innerHTML=html; root.appendChild(t); setTimeout(()=>t.remove(),2000);
+    }
+
+    /* ========= PUBLIC / INIT ========= */
+    window.loadScene = loadScene;
+    window.simulateVote = simulateVote;
+    window.onGift = onGift;
+    window.simulateKeyword = simulateKeyword;
+    window.triggerFever = triggerFever;
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+      loadScene(0);
+    });
+  </script>
 </body>
 </html>
