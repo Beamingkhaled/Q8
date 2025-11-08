@@ -15,6 +15,7 @@
     .choice{font-size:1.15em}
     .status{font-size:.9em;opacity:.9;margin-top:8px}
     .ok{color:#9dffb0}.bad{color:#ff8c8c}
+    .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
   </style>
 </head>
 <body>
@@ -23,12 +24,16 @@
     <div class="box"><div id="sceneTitle">تحميل المشهد…</div></div>
     <div class="choice" id="choiceLeft">…</div>
     <div class="choice" id="choiceRight">…</div>
-    <div id="status" class="status">جارٍ الاتصال…</div>
+    <div id="status" class="status mono">connecting…</div>
   </div>
 
   <script>
-    // 🔒 Pull directly from RAW (no Pages CDN cache)
-    const RAW_URL = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
+    // 3 mirrored sources (RAW -> jsDelivr -> Pages)
+    const SOURCES = [
+      "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json",
+      "https://cdn.jsdelivr.net/gh/beamingkhaled/BQ8@main/choices.json",
+      "https://beamingkhaled.github.io/BQ8/choices.json"
+    ];
 
     const titleEl  = document.getElementById("sceneTitle");
     const leftEl   = document.getElementById("choiceLeft");
@@ -37,41 +42,52 @@
 
     let lastUpdatedAt = "";
 
-    async function fetchOnce(signal){
-      // brutal cache-bust for iOS Safari
-      const url = RAW_URL + "?ts=" + Date.now() + "&r=" + Math.random().toString(36).slice(2);
-      const res = await fetch(url, {
-        cache: "no-store",
-        redirect: "follow",
-        mode: "cors",
-        headers: { "Cache-Control":"no-cache" },
-        signal
-      });
-      if(!res.ok) throw new Error("HTTP " + res.status);
+    function withTimeout(ms, promise){
+      const ctl = new AbortController();
+      const t = setTimeout(()=>ctl.abort(), ms);
+      return Promise.race([
+        promise(ctl.signal).finally(()=>clearTimeout(t)),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error("Timeout "+ms+"ms")), ms))
+      ]);
+    }
+
+    async function fetchFrom(url, signal){
+      const bust = (url.includes("?") ? "&" : "?") + "ts=" + Date.now() + "&r=" + Math.random().toString(36).slice(2);
+      const res = await fetch(url + bust, { cache:"no-store", mode:"cors", redirect:"follow", signal });
+      if(!res.ok) throw new Error("HTTP "+res.status+" @ "+new URL(url).hostname);
       return res.json();
     }
 
-    async function refresh(){
-      const ctl = new AbortController();
-      const t = setTimeout(()=>ctl.abort(), 4000); // 4s safety timeout
-      try{
-        const data = await fetchOnce(ctl.signal);
-        clearTimeout(t);
+    async function getChoices(){
+      const errors = [];
+      for (const url of SOURCES){
+        try{
+          const data = await withTimeout(4000, (signal)=>fetchFrom(url, signal));
+          return { data, via:url };
+        }catch(e){
+          errors.push(e.message);
+        }
+      }
+      throw new Error(errors.join(" | "));
+    }
 
-        if (data.updatedAt !== lastUpdatedAt) {
+    async function refresh(){
+      try{
+        const { data, via } = await getChoices();
+        if (data.updatedAt !== lastUpdatedAt){
           titleEl.textContent = data.title || "";
           leftEl.textContent  = data.left  || "";
           rightEl.textContent = data.right || "";
           lastUpdatedAt = data.updatedAt || "";
         }
-        statusEl.innerHTML = `<span class="ok">✅ آخر تحديث:</span> ${new Date().toLocaleTimeString()}`;
+        statusEl.innerHTML = `✅ updated @ ${new Date().toLocaleTimeString()} · via ${new URL(via).hostname}`;
       }catch(e){
-        statusEl.innerHTML = `<span class="bad">خطأ: ${e.message}</span>`;
+        statusEl.innerHTML = `<span class="bad">Load failed: ${e.message}</span>`;
       }
     }
 
     refresh();
-    setInterval(refresh, 1000); // 1s polling for live shows
+    setInterval(refresh, 1500);
   </script>
 </body>
 </html>
