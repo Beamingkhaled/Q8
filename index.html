@@ -2,121 +2,129 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <title>Live Choices Front-End</title>
+  <title>اللعبة المباشرة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
-    body{font-family:Tajawal,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#000;color:#fff;margin:0}
-    .wrap{max-width:900px;margin:40px auto;padding:20px}
-    h1{font-size:24px;margin:0 0 12px}
-    .scene{border:1px solid #222;border-radius:14px;padding:18px;background:#0e0e0e}
-    .title{font-size:22px;margin-bottom:12px;opacity:.95}
-    .choices{display:grid;gap:12px}
-    .btn{padding:16px;border-radius:12px;border:1px solid #333;background:#141414;font-size:20px}
-    /* Debug panel */
-    .debug{position:fixed;left:10px;bottom:10px;background:#131313;border:1px solid #333;border-radius:10px;padding:12px;max-width:90vw}
-    .debug code{white-space:pre-wrap;word-break:break-word;font-size:12px}
-    .bad{color:#ff7676}
-    .ok{color:#7dffa3}
+    body {
+      font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: #000;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    .wrap {
+      max-width: 800px;
+      margin: 60px auto;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 26px;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    .scene {
+      background: #0e0e0e;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 24px;
+    }
+    #sceneTitle {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #ffdc73;
+    }
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .btn {
+      background: #141414;
+      border: 1px solid #333;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 20px;
+      color: #fff;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: #1f1f1f;
+      transform: scale(1.02);
+    }
+    /* Debug area (optional, can hide later) */
+    .debug {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 12px;
+      color: #999;
+      max-width: 300px;
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <h1>اللعبة المباشرة</h1>
     <div class="scene">
-      <div id="sceneTitle" class="title">…</div>
+      <div id="sceneTitle">تحميل...</div>
       <div class="choices">
-        <button id="choiceLeft"  class="btn">…</button>
-        <button id="choiceRight" class="btn">…</button>
+        <button id="choiceLeft" class="btn">...</button>
+        <button id="choiceRight" class="btn">...</button>
       </div>
     </div>
   </div>
 
   <div class="debug">
-    <div><b>Backend status:</b> <span id="dbgStatus">–</span></div>
-    <div><b>Last fetch:</b> <span id="dbgTime">–</span></div>
-    <div><b>URL:</b> <code id="dbgUrl"></code></div>
-    <details style="margin-top:6px">
-      <summary>Payload</summary>
-      <code id="dbgPayload">{}</code>
-    </details>
-    <details>
-      <summary>Errors</summary>
-      <code id="dbgErrors">None</code>
-    </details>
+    <div><b>Backend:</b> beamingkhaled.github.io</div>
+    <div id="debugStatus">Status: ⏳ Loading...</div>
   </div>
 
   <script>
-    // 🔁 CHANGE THIS to your backend site (must be HTTPS and include trailing slash if it's a project page):
-    // Examples:
-    //  - User site:   https://yourname.github.io/
-    //  - Project site: https://yourname.github.io/your-backend-repo/
-    const BACKEND_URL = 'https://YOUR-BACKEND-SITE.github.io/'; // <-- EDIT ME
+    // ✅ Fixed backend URL
+    const BACKEND_URL = 'https://beamingkhaled.github.io/';
 
-    // Debug helpers
-    const dbg = {
-      url: document.getElementById('dbgUrl'),
-      status: document.getElementById('dbgStatus'),
-      time: document.getElementById('dbgTime'),
-      payload: document.getElementById('dbgPayload'),
-      errors: document.getElementById('dbgErrors'),
-      logError(msg){ this.errors.textContent = msg; this.status.className='bad'; },
-      ok(msg){ this.status.textContent = msg; this.status.className='ok'; }
-    };
-    dbg.url.textContent = BACKEND_URL;
-
-    let lastHash = '';
-
-    async function fetchLiveChoices(){
-      try{
-        const url = BACKEND_URL.endsWith('/') ? BACKEND_URL : BACKEND_URL + '/';
-        const res = await fetch(url, {
+    async function fetchLiveChoices() {
+      try {
+        const res = await fetch(BACKEND_URL, {
           cache: 'no-store',
-          headers: {'Pragma':'no-cache','Cache-Control':'no-cache'}
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
         });
-
         const html = await res.text();
-        // Robust parse: use DOMParser and grab <pre id="LIVE_CHOICES_JSON">
-        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+        // Extract <pre id="LIVE_CHOICES_JSON">
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
         const pre = doc.querySelector('#LIVE_CHOICES_JSON');
-        if(!pre){
-          dbg.logError('Could not find <pre id="LIVE_CHOICES_JSON"> in backend HTML. Check markers.');
+
+        if (!pre) {
+          document.getElementById('debugStatus').textContent = '❌ لم يتم العثور على JSON في الصفحة الخلفية.';
           return;
         }
 
-        const jsonText = pre.textContent.trim();
-        let data;
-        try { data = JSON.parse(jsonText); }
-        catch(e){ dbg.logError('JSON parse error. Did the JSON block get corrupted?'); return; }
-
-        // Hash compare
-        const h = JSON.stringify(data);
-        if(h !== lastHash){
-          applyChoices(data);
-          lastHash = h;
-          dbg.payload.textContent = JSON.stringify(data, null, 2);
-        }
-
-        dbg.ok('OK (' + res.status + ')');
-        dbg.time.textContent = new Date().toLocaleTimeString();
-      } catch(err){
-        dbg.logError((err && err.message) ? err.message : String(err));
+        const data = JSON.parse(pre.textContent);
+        applyChoices(data);
+        document.getElementById('debugStatus').textContent = '✅ تم التحديث بنجاح (' + new Date().toLocaleTimeString() + ')';
+      } catch (err) {
+        document.getElementById('debugStatus').textContent = '⚠️ خطأ: ' + err.message;
       }
     }
 
-    function applyChoices(data){
-      const titleEl = document.getElementById('sceneTitle');
-      const leftEl  = document.getElementById('choiceLeft');
-      const rightEl = document.getElementById('choiceRight');
-
-      titleEl.textContent = data.title || '';
-      leftEl.textContent  = data.left  || '';
-      rightEl.textContent = data.right || '';
+    function applyChoices(data) {
+      document.getElementById('sceneTitle').textContent = data.title || '';
+      document.getElementById('choiceLeft').textContent = data.left || '';
+      document.getElementById('choiceRight').textContent = data.right || '';
     }
 
-    // First run + polling
+    // Run immediately and every 2s
     fetchLiveChoices();
     setInterval(fetchLiveChoices, 2000);
   </script>
