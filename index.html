@@ -1,89 +1,100 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>اللعبة المباشرة | الخيارات (فوري)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root { --bg:#000; --card:#151515; --text:#fff; --muted:#9aa0a6; --radius:18px; }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:'Tajawal',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .wrap{width:min(720px,92vw); padding:20px}
-    .btn{
-      display:block; width:100%; padding:18px 20px; margin:16px 0;
-      background:#191919; border:1px solid #222; border-radius:var(--radius);
-      color:#fff; font-size:clamp(18px,3.8vw,28px); font-weight:800; text-align:center;
-      box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-      transition:transform .08s ease;
-    }
-    .title{
-      background:#101010; border:1px solid #222; border-radius:var(--radius);
-      padding:22px; margin:10px 0 22px 0; font-size:clamp(20px,4.6vw,32px); font-weight:800;
-      text-align:center; line-height:1.35;
-      box-shadow:0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-    }
-    .clock{color:var(--muted); text-align:center; font-size:12px; margin-top:16px}
-    .warn{color:#ffb3b3; text-align:center; font-size:13px; margin-top:8px}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Avenues & Dragons — الشاشة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Tajawal', sans-serif;
+    background: radial-gradient(circle at top right, #1e163d, #0b0b16);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .card {
+    width: 90%;
+    max-width: 800px;
+    background: rgba(30, 20, 70, 0.8);
+    border: 1px solid #3a2f5a;
+    border-radius: 18px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  }
+  .q {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+  .opts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .opt {
+    background: #2a2050;
+    border: 1px solid #3a2f6a;
+    border-radius: 12px;
+    padding: 18px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .opt small {
+    display: block;
+    font-size: 14px;
+    color: #c8c1df;
+    margin-top: 6px;
+  }
+  .meta {
+    margin-top: 14px;
+    color: #b9b1d4;
+    font-size: 16px;
+  }
+  .badge {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #292456;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div id="title" class="title">جاري التحميل…</div>
-    <button id="leftBtn" class="btn">—</button>
-    <button id="rightBtn" class="btn">—</button>
-    <div class="clock">آخر تحديث: <span id="updated">—</span></div>
-    <div id="warn" class="warn"></div>
+  <div class="badge" id="status">بانتظار الاتصال…</div>
+  <div class="card">
+    <h1>Avenues & Dragons</h1>
+    <div class="q" id="question">—</div>
+    <div class="opts">
+      <div class="opt" id="option1">—<small id="note1"></small></div>
+      <div class="opt" id="option2">—<small id="note2"></small></div>
+    </div>
+    <div class="meta" id="meta">—</div>
   </div>
 
-  <script>
-    // Read Bin ID from the URL: ?bin=XXXXXXXX
-    const qs  = new URLSearchParams(location.search);
-    const BIN = qs.get('bin');
-
-    const titleEl   = document.getElementById('title');
-    const leftBtn   = document.getElementById('leftBtn');
-    const rightBtn  = document.getElementById('rightBtn');
-    const updatedEl = document.getElementById('updated');
-    const warnEl    = document.getElementById('warn');
-
-    if(!BIN){
-      warnEl.innerHTML = '⚠️ أضف ?bin=BIN_ID إلى الرابط. افتح <b>admin.html</b> وانسخ رابط المشاهدة الجاهز.';
+<script>
+  // Receive updates from the admin window
+  window.addEventListener('message', (ev)=>{
+    const d = ev.data || {};
+    if (d.type === 'UPDATE_CHOICES') {
+      document.getElementById('question').textContent = d.question || '—';
+      document.getElementById('option1').firstChild.nodeValue = d.option1 || '—';
+      document.getElementById('option2').firstChild.nodeValue = d.option2 || '—';
+      document.getElementById('note1').textContent = d.note1 || '';
+      document.getElementById('note2').textContent = d.note2 || '';
+      document.getElementById('meta').textContent = d.meta || '';
+      document.getElementById('status').textContent = 'متصل ✅';
     }
+  });
 
-    let lastStamp = '';
-
-    async function loadChoices(force=false){
-      if(!BIN) return;
-      try{
-        const url = `https://api.jsonbin.io/v3/b/${encodeURIComponent(BIN)}/latest?t=${Date.now()}`;
-        const res = await fetch(url, { cache:'no-store' });
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const data = await res.json();
-        const record = data && data.record ? data.record : data;
-
-        if(force || record.updatedAt !== lastStamp){
-          lastStamp = record.updatedAt || '';
-          titleEl.textContent  = record.title  || '—';
-          leftBtn.textContent  = record.left   || '—';
-          rightBtn.textContent = record.right  || '—';
-          updatedEl.textContent = lastStamp ? new Date(lastStamp).toLocaleTimeString('ar-KW') : '—';
-        }
-      }catch(e){
-        titleEl.textContent = 'تعذر تحميل البيانات';
-        leftBtn.textContent = rightBtn.textContent = '—';
-        updatedEl.textContent = '—';
-      }
-    }
-
-    loadChoices(true);               // first load immediately
-    setInterval(loadChoices, 1000);  // poll every second (instant feel)
-    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadChoices(true) });
-  </script>
+  // Tell admin page we’re ready
+  try { window.opener && window.opener.postMessage({type:'FRONT_READY'}, '*'); } catch(e){}
+</script>
 </body>
 </html>
