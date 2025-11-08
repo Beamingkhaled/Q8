@@ -33,7 +33,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
         }
         .choice-button {
-            cursor: default; /* Changed to default since there's no action yet */
+            cursor: default; 
             border: 1px solid #333;
             font-size: 1.1em;
             transition: color 0.5s;
@@ -65,10 +65,8 @@
         //  REAL-TIME POLLING SCRIPT (JavaScript)
         // =========================================================
         
-        // !!! ASSUMPTION: This URL assumes your front-end repository is accessible 
-        // at the GitHub Pages root and the JSON is in a 'data' folder.
-        // If your repo name is different, you MUST manually update this line!
-        const DATA_URL = 'data/current_scene.json'; 
+        // This URL is correct based on your file structure (current_scene.json is in the root)
+        const DATA_URL = 'current_scene.json'; 
 
         const POLL_INTERVAL = 3000; // Check every 3 seconds
         let lastKnownUpdate = null; 
