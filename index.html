@@ -1,62 +1,50 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Avenues & Dragons — الشاشة</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
-<style>
-  :root{--bg1:#0b0b16;--bg2:#1a1440;--card:#201a4a;--line:#2c2a5a;--ink:#fff;--muted:#c7c2df}
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 70% -10%,var(--bg2) 0%,var(--bg1) 60%,#060612 100%);font-family:'Tajawal',sans-serif;color:var(--ink)}
-  .wrap{min-height:100%;display:grid;place-items:center;padding:18px}
-  .card{width:min(900px,95vw);background:linear-gradient(180deg,#231b52 0%,#161233 100%);border:1px solid var(--line);border-radius:18px;box-shadow:0 28px 60px rgba(0,0,0,.5);padding:22px}
-  h1{margin:0 0 8px;font-weight:800}
-  .q{font-size:28px;font-weight:800;line-height:1.35;margin:10px 0 16px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .choice{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;font-size:22px;font-weight:800}
-  .choice small{display:block;color:var(--muted);font-weight:600;margin-top:6px}
-  .meta{margin-top:14px;color:var(--muted);font-size:15px}
-  .badge{position:fixed;top:10px;left:10px;background:#23234a;padding:6px 10px;border-radius:10px;font-size:12px}
-</style>
-</head>
-<body>
-<div class="badge" id="status">بانتظار الاتصال…</div>
+<!-- inside <head> -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 
-<div class="wrap">
-  <div class="card">
-    <h1>Avenues & Dragons</h1>
-
-    <!-- These IDs MUST exist; admin writes to them -->
-    <div class="q" id="question">تمشي الأم مع ابنها في الأفنيوز…</div>
-
-    <div class="grid">
-      <div class="choice" id="option1">☕️ تدخل مقهى مزدحم<small id="note1"></small></div>
-      <div class="choice" id="option2">🛍️ تذهب إلى الممر الخلفي<small id="note2"></small></div>
-    </div>
-
-    <div class="meta" id="meta">اكتب 1 أو 2 في التعليقات — الهدايا تغيّر القصة</div>
-  </div>
-</div>
-
+<!-- at the end of <body> -->
 <script>
-  // Listen for updates from the back-end controller
-  window.addEventListener('message', (ev)=>{
-    const d = ev.data || {};
-    if (d.type === 'UPDATE_CHOICES') {
-      document.getElementById('question').textContent = d.question || '—';
-      // firstChild.nodeValue ensures the main line (before <small>) updates
-      document.getElementById('option1').firstChild.nodeValue = (d.option1 || '—');
-      document.getElementById('option2').firstChild.nodeValue = (d.option2 || '—');
-      document.getElementById('note1').textContent = d.note1 || '';
-      document.getElementById('note2').textContent = d.note2 || '';
-      document.getElementById('meta').textContent = d.meta || '';
-      document.getElementById('status').textContent = 'متصل ✅';
-    }
-  });
+  // CHANGE this URL to your backend site:
+  const BACKEND_URL = 'https://YOUR-BACKEND-SITE.github.io/';
 
-  // Tell the admin page we’re ready (so it shows “connected”)
-  try { window.opener && window.opener.postMessage({type:'FRONT_READY'}, '*'); } catch(e) {}
+  let lastPayloadHash = '';
+
+  async function fetchLiveChoices() {
+    try {
+      const res = await fetch(BACKEND_URL, {
+        cache: 'no-store',
+        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+      });
+      const html = await res.text();
+      const start = html.indexOf('<!-- LIVE_CHOICES_START -->');
+      const end   = html.indexOf('<!-- LIVE_CHOICES_END -->');
+      const inner = html.slice(start, end);
+      const preStart = inner.indexOf('>') + 1;
+      const preEnd   = inner.lastIndexOf('</pre>');
+      const jsonText = inner.slice(preStart, preEnd).trim();
+      const data = JSON.parse(jsonText);
+
+      const h = JSON.stringify(data);
+      if (h !== lastPayloadHash) {
+        applyChoicesToUI(data);
+        lastPayloadHash = h;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function applyChoicesToUI(data){
+    const titleEl = document.getElementById('sceneTitle');
+    const leftEl  = document.getElementById('choiceLeft');
+    const rightEl = document.getElementById('choiceRight');
+
+    if (titleEl) titleEl.textContent = data.title || '';
+    if (leftEl)  leftEl.textContent  = data.left  || '';
+    if (rightEl) rightEl.textContent = data.right || '';
+  }
+
+  fetchLiveChoices();
+  setInterval(fetchLiveChoices, 2000);
 </script>
-</body>
-</html>
