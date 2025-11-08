@@ -2,95 +2,85 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#000000" />
-  <title>LIVE</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>اللعبة المباشرة | الخيارات</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#000; --card:#111; --border:#2f2f2f; --txt:#fff; --muted:#9a9a9a; --radius:20px; }
+    :root { --bg:#000; --card:#151515; --text:#fff; --muted:#9aa0a6; --radius:18px; }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0; background:var(--bg); color:var(--txt);
-      font-family:'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      display:flex; align-items:center; justify-content:center; padding:14px;
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:'Tajawal',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      display:flex; align-items:center; justify-content:center;
     }
-    .wrap{width:min(92vw, 520px)}
-    .title, .btn{
-      width:100%; border-radius:var(--radius); border:1px solid var(--border);
-      background:var(--card); text-align:center; padding:18px;
-      box-shadow:0 16px 32px rgba(0,0,0,.35);
+    .wrap{width:min(720px,92vw); padding:20px}
+    .btn{
+      display:block; width:100%; padding:18px 20px; margin:16px 0;
+      background:#191919; border:1px solid #222; border-radius:var(--radius);
+      color:#fff; font-size:clamp(18px,3.8vw,28px); font-weight:800; text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      transition:transform .08s ease, background .2s ease, border-color .2s ease;
     }
-    .title{font-weight:800; font-size:24px; line-height:1.35; margin-bottom:14px}
-    .btn{font-weight:700; font-size:22px; line-height:1.4; margin-top:14px; user-select:none}
-    .stamp{margin-top:10px; text-align:center; font-size:12px; color:var(--muted)}
+    .btn:hover{transform:translateY(-2px)}
+    .title{
+      background:#101010; border:1px solid #222; border-radius:var(--radius);
+      padding:22px; margin:10px 0 22px 0; font-size:clamp(20px,4.6vw,32px); font-weight:800;
+      line-height:1.35; text-align:center;
+      box-shadow:0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .clock{color:var(--muted); text-align:center; font-size:14px; margin-top:24px}
+    .badge{display:inline-block; font-size:12px; color:#aaa; padding:6px 10px; border:1px dashed #2b2b2b; border-radius:999px}
   </style>
 </head>
 <body>
-  <main class="wrap" aria-live="polite">
-    <div id="title" class="title">جارِ التحميل…</div>
-    <div id="left"  class="btn">—</div>
-    <div id="right" class="btn">—</div>
-    <div id="stamp" class="stamp">—</div>
-  </main>
+  <div class="wrap">
+    <div id="title" class="title">جاري التحميل…</div>
+    <button id="leftBtn" class="btn">—</button>
+    <button id="rightBtn" class="btn">—</button>
+    <div class="clock">
+      <span class="badge">آخر تحديث: <span id="updated">—</span></span>
+    </div>
+  </div>
 
   <script>
-    // === CONFIG ===
-    const RAW  = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
-    const API  = "https://api.github.com/repos/beamingkhaled/BQ8/contents/choices.json?ref=main";
-    const CDN  = "https://cdn.jsdelivr.net/gh/beamingkhaled/BQ8@main/choices.json";
-    const POLL_MS = 1200;
+    // ===== Auto-refreshing, cache-busted fetch of choices.json =====
+    const titleEl  = document.getElementById('title');
+    const leftBtn  = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const updatedEl= document.getElementById('updated');
 
-    // === UI ===
-    const $title = document.getElementById("title");
-    const $left  = document.getElementById("left");
-    const $right = document.getElementById("right");
-    const $stamp = document.getElementById("stamp");
-    let lastHash = "";
+    let lastStamp = '';
 
-    function norm(d){
-      return {
-        title: d.title ?? d.q ?? d.question ?? "—",
-        left:  d.left  ?? d.a ?? d.option1 ?? "—",
-        right: d.right ?? d.b ?? d.option2 ?? "—"
-      };
+    async function loadChoices(force=false){
+      try{
+        // kill caches on every request:
+        const url = `choices.json?nocache=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+
+        // only redraw if there is new content
+        if(force || data.updatedAt !== lastStamp){
+          lastStamp = data.updatedAt || '';
+          titleEl.textContent  = data.title  || '—';
+          leftBtn.textContent  = data.left   || '—';
+          rightBtn.textContent = data.right  || '—';
+          updatedEl.textContent = lastStamp ? new Date(lastStamp).toLocaleTimeString() : '—';
+        }
+      }catch(e){
+        titleEl.textContent = 'تعذر تحميل البيانات';
+        leftBtn.textContent = rightBtn.textContent = '—';
+        updatedEl.textContent = '—';
+        // try again soon if first load fails
+      }
     }
 
-    async function getRaw(){
-      const u = RAW + (RAW.includes("?") ? "&" : "?") + "t=" + Date.now();
-      const r = await fetch(u, {cache:"no-store"});
-      if(!r.ok) throw new Error("raw " + r.status);
-      return r.json();
-    }
-    async function getApi(){
-      const r = await fetch(API + "&t=" + Date.now(), {cache:"no-store"});
-      if(!r.ok) throw new Error("api " + r.status);
-      const j = await r.json();
-      const txt = atob((j.content || "").replace(/\n/g,""));
-      return JSON.parse(txt);
-    }
-    async function getCdn(){
-      const r = await fetch(CDN + "?t=" + Date.now(), {cache:"no-store"});
-      if(!r.ok) throw new Error("cdn " + r.status);
-      return r.json();
-    }
-    async function load(){
-      let data;
-      try { data = await getRaw(); }
-      catch(_) { try { data = await getApi(); }
-        catch(_) { data = await getCdn(); } }
-      const n = norm(data);
-      const h = JSON.stringify(n);
-      if(h === lastHash) return;
-      lastHash = h;
-
-      $title.textContent = n.title || "—";
-      $left.textContent  = n.left  || "—";
-      $right.textContent = n.right || "—";
-      $stamp.textContent = new Date().toLocaleTimeString([], {hour12:false});
-    }
-    load();
-    setInterval(load, POLL_MS);
+    // first load immediately, then poll every 4 seconds
+    loadChoices(true);
+    setInterval(loadChoices, 4000);
+    // also refresh when tab returns to focus
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadChoices(true) });
   </script>
 </body>
 </html>
