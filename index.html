@@ -8,166 +8,66 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
-    body {
-      font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: #000;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    .wrap {
-      max-width: 800px;
-      margin: 60px auto;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 26px;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
-    .scene {
-      background: #0e0e0e;
-      border: 1px solid #222;
-      border-radius: 16px;
-      padding: 24px;
-    }
-    #sceneTitle {
-      font-size: 22px;
-      margin-bottom: 20px;
-      color: #ffdc73;
-    }
-    .choices {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .btn {
-      background: #141414;
-      border: 1px solid #333;
-      border-radius: 14px;
-      padding: 18px;
-      font-size: 20px;
-      color: #fff;
-      transition: 0.2s;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #1f1f1f;
-      transform: scale(1.02);
-    }
-    .debug {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 12px;
-      color: #999;
-      max-width: 300px;
-    }
-    .refresh-btn {
-      background: #333;
-      border: 1px solid #555;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-family: inherit;
-    }
+    body{font-family:Tajawal,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#000;color:#fff;margin:0}
+    .wrap{max-width:820px;margin:56px auto;padding:20px;text-align:center}
+    h1{font-size:26px;margin:0 0 18px}
+    .scene{background:#0e0e0e;border:1px solid #222;border-radius:16px;padding:24px}
+    #sceneTitle{font-size:22px;margin-bottom:18px;color:#ffdc73}
+    .choices{display:flex;flex-direction:column;gap:14px}
+    .btn{background:#141414;border:1px solid #333;border-radius:14px;padding:18px;font-size:20px;color:#fff;transition:.15s}
+    .btn:active{transform:scale(.98)}
+    .debug{position:fixed;left:10px;bottom:10px;background:#131313;border:1px solid #333;border-radius:10px;padding:10px;font-size:12px;color:#aaa}
+    .ok{color:#7dffa3}.bad{color:#ff8b88}
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <h1>اللعبة المباشرة</h1>
     <div class="scene">
-      <div id="sceneTitle">تحميل...</div>
+      <div id="sceneTitle">تحميل…</div>
       <div class="choices">
-        <button id="choiceLeft" class="btn">...</button>
-        <button id="choiceRight" class="btn">...</button>
+        <button id="choiceLeft"  class="btn">…</button>
+        <button id="choiceRight" class="btn">…</button>
       </div>
-      <button onclick="fetchLiveChoices()" class="refresh-btn">🔄 تحديث يدوي</button>
     </div>
   </div>
 
   <div class="debug">
-    <div><b>Backend:</b> beamingkhaled.github.io</div>
-    <div id="debugStatus">Status: ⏳ Loading...</div>
-    <div id="lastUpdate">Last Update: --</div>
+    Backend: <b>beamingkhaled.github.io/choices.json</b><br/>
+    <span id="dbg">جارِ التحميل…</span>
   </div>
 
   <script>
-    // ✅ Use RAW GitHub URL for instant updates
-    const BACKEND_URL = 'https://raw.githubusercontent.com/beamingkhaled/beamingkhaled.github.io/main/admin.html';
+    // ✅ Fixed JSON endpoint (GitHub Pages, not "raw")
+    const JSON_URL = 'https://beamingkhaled.github.io/choices.json';
 
-    async function fetchLiveChoices() {
-      try {
-        // Add timestamp to prevent caching
-        const timestamp = new Date().getTime();
-        const res = await fetch(BACKEND_URL + '?t=' + timestamp, {
-          cache: 'no-store',
-          headers: {
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (!res.ok) {
-          throw new Error(`Network error: ${res.status}`);
+    const titleEl = document.getElementById('sceneTitle');
+    const leftEl  = document.getElementById('choiceLeft');
+    const rightEl = document.getElementById('choiceRight');
+    const dbgEl   = document.getElementById('dbg');
+
+    async function loadChoices(){
+      try{
+        const url = JSON_URL + '?ts=' + Date.now(); // hard cache-bust
+        const res = await fetch(url, {cache:'no-store', headers:{'Cache-Control':'no-cache'}});
+        if(!res.ok){
+          dbgEl.innerHTML = '<span class="bad">HTTP ' + res.status + ' — تأكد من وجود choices.json في الجذر</span>';
+          return;
         }
-        
-        const html = await res.text();
+        const data = await res.json();
 
-        // Extract JSON from the pre tag
-        const jsonMatch = html.match(/<pre id="LIVE_CHOICES_JSON">([\s\S]*?)<\/pre>/);
-        
-        if (!jsonMatch) {
-          throw new Error('JSON not found in backend');
-        }
+        titleEl.textContent = data.title || '';
+        leftEl.textContent  = data.left  || '';
+        rightEl.textContent = data.right || '';
 
-        const jsonText = jsonMatch[1].trim();
-        const data = JSON.parse(jsonText);
-        
-        applyChoices(data);
-        
-        document.getElementById('debugStatus').textContent = '✅ تم التحديث (' + new Date().toLocaleTimeString() + ')';
-        document.getElementById('lastUpdate').textContent = 'Last Update: ' + new Date().toLocaleTimeString();
-        
-      } catch (err) {
-        console.error('Error:', err);
-        document.getElementById('debugStatus').textContent = '⚠️ خطأ: ' + err.message;
+        dbgEl.innerHTML = '<span class="ok">OK</span> ' + new Date().toLocaleTimeString();
+      }catch(e){
+        dbgEl.innerHTML = '<span class="bad">خطأ: ' + (e && e.message ? e.message : e) + '</span>';
       }
     }
 
-    function applyChoices(data) {
-      document.getElementById('sceneTitle').textContent = data.title || 'لا يوجد عنوان';
-      document.getElementById('choiceLeft').textContent = data.left || 'لا يوجد خيار';
-      document.getElementById('choiceRight').textContent = data.right || 'لا يوجد خيار';
-    }
-
-    // Add button click events
-    document.getElementById('choiceLeft').addEventListener('click', function() {
-      alert('اخترت: ' + this.textContent);
-    });
-    
-    document.getElementById('choiceRight').addEventListener('click', function() {
-      alert('اخترت: ' + this.textContent);
-    });
-
-    // Run immediately and every 5 seconds
-    fetchLiveChoices();
-    setInterval(fetchLiveChoices, 5000);
-
-    // Also refresh when page becomes visible
-    document.addEventListener('visibilitychange', function() {
-      if (!document.hidden) {
-        fetchLiveChoices();
-      }
-    });
+    loadChoices();
+    setInterval(loadChoices, 2000);
   </script>
 </body>
 </html>
