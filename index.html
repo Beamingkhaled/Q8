@@ -35,7 +35,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div id="title" class="title">جاري التحميل…</div>
+    <div id="title" class="title">جاري تحميل البيانات...</div>
     <button id="leftBtn" class="btn">—</button>
     <button id="rightBtn" class="btn">—</button>
     <div class="clock">
@@ -44,7 +44,9 @@
   </div>
 
   <script>
-    // ===== Auto-refreshing, cache-busted fetch of choices.json =====
+    // fetch from BQ8 repo directly
+    const JSON_URL = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
+
     const titleEl  = document.getElementById('title');
     const leftBtn  = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
@@ -54,32 +56,28 @@
 
     async function loadChoices(force=false){
       try{
-        // kill caches on every request:
-        const url = `choices.json?nocache=${Date.now()}`;
+        const url = JSON_URL + '?nocache=' + Date.now();
         const res = await fetch(url, { cache: 'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
 
-        // only redraw if there is new content
         if(force || data.updatedAt !== lastStamp){
           lastStamp = data.updatedAt || '';
           titleEl.textContent  = data.title  || '—';
           leftBtn.textContent  = data.left   || '—';
           rightBtn.textContent = data.right  || '—';
-          updatedEl.textContent = lastStamp ? new Date(lastStamp).toLocaleTimeString() : '—';
+          updatedEl.textContent = lastStamp ? new Date(lastStamp).toLocaleTimeString('ar-KW') : '—';
         }
       }catch(e){
         titleEl.textContent = 'تعذر تحميل البيانات';
         leftBtn.textContent = rightBtn.textContent = '—';
         updatedEl.textContent = '—';
-        // try again soon if first load fails
       }
     }
 
     // first load immediately, then poll every 4 seconds
     loadChoices(true);
     setInterval(loadChoices, 4000);
-    // also refresh when tab returns to focus
     document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadChoices(true) });
   </script>
 </body>
