@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>اللعبة المباشرة</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -27,9 +27,8 @@
   </div>
 
   <script>
-    // Reads directly from RAW (instant updates), with Pages as a fallback.
-    const RAW_URL   = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
-    const PAGES_URL = "https://beamingkhaled.github.io/BQ8/choices.json";
+    // 🔒 Pull directly from RAW (no Pages CDN cache)
+    const RAW_URL = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
 
     const titleEl  = document.getElementById("sceneTitle");
     const leftEl   = document.getElementById("choiceLeft");
@@ -38,40 +37,41 @@
 
     let lastUpdatedAt = "";
 
-    async function fetchJSON(url){
-      const res = await fetch(url + (url.includes("?") ? "&" : "?") + "ts=" + Date.now(), {
+    async function fetchOnce(signal){
+      // brutal cache-bust for iOS Safari
+      const url = RAW_URL + "?ts=" + Date.now() + "&r=" + Math.random().toString(36).slice(2);
+      const res = await fetch(url, {
         cache: "no-store",
-        headers: { "Cache-Control": "no-cache" }
+        redirect: "follow",
+        mode: "cors",
+        headers: { "Cache-Control":"no-cache" },
+        signal
       });
       if(!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     }
 
     async function refresh(){
+      const ctl = new AbortController();
+      const t = setTimeout(()=>ctl.abort(), 4000); // 4s safety timeout
       try{
-        let data;
-        try {
-          data = await fetchJSON(RAW_URL);        // primary (no CDN delay)
-        } catch {
-          data = await fetchJSON(PAGES_URL);      // fallback
-        }
+        const data = await fetchOnce(ctl.signal);
+        clearTimeout(t);
 
-        // Only update UI if something actually changed
         if (data.updatedAt !== lastUpdatedAt) {
           titleEl.textContent = data.title || "";
           leftEl.textContent  = data.left  || "";
           rightEl.textContent = data.right || "";
           lastUpdatedAt = data.updatedAt || "";
         }
-
         statusEl.innerHTML = `<span class="ok">✅ آخر تحديث:</span> ${new Date().toLocaleTimeString()}`;
-      } catch (e){
+      }catch(e){
         statusEl.innerHTML = `<span class="bad">خطأ: ${e.message}</span>`;
       }
     }
 
     refresh();
-    setInterval(refresh, 2000); // poll every 2s
+    setInterval(refresh, 1000); // 1s polling for live shows
   </script>
 </body>
 </html>
