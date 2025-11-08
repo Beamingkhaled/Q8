@@ -7,55 +7,148 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-color: #ffdc73;
+      --secondary-color: #1f1f1f;
+      --background-color: #000;
+      --card-bg: #0e0e0e;
+      --border-color: #333;
+      --text-color: #fff;
+      --hover-color: #2a2a2a;
+      --success-color: #4CAF50;
+      --error-color: #f44336;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       font-family: 'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: #000;
-      color: #fff;
+      background: var(--background-color);
+      color: var(--text-color);
       margin: 0;
       padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
+    
     .wrap {
       max-width: 800px;
-      margin: 60px auto;
+      width: 95%;
+      margin: 20px auto;
       text-align: center;
       padding: 20px;
     }
+    
     h1 {
-      font-size: 26px;
-      margin-bottom: 20px;
+      font-size: 32px;
+      margin-bottom: 30px;
       font-weight: 700;
+      color: var(--primary-color);
+      text-shadow: 0 0 10px rgba(255, 220, 115, 0.3);
     }
+    
     .scene {
-      background: #0e0e0e;
-      border: 1px solid #222;
-      border-radius: 16px;
-      padding: 24px;
-    }
-    #sceneTitle {
-      font-size: 22px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       margin-bottom: 20px;
-      color: #ffdc73;
+      position: relative;
+      overflow: hidden;
     }
+    
+    #sceneTitle {
+      font-size: 24px;
+      margin-bottom: 30px;
+      color: var(--primary-color);
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
     .choices {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
+    
     .btn {
-      background: #141414;
-      border: 1px solid #333;
+      background: var(--secondary-color);
+      border: 1px solid var(--border-color);
       border-radius: 14px;
       padding: 18px;
       font-size: 20px;
-      color: #fff;
-      transition: 0.2s;
+      color: var(--text-color);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+    
     .btn:hover {
-      background: #1f1f1f;
-      transform: scale(1.02);
+      background: var(--hover-color);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(255, 220, 115, 0.1);
     }
-    /* Debug area (optional, can hide later) */
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .loading {
+      position: relative;
+      color: transparent;
+    }
+    
+    .loading::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      top: 50%;
+      left: 50%;
+      margin-left: -10px;
+      margin-top: -10px;
+      border: 2px solid var(--primary-color);
+      border-radius: 50%;
+      border-right-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #aaa;
+    }
+    
+    .status.success {
+      color: var(--success-color);
+    }
+    
+    .status.error {
+      color: var(--error-color);
+    }
+    
     .debug {
       position: fixed;
       bottom: 10px;
@@ -67,6 +160,55 @@
       font-size: 12px;
       color: #999;
       max-width: 300px;
+      z-index: 100;
+    }
+    
+    .debug h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: var(--primary-color);
+    }
+    
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    @media (max-width: 600px) {
+      .wrap {
+        padding: 10px;
+      }
+      
+      h1 {
+        font-size: 26px;
+      }
+      
+      .scene {
+        padding: 20px;
+      }
+      
+      #sceneTitle {
+        font-size: 20px;
+      }
+      
+      .btn {
+        font-size: 18px;
+        padding: 15px;
+        min-height: 70px;
+      }
+      
+      .debug {
+        position: relative;
+        bottom: auto;
+        left: auto;
+        max-width: 100%;
+        margin-top: 20px;
+      }
     }
   </style>
 </head>
@@ -75,58 +217,107 @@
   <div class="wrap">
     <h1>اللعبة المباشرة</h1>
     <div class="scene">
-      <div id="sceneTitle">تحميل...</div>
+      <div id="sceneTitle" class="loading">تحميل...</div>
       <div class="choices">
-        <button id="choiceLeft" class="btn">...</button>
-        <button id="choiceRight" class="btn">...</button>
+        <button id="choiceLeft" class="btn loading">...</button>
+        <button id="choiceRight" class="btn loading">...</button>
       </div>
+      <div id="status" class="status">⏳ جاري التحميل...</div>
     </div>
   </div>
 
   <div class="debug">
-    <div><b>Backend:</b> beamingkhaled.github.io</div>
-    <div id="debugStatus">Status: ⏳ Loading...</div>
+    <h3>معلومات التصحيح</h3>
+    <div><b>الخادم:</b> beamingkhaled.github.io</div>
+    <div id="debugStatus">الحالة: ⏳ جاري التحميل...</div>
+    <div id="lastUpdate">آخر تحديث: --</div>
   </div>
 
   <script>
-    // ✅ Fixed backend URL
-    const BACKEND_URL = 'https://beamingkhaled.github.io/';
-
+    const BACKEND_URL = 'https://beamingkhaled.github.io/admin.html';
+    
+    let updateInterval;
+    
     async function fetchLiveChoices() {
       try {
-        const res = await fetch(BACKEND_URL, {
+        document.getElementById('status').textContent = '⏳ جاري جلب البيانات...';
+        document.getElementById('status').className = 'status';
+        
+        const res = await fetch(BACKEND_URL + '?t=' + new Date().getTime(), {
           cache: 'no-store',
           headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
         });
+        
+        if (!res.ok) {
+          throw new Error(`خطأ في الشبكة: ${res.status}`);
+        }
+        
         const html = await res.text();
 
-        // Extract <pre id="LIVE_CHOICES_JSON">
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         const pre = doc.querySelector('#LIVE_CHOICES_JSON');
 
         if (!pre) {
-          document.getElementById('debugStatus').textContent = '❌ لم يتم العثور على JSON في الصفحة الخلفية.';
-          return;
+          throw new Error('لم يتم العثور على JSON في الصفحة الخلفية');
         }
 
         const data = JSON.parse(pre.textContent);
         applyChoices(data);
+        
+        document.getElementById('status').textContent = '✅ تم التحديث بنجاح';
+        document.getElementById('status').className = 'status success';
         document.getElementById('debugStatus').textContent = '✅ تم التحديث بنجاح (' + new Date().toLocaleTimeString() + ')';
+        document.getElementById('lastUpdate').textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString();
+        
       } catch (err) {
+        console.error('Error:', err);
+        document.getElementById('status').textContent = '⚠️ خطأ: ' + err.message;
+        document.getElementById('status').className = 'status error';
         document.getElementById('debugStatus').textContent = '⚠️ خطأ: ' + err.message;
       }
     }
 
     function applyChoices(data) {
-      document.getElementById('sceneTitle').textContent = data.title || '';
-      document.getElementById('choiceLeft').textContent = data.left || '';
-      document.getElementById('choiceRight').textContent = data.right || '';
+      document.getElementById('sceneTitle').classList.remove('loading');
+      document.getElementById('choiceLeft').classList.remove('loading');
+      document.getElementById('choiceRight').classList.remove('loading');
+      
+      document.getElementById('sceneTitle').textContent = data.title || 'لا يوجد عنوان';
+      document.getElementById('choiceLeft').textContent = data.left || 'لا يوجد خيار';
+      document.getElementById('choiceRight').textContent = data.right || 'لا يوجد خيار';
+      
+      document.getElementById('sceneTitle').classList.add('pulse');
+      setTimeout(() => {
+        document.getElementById('sceneTitle').classList.remove('pulse');
+      }, 1000);
     }
 
-    // Run immediately and every 2s
+    document.getElementById('choiceLeft').addEventListener('click', function() {
+      alert('اخترت: ' + this.textContent);
+    });
+    
+    document.getElementById('choiceRight').addEventListener('click', function() {
+      alert('اخترت: ' + this.textContent);
+    });
+
     fetchLiveChoices();
-    setInterval(fetchLiveChoices, 2000);
+    updateInterval = setInterval(fetchLiveChoices, 5000);
+    
+    const manualRefreshBtn = document.createElement('button');
+    manualRefreshBtn.textContent = '🔄 تحديث يدوي';
+    manualRefreshBtn.style.cssText = `
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 8px;
+      padding: 8px 16px;
+      color: white;
+      margin-top: 10px;
+      cursor: pointer;
+      font-family: inherit;
+    `;
+    manualRefreshBtn.addEventListener('click', fetchLiveChoices);
+    document.querySelector('.scene').appendChild(manualRefreshBtn);
   </script>
 </body>
 </html>
