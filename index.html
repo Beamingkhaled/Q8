@@ -4,70 +4,122 @@
   <meta charset="utf-8" />
   <title>اللعبة المباشرة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <style>
-    body{font-family:Tajawal,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#000;color:#fff;margin:0}
-    .wrap{max-width:820px;margin:56px auto;padding:20px;text-align:center}
-    h1{font-size:26px;margin:0 0 18px}
-    .scene{background:#0e0e0e;border:1px solid #222;border-radius:16px;padding:24px}
-    #sceneTitle{font-size:22px;margin-bottom:18px;color:#ffdc73}
-    .choices{display:flex;flex-direction:column;gap:14px}
-    .btn{background:#141414;border:1px solid #333;border-radius:14px;padding:18px;font-size:20px;color:#fff;transition:.15s}
-    .btn:active{transform:scale(.98)}
-    .debug{position:fixed;left:10px;bottom:10px;background:#131313;border:1px solid #333;border-radius:10px;padding:10px;font-size:12px;color:#aaa}
-    .ok{color:#7dffa3}.bad{color:#ff8b88}
+    body {
+      font-family: 'Tajawal', system-ui;
+      background: #000;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .scene {
+      background: #0e0e0e;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 600px;
+      margin: 40px auto;
+    }
+    #sceneTitle {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #ffdc73;
+    }
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn {
+      background: #141414;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 18px;
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #1a1a1a;
+    }
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #888;
+    }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <h1>اللعبة المباشرة</h1>
-    <div class="scene">
-      <div id="sceneTitle">تحميل…</div>
-      <div class="choices">
-        <button id="choiceLeft"  class="btn">…</button>
-        <button id="choiceRight" class="btn">…</button>
-      </div>
-    </div>
-  </div>
 
-  <div class="debug">
-    Backend: <b>beamingkhaled.github.io/choices.json</b><br/>
-    <span id="dbg">جارِ التحميل…</span>
+<body>
+  <h1>اللعبة المباشرة</h1>
+  
+  <div class="scene">
+    <div id="sceneTitle">جاري التحميل...</div>
+    <div class="choices">
+      <button id="choiceLeft" class="btn">...</button>
+      <button id="choiceRight" class="btn">...</button>
+    </div>
+    <div class="status" id="status">⏳ جاري التحميل...</div>
+    <button onclick="loadData()" style="margin-top:10px; padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; cursor:pointer;">
+      🔄 تحديث
+    </button>
   </div>
 
   <script>
-    // ✅ Fixed JSON endpoint (GitHub Pages, not "raw")
-    const JSON_URL = 'https://beamingkhaled.github.io/choices.json';
+    // Use the RAW GitHub URL of your admin.html file
+    const BACKEND_URL = 'https://raw.githubusercontent.com/beamingkhaled/beamingkhaled.github.io/main/admin.html';
 
-    const titleEl = document.getElementById('sceneTitle');
-    const leftEl  = document.getElementById('choiceLeft');
-    const rightEl = document.getElementById('choiceRight');
-    const dbgEl   = document.getElementById('dbg');
-
-    async function loadChoices(){
-      try{
-        const url = JSON_URL + '?ts=' + Date.now(); // hard cache-bust
-        const res = await fetch(url, {cache:'no-store', headers:{'Cache-Control':'no-cache'}});
-        if(!res.ok){
-          dbgEl.innerHTML = '<span class="bad">HTTP ' + res.status + ' — تأكد من وجود choices.json في الجذر</span>';
-          return;
+    async function loadData() {
+      try {
+        document.getElementById('status').textContent = '⏳ جاري جلب البيانات...';
+        
+        // Fetch with cache busting
+        const response = await fetch(BACKEND_URL + '?t=' + Date.now());
+        const html = await response.text();
+        
+        // Simple text extraction - find the JSON part
+        const start = html.indexOf('{"title":');
+        const end = html.indexOf('}</pre>') + 1;
+        
+        if (start === -1 || end === -1) {
+          throw new Error('لم يتم العثور على البيانات');
         }
-        const data = await res.json();
-
-        titleEl.textContent = data.title || '';
-        leftEl.textContent  = data.left  || '';
-        rightEl.textContent = data.right || '';
-
-        dbgEl.innerHTML = '<span class="ok">OK</span> ' + new Date().toLocaleTimeString();
-      }catch(e){
-        dbgEl.innerHTML = '<span class="bad">خطأ: ' + (e && e.message ? e.message : e) + '</span>';
+        
+        const jsonText = html.substring(start, end);
+        const data = JSON.parse(jsonText);
+        
+        // Update the page
+        document.getElementById('sceneTitle').textContent = data.title;
+        document.getElementById('choiceLeft').textContent = data.left;
+        document.getElementById('choiceRight').textContent = data.right;
+        document.getElementById('status').textContent = '✅ تم التحديث: ' + new Date().toLocaleTimeString();
+        
+      } catch (error) {
+        document.getElementById('status').textContent = '❌ خطأ: ' + error.message;
+        console.error('Error:', error);
       }
     }
 
-    loadChoices();
-    setInterval(loadChoices, 2000);
+    // Add click events to buttons
+    document.getElementById('choiceLeft').onclick = function() {
+      alert('اخترت: ' + this.textContent);
+    };
+    
+    document.getElementById('choiceRight').onclick = function() {
+      alert('اخترت: ' + this.textContent);
+    };
+
+    // Load data immediately and every 10 seconds
+    loadData();
+    setInterval(loadData, 10000);
+
+    // Also load when page becomes visible
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        loadData();
+      }
+    });
   </script>
 </body>
 </html>
