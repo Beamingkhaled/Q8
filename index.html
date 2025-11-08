@@ -2,153 +2,95 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#000000" />
   <title>LIVE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#000; --fg:#fff; --muted:#bbb; --ok:#90ee90; --bad:#ff7777; --box:#151515; --border:#2a2a2a; }
+    :root { --bg:#000; --card:#111; --border:#2f2f2f; --txt:#fff; --muted:#9a9a9a; --radius:20px; }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,'Tajawal',sans-serif}
-    .frame{min-height:100%;display:flex;align-items:center;justify-content:center;padding:12px}
-    .panel{width:min(92vw,480px);border:1px solid var(--border);border-radius:16px;background:#0a0a0a}
-    .top{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)}
-    .wrap{padding:14px;display:flex;flex-direction:column;gap:12px}
-    .title,.choice{padding:16px;border-radius:12px;background:var(--box);border:1px solid var(--border);font-weight:800;text-align:center}
-    .title{font-size:22px}
-    .choice{font-size:20px}
-    .foot{padding:10px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:8px;font-size:12px}
-    .ok{color:var(--ok)} .bad{color:var(--bad)} .muted{color:var(--muted)}
-    .mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all}
-    .tag{font-size:12px;opacity:.85;margin-bottom:6px}
+    body{
+      margin:0; background:var(--bg); color:var(--txt);
+      font-family:'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      display:flex; align-items:center; justify-content:center; padding:14px;
+    }
+    .wrap{width:min(92vw, 520px)}
+    .title, .btn{
+      width:100%; border-radius:var(--radius); border:1px solid var(--border);
+      background:var(--card); text-align:center; padding:18px;
+      box-shadow:0 16px 32px rgba(0,0,0,.35);
+    }
+    .title{font-weight:800; font-size:24px; line-height:1.35; margin-bottom:14px}
+    .btn{font-weight:700; font-size:22px; line-height:1.4; margin-top:14px; user-select:none}
+    .stamp{margin-top:10px; text-align:center; font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
-  <div class="frame">
-    <main class="panel" role="main" aria-live="polite">
-      <div class="top">
-        <div id="clock">—:—:—</div>
-        <div id="source" class="muted">source: auto</div>
-      </div>
-
-      <section class="wrap">
-        <div id="title" class="title">جارِ التحميل…</div>
-
-        <div class="choice">
-          <div class="tag">١</div>
-          <div id="left">—</div>
-        </div>
-
-        <div class="choice">
-          <div class="tag">٢</div>
-          <div id="right">—</div>
-        </div>
-      </section>
-
-      <div class="foot">
-        <div id="status" class="muted mono">startup…</div>
-        <div id="updated" class="muted">—</div>
-      </div>
-    </main>
-  </div>
+  <main class="wrap" aria-live="polite">
+    <div id="title" class="title">جارِ التحميل…</div>
+    <div id="left"  class="btn">—</div>
+    <div id="right" class="btn">—</div>
+    <div id="stamp" class="stamp">—</div>
+  </main>
 
   <script>
-    // === CONFIG (no branding) ===
-    const RAW_URL      = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
-    const API_URL      = "https://api.github.com/repos/beamingkhaled/BQ8/contents/choices.json?ref=main";
-    const JSDELIVR_URL = "https://cdn.jsdelivr.net/gh/beamingkhaled/BQ8@main/choices.json";
-    const POLL_MS = 1500;
+    // === CONFIG ===
+    const RAW  = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
+    const API  = "https://api.github.com/repos/beamingkhaled/BQ8/contents/choices.json?ref=main";
+    const CDN  = "https://cdn.jsdelivr.net/gh/beamingkhaled/BQ8@main/choices.json";
+    const POLL_MS = 1200;
 
-    // === UI refs ===
+    // === UI ===
     const $title = document.getElementById("title");
     const $left  = document.getElementById("left");
     const $right = document.getElementById("right");
-    const $status= document.getElementById("status");
-    const $updated = document.getElementById("updated");
-    const $source = document.getElementById("source");
-    const $clock = document.getElementById("clock");
-
+    const $stamp = document.getElementById("stamp");
     let lastHash = "";
-    let failCount = 0;
 
-    function clock() {
-      const d = new Date();
-      $clock.textContent = d.toLocaleTimeString([], {hour12:false});
-    }
-    setInterval(clock, 1000); clock();
-
-    function normalize(data){
-      // Accept multiple schemas
-      const title = data.title ?? data.q ?? data.question ?? "—";
-      const left  = data.left  ?? data.a ?? data.option1 ?? "—";
-      const right = data.right ?? data.b ?? data.option2 ?? "—";
-      return {title,left,right};
+    function norm(d){
+      return {
+        title: d.title ?? d.q ?? d.question ?? "—",
+        left:  d.left  ?? d.a ?? d.option1 ?? "—",
+        right: d.right ?? d.b ?? d.option2 ?? "—"
+      };
     }
 
-    async function fetchRaw(){
-      const url = RAW_URL + "?nocache=" + Date.now();
-      const res = await fetch(url, {cache:"no-store"});
-      if(!res.ok) throw new Error("RAW HTTP " + res.status);
-      $source.textContent = "source: raw.githubusercontent.com";
-      return res.json();
+    async function getRaw(){
+      const u = RAW + (RAW.includes("?") ? "&" : "?") + "t=" + Date.now();
+      const r = await fetch(u, {cache:"no-store"});
+      if(!r.ok) throw new Error("raw " + r.status);
+      return r.json();
     }
-
-    async function fetchApi(){
-      const url = API_URL + "&_=" + Date.now();
-      const res = await fetch(url, {cache:"no-store"});
-      if(!res.ok) throw new Error("API HTTP " + res.status);
-      const json = await res.json();
-      if(!json.content) throw new Error("API missing content");
-      const decoded = atob(json.content.replace(/\n/g,""));
-      $source.textContent = "source: api.github.com";
-      return JSON.parse(decoded);
+    async function getApi(){
+      const r = await fetch(API + "&t=" + Date.now(), {cache:"no-store"});
+      if(!r.ok) throw new Error("api " + r.status);
+      const j = await r.json();
+      const txt = atob((j.content || "").replace(/\n/g,""));
+      return JSON.parse(txt);
     }
-
-    async function fetchJsDelivr(){
-      const url = JSDELIVR_URL + "?_=" + Date.now();
-      const res = await fetch(url, {cache:"no-store"});
-      if(!res.ok) throw new Error("JSDELIVR HTTP " + res.status);
-      $source.textContent = "source: jsDelivr";
-      return res.json();
+    async function getCdn(){
+      const r = await fetch(CDN + "?t=" + Date.now(), {cache:"no-store"});
+      if(!r.ok) throw new Error("cdn " + r.status);
+      return r.json();
     }
+    async function load(){
+      let data;
+      try { data = await getRaw(); }
+      catch(_) { try { data = await getApi(); }
+        catch(_) { data = await getCdn(); } }
+      const n = norm(data);
+      const h = JSON.stringify(n);
+      if(h === lastHash) return;
+      lastHash = h;
 
-    async function getChoices(){
-      // Try sources in order; show the error if all fail.
-      const errors = [];
-      try { return await fetchRaw(); } catch(e){ errors.push(e.message); }
-      try { return await fetchApi(); } catch(e){ errors.push(e.message); }
-      try { return await fetchJsDelivr(); } catch(e){ errors.push(e.message); }
-      throw new Error(errors.join(" | "));
+      $title.textContent = n.title || "—";
+      $left.textContent  = n.left  || "—";
+      $right.textContent = n.right || "—";
+      $stamp.textContent = new Date().toLocaleTimeString([], {hour12:false});
     }
-
-    function updateUI(data){
-      const {title,left,right} = normalize(data);
-      const hash = JSON.stringify({title,left,right});
-      if(hash === lastHash) return;
-
-      lastHash = hash;
-      $title.textContent = title || "—";
-      $left.textContent  = left  || "—";
-      $right.textContent = right || "—";
-      $updated.textContent = "تم التحديث: " + new Date().toLocaleTimeString([], {hour12:false});
-    }
-
-    async function tick(){
-      try{
-        const data = await getChoices();
-        updateUI(data);
-        failCount = 0;
-        $status.textContent = "OK";
-        $status.className = "ok mono";
-      }catch(err){
-        failCount++;
-        $status.textContent = "RETRY " + failCount + " · " + err.message;
-        $status.className = "bad mono";
-      }
-    }
-
-    // Start
-    tick();
-    setInterval(tick, POLL_MS);
+    load();
+    setInterval(load, POLL_MS);
   </script>
 </body>
 </html>
