@@ -20,46 +20,49 @@
       background:#191919; border:1px solid #222; border-radius:var(--radius);
       color:#fff; font-size:clamp(18px,3.8vw,28px); font-weight:800; text-align:center;
       box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-      transition:transform .08s ease, background .2s ease, border-color .2s ease;
+      transition:transform .08s ease;
     }
     .title{
       background:#101010; border:1px solid #222; border-radius:var(--radius);
       padding:22px; margin:10px 0 22px 0; font-size:clamp(20px,4.6vw,32px); font-weight:800;
-      line-height:1.35; text-align:center;
+      text-align:center; line-height:1.35;
       box-shadow:0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
-    .clock{color:var(--muted); text-align:center; font-size:14px; margin-top:24px}
-    .badge{display:inline-block; font-size:12px; color:#aaa; padding:6px 10px; border:1px dashed #2b2b2b; border-radius:999px}
+    .clock{color:var(--muted); text-align:center; font-size:12px; margin-top:16px}
+    .dbg{color:#6f6f6f; font-size:11px; text-align:center; margin-top:6px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div id="title" class="title">جاري تحميل البيانات...</div>
+    <div id="title" class="title">جاري تحميل البيانات…</div>
     <button id="leftBtn" class="btn">—</button>
     <button id="rightBtn" class="btn">—</button>
-    <div class="clock">
-      <span class="badge">آخر تحديث: <span id="updated">—</span></span>
-    </div>
+    <div class="clock"><span>آخر تحديث: <span id="updated">—</span></span></div>
+    <div class="dbg" id="dbg">source: —</div>
   </div>
 
   <script>
-    // Read from Q8 repo (not BQ8)
+    // ✅ Read from Q8 (not BQ8). This is the only source.
     const JSON_URL = "https://raw.githubusercontent.com/beamingkhaled/Q8/main/choices.json";
 
-    const titleEl  = document.getElementById('title');
-    const leftBtn  = document.getElementById('leftBtn');
-    const rightBtn = document.getElementById('rightBtn');
-    const updatedEl= document.getElementById('updated');
+    const titleEl   = document.getElementById('title');
+    const leftBtn   = document.getElementById('leftBtn');
+    const rightBtn  = document.getElementById('rightBtn');
+    const updatedEl = document.getElementById('updated');
+    const dbgEl     = document.getElementById('dbg');
 
     let lastStamp = '';
 
     async function loadChoices(force=false){
       try{
-        const url = JSON_URL + '?nocache=' + Date.now();
+        // hard bust any cache
+        const url = JSON_URL + "?t=" + Date.now();
+        dbgEl.textContent = "source: " + JSON_URL.replace('https://','') + " (live)";
         const res = await fetch(url, { cache: 'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
 
+        // render
         if(force || data.updatedAt !== lastStamp){
           lastStamp = data.updatedAt || '';
           titleEl.textContent  = data.title  || '—';
@@ -71,11 +74,12 @@
         titleEl.textContent = 'تعذر تحميل البيانات';
         leftBtn.textContent = rightBtn.textContent = '—';
         updatedEl.textContent = '—';
+        dbgEl.textContent = 'source: ERROR — ' + (e.message||e);
       }
     }
 
-    loadChoices(true);
-    setInterval(loadChoices, 4000);
+    loadChoices(true);              // first load immediately
+    setInterval(loadChoices, 4000); // poll
     document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadChoices(true) });
   </script>
 </body>
