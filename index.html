@@ -2,92 +2,109 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>اللعبة المباشرة</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Tfadhloon | Live</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    body{background:#000;color:#eee;font-family:Tajawal,Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}
-    .wrap{width:92%;max-width:680px}
-    h1{color:#ffc107;margin:0 0 18px}
-    .box,.choice{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:18px;margin-bottom:12px;box-shadow:0 4px 8px rgba(0,0,0,.4)}
-    .choice{font-size:1.15em}
-    .status{font-size:.9em;opacity:.9;margin-top:8px}
-    .ok{color:#9dffb0}.bad{color:#ff8c8c}
-    .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>🎲 The Live Game ⚔️</h1>
-    <div class="box"><div id="sceneTitle">تحميل المشهد…</div></div>
-    <div class="choice" id="choiceLeft">…</div>
-    <div class="choice" id="choiceRight">…</div>
-    <div id="status" class="status mono">connecting…</div>
-  </div>
-
-  <script>
-    // 3 mirrored sources (RAW -> jsDelivr -> Pages)
-    const SOURCES = [
-      "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json",
-      "https://cdn.jsdelivr.net/gh/beamingkhaled/BQ8@main/choices.json",
-      "https://beamingkhaled.github.io/BQ8/choices.json"
-    ];
-
-    const titleEl  = document.getElementById("sceneTitle");
-    const leftEl   = document.getElementById("choiceLeft");
-    const rightEl  = document.getElementById("choiceRight");
-    const statusEl = document.getElementById("status");
-
-    let lastUpdatedAt = "";
-
-    function withTimeout(ms, promise){
-      const ctl = new AbortController();
-      const t = setTimeout(()=>ctl.abort(), ms);
-      return Promise.race([
-        promise(ctl.signal).finally(()=>clearTimeout(t)),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error("Timeout "+ms+"ms")), ms))
-      ]);
+    :root{
+      --bg:#0b0b0f;       /* inky dark */
+      --ink:#111118;
+      --card:#171724;
+      --stroke:#2a2a3a;
+      --text:#ffffff;
+      --muted:#a6a6b3;
+      --accent:#8a7dff;   /* soft neon violet */
+      --accent-2:#00d6c9; /* minty teal */
+      --good:#20e070;
+      --bad:#ff4d4d;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(120vh 120vh at 80% -20%, #1a1440 0%, transparent 60%),
+                  radial-gradient(120vh 120vh at -10% 110%, #0b3a35 0%, transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      overflow:hidden;
+    }
+    /* 9:16 safe area (TikTok Live) */
+    .stage{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      padding:12px;
+    }
+    .phone{
+      width:min(92vw, 470px);
+      aspect-ratio:9/16;
+      background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:28px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.55);
+      display:flex; flex-direction:column;
+      overflow:hidden;
     }
 
-    async function fetchFrom(url, signal){
-      const bust = (url.includes("?") ? "&" : "?") + "ts=" + Date.now() + "&r=" + Math.random().toString(36).slice(2);
-      const res = await fetch(url + bust, { cache:"no-store", mode:"cors", redirect:"follow", signal });
-      if(!res.ok) throw new Error("HTTP "+res.status+" @ "+new URL(url).hostname);
-      return res.json();
+    /* Top bar */
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px;
+    }
+    .dot{width:10px; height:10px; border-radius:50%; background:var(--good); box-shadow:0 0 16px var(--good)}
+    .live{font-size:12px; opacity:.85}
+    .stamp{font-size:12px; color:var(--muted)}
+
+    /* Content */
+    .wrap{padding:18px 14px 16px; display:flex; flex-direction:column; gap:14px; flex:1}
+    .title{
+      padding:16px 14px;
+      border-radius:var(--radius);
+      background:var(--ink);
+      border:1px solid var(--stroke);
+      font-size:22px; line-height:1.35; font-weight:800; text-align:center;
+      text-shadow: 0 1px 0 rgba(0,0,0,.25);
+      box-shadow: inset 0 -18px 24px rgba(255,255,255,.02), 0 10px 28px rgba(0,0,0,.35);
+    }
+    .choice{
+      padding:18px 16px;
+      border-radius:20px;
+      background:var(--card);
+      border:1px solid var(--stroke);
+      font-size:20px; line-height:1.4; font-weight:700; text-align:center;
+      cursor:default; user-select:none;
+      transform:translateZ(0);
+      transition:transform .12s ease, box-shadow .12s ease, border-color .2s ease;
+      box-shadow: 0 14px 28px rgba(0,0,0,.28);
+    }
+    .choice:hover{ transform:translateY(-1px) }
+    .choice:active{ transform:translateY(0) scale(0.997) }
+
+    .a{ outline:0; box-shadow: 0 8px 24px rgba(138,125,255,.25) }
+    .b{ outline:0; box-shadow: 0 8px 24px rgba(0,214,201,.22) }
+    .a .tag{ background:rgba(138,125,255,.18); border:1px solid rgba(138,125,255,.45) }
+    .b .tag{ background:rgba(0,214,201,.18); border:1px solid rgba(0,214,201,.45) }
+
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; margin-bottom:8px;
+      border-radius:999px; font-size:12px; font-weight:800; letter-spacing:.3px;
+    }
+    .pulse{animation:pulse 1s ease 1}
+    @keyframes pulse{
+      0%{ box-shadow:0 0 0 0 rgba(32,224,112,.45) }
+      100%{ box-shadow:0 0 0 12px rgba(32,224,112,0) }
     }
 
-    async function getChoices(){
-      const errors = [];
-      for (const url of SOURCES){
-        try{
-          const data = await withTimeout(4000, (signal)=>fetchFrom(url, signal));
-          return { data, via:url };
-        }catch(e){
-          errors.push(e.message);
-        }
-      }
-      throw new Error(errors.join(" | "));
-    }
-
-    async function refresh(){
-      try{
-        const { data, via } = await getChoices();
-        if (data.updatedAt !== lastUpdatedAt){
-          titleEl.textContent = data.title || "";
-          leftEl.textContent  = data.left  || "";
-          rightEl.textContent = data.right || "";
-          lastUpdatedAt = data.updatedAt || "";
-        }
-        statusEl.innerHTML = `✅ updated @ ${new Date().toLocaleTimeString()} · via ${new URL(via).hostname}`;
-      }catch(e){
-        statusEl.innerHTML = `<span class="bad">Load failed: ${e.message}</span>`;
-      }
-    }
-
-    refresh();
-    setInterval(refresh, 1500);
-  </script>
-</body>
-</html>
+    .foot{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; padding:12px 14px;
+      border-top:1px solid rgba(255,255,255,.08);
+      background:linear-gradient(0deg, rgba
