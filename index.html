@@ -1,109 +1,62 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Avenues & Dragons</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: linear-gradient(180deg, #3B0066 0%, #6A0DAD 50%, #CDAA7D 100%);
-      color: #fff;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      overflow: hidden;
-      text-align: center;
-    }
-
-    .game-container {
-      width: 90%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-    }
-
-    .choice {
-      background: rgba(255,255,255,0.1);
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 20px;
-      padding: 40px 20px;
-      font-size: 1.8rem;
-      font-weight: 700;
-      backdrop-filter: blur(6px);
-      transition: all 0.3s ease;
-      cursor: pointer;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-
-    .choice:hover {
-      background: rgba(255,255,255,0.25);
-      transform: scale(1.04);
-    }
-
-    .choice:nth-child(1) {
-      background: linear-gradient(90deg, #FFD580, #FFBB33);
-      color: #2E004F;
-    }
-
-    .choice:nth-child(2) {
-      background: linear-gradient(90deg, #E0B0FF, #A36FFF);
-      color: #240046;
-    }
-
-    .scene {
-      font-size: 1.4rem;
-      margin-bottom: 25px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 15px 20px;
-      border-radius: 12px;
-      color: #FFDDEE;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Avenues & Dragons — الشاشة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg1:#0b0b16;--bg2:#1a1440;--card:#201a4a;--line:#2c2a5a;--ink:#fff;--muted:#c7c2df}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(1200px 600px at 70% -10%,var(--bg2) 0%,var(--bg1) 60%,#060612 100%);font-family:'Tajawal',sans-serif;color:var(--ink)}
+  .wrap{min-height:100%;display:grid;place-items:center;padding:18px}
+  .card{width:min(900px,95vw);background:linear-gradient(180deg,#231b52 0%,#161233 100%);border:1px solid var(--line);border-radius:18px;box-shadow:0 28px 60px rgba(0,0,0,.5);padding:22px}
+  h1{margin:0 0 8px;font-weight:800}
+  .q{font-size:28px;font-weight:800;line-height:1.35;margin:10px 0 16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .choice{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;font-size:22px;font-weight:800}
+  .choice small{display:block;color:var(--muted);font-weight:600;margin-top:6px}
+  .meta{margin-top:14px;color:var(--muted);font-size:15px}
+  .badge{position:fixed;top:10px;left:10px;background:#23234a;padding:6px 10px;border-radius:10px;font-size:12px}
+</style>
 </head>
 <body>
+<div class="badge" id="status">بانتظار الاتصال…</div>
 
-  <div class="game-container">
-    <div class="scene">تمشي الأم مع ابنها في الأڤنيوز وتشوف إعلان تخفيض كبير...</div>
+<div class="wrap">
+  <div class="card">
+    <h1>Avenues & Dragons</h1>
 
-    <div class="choice" onclick="selectChoice(1)">تدخل المحل بسرعة تشوف العروض 🔥</div>
-    <div class="choice" onclick="selectChoice(2)">تتجاهل وتكمل طريقها ☕️</div>
+    <!-- These IDs MUST exist; admin writes to them -->
+    <div class="q" id="question">تمشي الأم مع ابنها في الأفنيوز…</div>
+
+    <div class="grid">
+      <div class="choice" id="option1">☕️ تدخل مقهى مزدحم<small id="note1"></small></div>
+      <div class="choice" id="option2">🛍️ تذهب إلى الممر الخلفي<small id="note2"></small></div>
+    </div>
+
+    <div class="meta" id="meta">اكتب 1 أو 2 في التعليقات — الهدايا تغيّر القصة</div>
   </div>
+</div>
 
-  <script>
-    function selectChoice(choice) {
-      const choices = document.querySelectorAll('.choice');
-      choices.forEach(c => c.style.opacity = '0.5');
-      choices[choice - 1].style.opacity = '1';
-      choices[choice - 1].style.transform = 'scale(1.08)';
-      setTimeout(() => alert(`الاختيار ${choice} تم!`), 400);
-    }
-  </script>
 <script>
-  // استقبل التحديثات من لوحة التحكم
+  // Listen for updates from the back-end controller
   window.addEventListener('message', (ev)=>{
     const d = ev.data || {};
     if (d.type === 'UPDATE_CHOICES') {
-      // عدل هذه السطور لتطابق IDs الموجودة عندك في الواجهة الأمامية
       document.getElementById('question').textContent = d.question || '—';
-      document.getElementById('option1').firstChild.nodeValue = d.option1 || '—';
-      document.getElementById('option2').firstChild.nodeValue = d.option2 || '—';
+      // firstChild.nodeValue ensures the main line (before <small>) updates
+      document.getElementById('option1').firstChild.nodeValue = (d.option1 || '—');
+      document.getElementById('option2').firstChild.nodeValue = (d.option2 || '—');
+      document.getElementById('note1').textContent = d.note1 || '';
+      document.getElementById('note2').textContent = d.note2 || '';
       document.getElementById('meta').textContent = d.meta || '';
+      document.getElementById('status').textContent = 'متصل ✅';
     }
   });
-  // أخبر اللوحة أننا جاهزون
-  window.opener && window.opener.postMessage({type:'FRONT_READY'}, '*');
+
+  // Tell the admin page we’re ready (so it shows “connected”)
+  try { window.opener && window.opener.postMessage({type:'FRONT_READY'}, '*'); } catch(e) {}
 </script>
 </body>
 </html>
