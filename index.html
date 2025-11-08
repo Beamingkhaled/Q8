@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>اللعبة المباشرة | الخيارات</title>
+  <title>اللعبة المباشرة | الخيارات (فوري)</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     :root { --bg:#000; --card:#151515; --text:#fff; --muted:#9aa0a6; --radius:18px; }
@@ -29,39 +29,49 @@
       box-shadow:0 12px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
     .clock{color:var(--muted); text-align:center; font-size:12px; margin-top:16px}
+    .warn{color:#ffb3b3; text-align:center; font-size:13px; margin-top:8px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div id="title" class="title">جاري تحميل البيانات…</div>
+    <div id="title" class="title">جاري التحميل…</div>
     <button id="leftBtn" class="btn">—</button>
     <button id="rightBtn" class="btn">—</button>
     <div class="clock">آخر تحديث: <span id="updated">—</span></div>
+    <div id="warn" class="warn"></div>
   </div>
 
   <script>
-    // ✅ Read from GitHub Pages (faster than raw.githubusercontent)
-    const JSON_URL = "https://beamingkhaled.github.io/Q8/choices.json";
+    // Read Bin ID from the URL: ?bin=XXXXXXXX
+    const qs  = new URLSearchParams(location.search);
+    const BIN = qs.get('bin');
 
     const titleEl   = document.getElementById('title');
     const leftBtn   = document.getElementById('leftBtn');
     const rightBtn  = document.getElementById('rightBtn');
     const updatedEl = document.getElementById('updated');
+    const warnEl    = document.getElementById('warn');
+
+    if(!BIN){
+      warnEl.innerHTML = '⚠️ أضف ?bin=BIN_ID إلى الرابط. افتح <b>admin.html</b> وانسخ رابط المشاهدة الجاهز.';
+    }
 
     let lastStamp = '';
 
     async function loadChoices(force=false){
+      if(!BIN) return;
       try{
-        // hard-bust cache every request
-        const res = await fetch(JSON_URL + '?t=' + Date.now(), { cache: 'no-store' });
+        const url = `https://api.jsonbin.io/v3/b/${encodeURIComponent(BIN)}/latest?t=${Date.now()}`;
+        const res = await fetch(url, { cache:'no-store' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const data = await res.json();
+        const record = data && data.record ? data.record : data;
 
-        if(force || data.updatedAt !== lastStamp){
-          lastStamp = data.updatedAt || '';
-          titleEl.textContent  = data.title  || '—';
-          leftBtn.textContent  = data.left   || '—';
-          rightBtn.textContent = data.right  || '—';
+        if(force || record.updatedAt !== lastStamp){
+          lastStamp = record.updatedAt || '';
+          titleEl.textContent  = record.title  || '—';
+          leftBtn.textContent  = record.left   || '—';
+          rightBtn.textContent = record.right  || '—';
           updatedEl.textContent = lastStamp ? new Date(lastStamp).toLocaleTimeString('ar-KW') : '—';
         }
       }catch(e){
@@ -71,8 +81,8 @@
       }
     }
 
-    loadChoices(true);                 // first load immediately
-    setInterval(loadChoices, 1000);    // 🔁 poll every 1s (no manual refresh)
+    loadChoices(true);               // first load immediately
+    setInterval(loadChoices, 1000);  // poll every second (instant feel)
     document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadChoices(true) });
   </script>
 </body>
