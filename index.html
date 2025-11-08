@@ -8,88 +8,70 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
-    body {
-      background-color: #000;
-      color: #ddd;
-      font-family: "Tajawal", Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .container {
-      width: 90%;
-      max-width: 650px;
-    }
-    h1 {
-      color: #ffc107;
-      margin-bottom: 20px;
-    }
-    .box, .choice {
-      background-color: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 18px;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-    }
-    .choice {
-      font-size: 1.1em;
-    }
-    .status {
-      font-size: 0.9em;
-      opacity: 0.85;
-      margin-top: 8px;
-    }
-    .ok { color: #9dffb0; }
-    .bad { color: #ff8c8c; }
+    body{background:#000;color:#eee;font-family:Tajawal,Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}
+    .wrap{width:92%;max-width:680px}
+    h1{color:#ffc107;margin:0 0 18px}
+    .box,.choice{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:18px;margin-bottom:12px;box-shadow:0 4px 8px rgba(0,0,0,.4)}
+    .choice{font-size:1.15em}
+    .status{font-size:.9em;opacity:.9;margin-top:8px}
+    .ok{color:#9dffb0}.bad{color:#ff8c8c}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>⚔️ The Live Game 🎲</h1>
-    <div class="box">
-      <div id="sceneTitle">تحميل المشهد...</div>
-    </div>
-    <div class="choice" id="choiceLeft">...</div>
-    <div class="choice" id="choiceRight">...</div>
-    <div id="status" class="status">جارٍ الاتصال...</div>
+  <div class="wrap">
+    <h1>🎲 The Live Game ⚔️</h1>
+    <div class="box"><div id="sceneTitle">تحميل المشهد…</div></div>
+    <div class="choice" id="choiceLeft">…</div>
+    <div class="choice" id="choiceRight">…</div>
+    <div id="status" class="status">جارٍ الاتصال…</div>
   </div>
 
   <script>
-    // ✅ This points directly to your real backend JSON file (no edits needed)
-    const DATA_URL = "https://beamingkhaled.github.io/BQ8/choices.json";
+    // Reads directly from RAW (instant updates), with Pages as a fallback.
+    const RAW_URL   = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
+    const PAGES_URL = "https://beamingkhaled.github.io/BQ8/choices.json";
 
-    const titleEl = document.getElementById("sceneTitle");
-    const leftEl = document.getElementById("choiceLeft");
-    const rightEl = document.getElementById("choiceRight");
+    const titleEl  = document.getElementById("sceneTitle");
+    const leftEl   = document.getElementById("choiceLeft");
+    const rightEl  = document.getElementById("choiceRight");
     const statusEl = document.getElementById("status");
 
-    async function fetchData() {
-      try {
-        const res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
-        if (!res.ok) {
-          statusEl.innerHTML = `<span class="bad">HTTP ${res.status}</span>`;
-          return;
+    let lastUpdatedAt = "";
+
+    async function fetchJSON(url){
+      const res = await fetch(url + (url.includes("?") ? "&" : "?") + "ts=" + Date.now(), {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" }
+      });
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    }
+
+    async function refresh(){
+      try{
+        let data;
+        try {
+          data = await fetchJSON(RAW_URL);        // primary (no CDN delay)
+        } catch {
+          data = await fetchJSON(PAGES_URL);      // fallback
         }
 
-        const data = await res.json();
+        // Only update UI if something actually changed
+        if (data.updatedAt !== lastUpdatedAt) {
+          titleEl.textContent = data.title || "";
+          leftEl.textContent  = data.left  || "";
+          rightEl.textContent = data.right || "";
+          lastUpdatedAt = data.updatedAt || "";
+        }
 
-        titleEl.textContent = data.title || "بدون عنوان";
-        leftEl.textContent = data.left || "الخيار الأيسر فارغ";
-        rightEl.textContent = data.right || "الخيار الأيمن فارغ";
-
-        statusEl.innerHTML = `<span class="ok">✅ تم التحديث</span> · ${new Date().toLocaleTimeString()}`;
-      } catch (err) {
-        statusEl.innerHTML = `<span class="bad">خطأ: ${err.message}</span>`;
+        statusEl.innerHTML = `<span class="ok">✅ آخر تحديث:</span> ${new Date().toLocaleTimeString()}`;
+      } catch (e){
+        statusEl.innerHTML = `<span class="bad">خطأ: ${e.message}</span>`;
       }
     }
 
-    fetchData();
-    setInterval(fetchData, 2000);
+    refresh();
+    setInterval(refresh, 2000); // poll every 2s
   </script>
 </body>
 </html>
