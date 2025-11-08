@@ -1,71 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>اللعبة المباشرة</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <style>
-    body{background:#000;color:#ddd;font-family:Tajawal,Arial,sans-serif;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center}
-    .container{width:92%;max-width:680px;text-align:center}
-    h1{color:#ffc107;margin:0 0 18px}
-    .box,.choice{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 4px 8px rgba(0,0,0,.4)}
-    .choice{font-size:1.1em}
-    .status{font-size:.9em;opacity:.85;margin-top:6px}
-    .ok{color:#9dffb0}.bad{color:#ff8c8c}
+    body {
+      background-color: #000;
+      color: #ddd;
+      font-family: "Tajawal", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      width: 90%;
+      max-width: 650px;
+    }
+    h1 {
+      color: #ffc107;
+      margin-bottom: 20px;
+    }
+    .box, .choice {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+    .choice {
+      font-size: 1.1em;
+    }
+    .status {
+      font-size: 0.9em;
+      opacity: 0.85;
+      margin-top: 8px;
+    }
+    .ok { color: #9dffb0; }
+    .bad { color: #ff8c8c; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>⚔️ The Live Game 🎲</h1>
-
-    <div class="box"><div id="sceneTitle">… تحميل المشهد …</div></div>
-    <div class="choice" id="choiceLeft">…</div>
-    <div class="choice" id="choiceRight">…</div>
-
-    <div id="status" class="status">جارِ الاتصال…</div>
+    <div class="box">
+      <div id="sceneTitle">تحميل المشهد...</div>
+    </div>
+    <div class="choice" id="choiceLeft">...</div>
+    <div class="choice" id="choiceRight">...</div>
+    <div id="status" class="status">جارٍ الاتصال...</div>
   </div>
 
   <script>
-    // ✅ Already set to your backend admin page (no edits needed)
-    const BACKEND_PAGE = 'https://beamingkhaled.github.io/BQ8/';
+    // ✅ This points directly to your real backend JSON file (no edits needed)
+    const DATA_URL = "https://beamingkhaled.github.io/BQ8/choices.json";
 
-    const titleEl = document.getElementById('sceneTitle');
-    const leftEl  = document.getElementById('choiceLeft');
-    const rightEl = document.getElementById('choiceRight');
-    const statusEl= document.getElementById('status');
+    const titleEl = document.getElementById("sceneTitle");
+    const leftEl = document.getElementById("choiceLeft");
+    const rightEl = document.getElementById("choiceRight");
+    const statusEl = document.getElementById("status");
 
-    async function pull(){
-      try{
-        const url = BACKEND_PAGE + '?ts=' + Date.now(); // hard cache-bust
-        const res = await fetch(url, {cache:'no-store', headers:{'Cache-Control':'no-cache'}});
-        if(!res.ok){ statusEl.innerHTML = `<span class="bad">HTTP ${res.status}</span>`; return; }
+    async function fetchData() {
+      try {
+        const res = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) {
+          statusEl.innerHTML = `<span class="bad">HTTP ${res.status}</span>`;
+          return;
+        }
 
-        const html = await res.text();
+        const data = await res.json();
 
-        // Parse the admin page and grab the JSON block
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const pre = doc.querySelector('#LIVE_CHOICES_JSON');
-        if(!pre){ statusEl.innerHTML = `<span class="bad">JSON block not found on backend page</span>`; return; }
+        titleEl.textContent = data.title || "بدون عنوان";
+        leftEl.textContent = data.left || "الخيار الأيسر فارغ";
+        rightEl.textContent = data.right || "الخيار الأيمن فارغ";
 
-        let data;
-        try{ data = JSON.parse(pre.textContent.trim()); }
-        catch(e){ statusEl.innerHTML = `<span class="bad">JSON parse error</span>`; return; }
-
-        titleEl.textContent = data.title || '';
-        leftEl.textContent  = data.left  || '';
-        rightEl.textContent = data.right || '';
-
-        statusEl.innerHTML = `<span class="ok">OK</span> · ${new Date().toLocaleTimeString()}`;
-      }catch(err){
-        statusEl.innerHTML = `<span class="bad">${err && err.message ? err.message : err}</span>`;
+        statusEl.innerHTML = `<span class="ok">✅ تم التحديث</span> · ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        statusEl.innerHTML = `<span class="bad">خطأ: ${err.message}</span>`;
       }
     }
 
-    pull();
-    setInterval(pull, 2000);
+    fetchData();
+    setInterval(fetchData, 2000);
   </script>
 </body>
 </html>
