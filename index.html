@@ -68,6 +68,16 @@
       color: #999;
       max-width: 300px;
     }
+    .refresh-btn {
+      background: #333;
+      border: 1px solid #555;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-family: inherit;
+    }
   </style>
 </head>
 
@@ -80,23 +90,30 @@
         <button id="choiceLeft" class="btn">...</button>
         <button id="choiceRight" class="btn">...</button>
       </div>
+      <button onclick="fetchLiveChoices()" class="refresh-btn">🔄 تحديث يدوي</button>
     </div>
   </div>
 
   <div class="debug">
     <div><b>Backend:</b> beamingkhaled.github.io</div>
     <div id="debugStatus">Status: ⏳ Loading...</div>
+    <div id="lastUpdate">Last Update: --</div>
   </div>
 
   <script>
-    // ✅ Fixed backend URL - Using RAW GitHub file
+    // ✅ Use RAW GitHub URL for instant updates
     const BACKEND_URL = 'https://raw.githubusercontent.com/beamingkhaled/beamingkhaled.github.io/main/admin.html';
 
     async function fetchLiveChoices() {
       try {
-        const res = await fetch(BACKEND_URL, {
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const res = await fetch(BACKEND_URL + '?t=' + timestamp, {
           cache: 'no-store',
-          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
         });
         
         if (!res.ok) {
@@ -105,28 +122,31 @@
         
         const html = await res.text();
 
-        // Extract <pre id="LIVE_CHOICES_JSON">
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const pre = doc.querySelector('#LIVE_CHOICES_JSON');
-
-        if (!pre) {
-          document.getElementById('debugStatus').textContent = '❌ لم يتم العثور على JSON في الصفحة الخلفية.';
-          return;
+        // Extract JSON from the pre tag
+        const jsonMatch = html.match(/<pre id="LIVE_CHOICES_JSON">([\s\S]*?)<\/pre>/);
+        
+        if (!jsonMatch) {
+          throw new Error('JSON not found in backend');
         }
 
-        const data = JSON.parse(pre.textContent);
+        const jsonText = jsonMatch[1].trim();
+        const data = JSON.parse(jsonText);
+        
         applyChoices(data);
-        document.getElementById('debugStatus').textContent = '✅ تم التحديث بنجاح (' + new Date().toLocaleTimeString() + ')';
+        
+        document.getElementById('debugStatus').textContent = '✅ تم التحديث (' + new Date().toLocaleTimeString() + ')';
+        document.getElementById('lastUpdate').textContent = 'Last Update: ' + new Date().toLocaleTimeString();
+        
       } catch (err) {
+        console.error('Error:', err);
         document.getElementById('debugStatus').textContent = '⚠️ خطأ: ' + err.message;
       }
     }
 
     function applyChoices(data) {
-      document.getElementById('sceneTitle').textContent = data.title || '';
-      document.getElementById('choiceLeft').textContent = data.left || '';
-      document.getElementById('choiceRight').textContent = data.right || '';
+      document.getElementById('sceneTitle').textContent = data.title || 'لا يوجد عنوان';
+      document.getElementById('choiceLeft').textContent = data.left || 'لا يوجد خيار';
+      document.getElementById('choiceRight').textContent = data.right || 'لا يوجد خيار';
     }
 
     // Add button click events
@@ -138,9 +158,16 @@
       alert('اخترت: ' + this.textContent);
     });
 
-    // Run immediately and every 3s
+    // Run immediately and every 5 seconds
     fetchLiveChoices();
-    setInterval(fetchLiveChoices, 3000);
+    setInterval(fetchLiveChoices, 5000);
+
+    // Also refresh when page becomes visible
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        fetchLiveChoices();
+      }
+    });
   </script>
 </body>
 </html>
