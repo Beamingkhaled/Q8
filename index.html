@@ -1,125 +1,115 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>اللعبة المباشرة</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: 'Tajawal', system-ui;
-      background: #000;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-    }
-    .scene {
-      background: #0e0e0e;
-      border: 1px solid #333;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 600px;
-      margin: 40px auto;
-    }
-    #sceneTitle {
-      font-size: 22px;
-      margin-bottom: 20px;
-      color: #ffdc73;
-    }
-    .choices {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .btn {
-      background: #141414;
-      border: 1px solid #333;
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 18px;
-      color: #fff;
-      cursor: pointer;
-    }
-    .btn:hover {
-      background: #1a1a1a;
-    }
-    .status {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #888;
-    }
-  </style>
-</head>
-
-<body>
-  <h1>اللعبة المباشرة</h1>
-  
-  <div class="scene">
-    <div id="sceneTitle">جاري التحميل...</div>
-    <div class="choices">
-      <button id="choiceLeft" class="btn">...</button>
-      <button id="choiceRight" class="btn">...</button>
-    </div>
-    <div class="status" id="status">⏳ جاري التحميل...</div>
-    <button onclick="loadData()" style="margin-top:10px; padding:8px 16px; background:#333; color:white; border:none; border-radius:6px; cursor:pointer;">
-      🔄 تحديث
-    </button>
-  </div>
-
-  <script>
-    // Use the RAW GitHub URL of your admin.html file
-    const BACKEND_URL = 'https://raw.githubusercontent.com/beamingkhaled/beamingkhaled.github.io/main/admin.html';
-
-    async function loadData() {
-      try {
-        document.getElementById('status').textContent = '⏳ جاري جلب البيانات...';
-        
-        // Fetch with cache busting
-        const response = await fetch(BACKEND_URL + '?t=' + Date.now());
-        const html = await response.text();
-        
-        // Simple text extraction - find the JSON part
-        const start = html.indexOf('{"title":');
-        const end = html.indexOf('}</pre>') + 1;
-        
-        if (start === -1 || end === -1) {
-          throw new Error('لم يتم العثور على البيانات');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live D&D Text Game</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #ccc;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
         }
-        
-        const jsonText = html.substring(start, end);
-        const data = JSON.parse(jsonText);
-        
-        // Update the page
-        document.getElementById('sceneTitle').textContent = data.title;
-        document.getElementById('choiceLeft').textContent = data.left;
-        document.getElementById('choiceRight').textContent = data.right;
-        document.getElementById('status').textContent = '✅ تم التحديث: ' + new Date().toLocaleTimeString();
-        
-      } catch (error) {
-        document.getElementById('status').textContent = '❌ خطأ: ' + error.message;
-        console.error('Error:', error);
-      }
-    }
+        .container {
+            width: 90%;
+            max-width: 600px;
+        }
+        .header {
+            color: #ffc107; 
+            margin-bottom: 20px;
+        }
+        .scene-box, .choice-button {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        .choice-button {
+            cursor: default; /* Changed to default since there's no action yet */
+            border: 1px solid #333;
+            font-size: 1.1em;
+            transition: color 0.5s;
+        }
+    </style>
+</head>
+<body>
 
-    // Add click events to buttons
-    document.getElementById('choiceLeft').onclick = function() {
-      alert('اخترت: ' + this.textContent);
-    };
+    <div class="container">
+        <h1 class="header">⚔️ The Live Game 🎲</h1>
+        
+        <div class="scene-box">
+            <p id="scene-title">Loading initial scenario...</p>
+        </div>
+
+        <div id="loading-message">Checking for GM updates...</div>
+
+        <div class="choice-button" id="left-choice-button">
+            Choice 1 (Loading...)
+        </div>
+        <div class="choice-button" id="right-choice-button">
+            Choice 2 (Loading...)
+        </div>
+        
+    </div>
+
+    <script>
+        // =========================================================
+        //  REAL-TIME POLLING SCRIPT (JavaScript)
+        // =========================================================
+        
+        // !!! ASSUMPTION: This URL assumes your front-end repository is accessible 
+        // at the GitHub Pages root and the JSON is in a 'data' folder.
+        // If your repo name is different, you MUST manually update this line!
+        const DATA_URL = 'data/current_scene.json'; 
+
+        const POLL_INTERVAL = 3000; // Check every 3 seconds
+        let lastKnownUpdate = null; 
+
+        function fetchData() {
+            fetch(DATA_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('Network Error fetching data:', response.status);
+                        document.getElementById('loading-message').textContent = `Error ${response.status}: Failed to load data.`;
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.updatedAt) {
+                        
+                        if (data.updatedAt !== lastKnownUpdate) {
+                            console.log("GM update detected. Updating choices...");
+                            
+                            // UPDATE THE UI ELEMENTS using the required IDs
+                            document.getElementById('scene-title').textContent = data.title;
+                            document.getElementById('left-choice-button').textContent = data.left;
+                            document.getElementById('right-choice-button').textContent = data.right;
+                            
+                            lastKnownUpdate = data.updatedAt;
+
+                            document.getElementById('loading-message').style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during fetch operation:', error);
+                    document.getElementById('loading-message').textContent = 'An unknown error occurred while updating.';
+                });
+        }
+
+        fetchData(); 
+        setInterval(fetchData, POLL_INTERVAL); 
+        
+    </script>
     
-    document.getElementById('choiceRight').onclick = function() {
-      alert('اخترت: ' + this.textContent);
-    };
-
-    // Load data immediately and every 10 seconds
-    loadData();
-    setInterval(loadData, 10000);
-
-    // Also load when page becomes visible
-    document.addEventListener('visibilitychange', function() {
-      if (!document.hidden) {
-        loadData();
-      }
-    });
-  </script>
 </body>
 </html>
