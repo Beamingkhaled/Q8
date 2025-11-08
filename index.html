@@ -22,7 +22,6 @@
       box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
       transition:transform .08s ease, background .2s ease, border-color .2s ease;
     }
-    .btn:hover{transform:translateY(-2px)}
     .title{
       background:#101010; border:1px solid #222; border-radius:var(--radius);
       padding:22px; margin:10px 0 22px 0; font-size:clamp(20px,4.6vw,32px); font-weight:800;
@@ -44,8 +43,8 @@
   </div>
 
   <script>
-    // fetch from BQ8 repo directly
-    const JSON_URL = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
+    // Read from Q8 repo (not BQ8)
+    const JSON_URL = "https://raw.githubusercontent.com/beamingkhaled/Q8/main/choices.json";
 
     const titleEl  = document.getElementById('title');
     const leftBtn  = document.getElementById('leftBtn');
@@ -75,7 +74,6 @@
       }
     }
 
-    // first load immediately, then poll every 4 seconds
     loadChoices(true);
     setInterval(loadChoices, 4000);
     document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) loadChoices(true) });
