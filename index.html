@@ -90,6 +90,20 @@
       setTimeout(() => alert(`الاختيار ${choice} تم!`), 400);
     }
   </script>
-
+<script>
+  // استقبل التحديثات من لوحة التحكم
+  window.addEventListener('message', (ev)=>{
+    const d = ev.data || {};
+    if (d.type === 'UPDATE_CHOICES') {
+      // عدل هذه السطور لتطابق IDs الموجودة عندك في الواجهة الأمامية
+      document.getElementById('question').textContent = d.question || '—';
+      document.getElementById('option1').firstChild.nodeValue = d.option1 || '—';
+      document.getElementById('option2').firstChild.nodeValue = d.option2 || '—';
+      document.getElementById('meta').textContent = d.meta || '';
+    }
+  });
+  // أخبر اللوحة أننا جاهزون
+  window.opener && window.opener.postMessage({type:'FRONT_READY'}, '*');
+</script>
 </body>
 </html>
