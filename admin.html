@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>لوحة التحكم | تحديث الخيارات</title>
+  <title>لوحة التحكم الفورية | JSONBin</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     :root{--bg:#000;--card:#111;--border:#222;--text:#fff;--ok:#28c76f;--muted:#9aa0a6;--radius:16px}
@@ -13,61 +13,53 @@
     h1{font-size:26px;margin:10px 0 18px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 14px;margin:14px 0;box-shadow:0 12px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
     label{display:block;font-weight:800;margin:6px 2px 8px}
-    input,textarea,select{
-      width:100%;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:12px;color:#fff;
-      padding:14px 12px;font-size:16px;outline:none
-    }
+    input{width:100%;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:12px;color:#fff;padding:14px 12px;font-size:16px;outline:none}
     .row{display:grid;grid-template-columns:1fr;gap:10px}
     @media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
-    button{
-      background:#191919;border:1px solid #2b2b2b;border-radius:14px;color:#fff;
-      padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer; width:100%;
-    }
+    button{background:#191919;border:1px solid #2b2b2b;border-radius:14px;color:#fff;padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer;width:100%}
     button.primary{background:#1a3a22;border-color:#285d3a}
     .ok{color:var(--ok);font-weight:800}
     pre{white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:12px;padding:12px}
     .muted{color:var(--muted);font-size:13px}
+    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     a{color:#9ad3ff;text-decoration:none}
+    .link{background:#0b0b0b;border:1px dashed #2b2b2b;border-radius:10px;padding:10px;font-size:13px;overflow:auto}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>لوحة التحكم — تحديث <code>choices.json</code></h1>
+    <h1>لوحة تحكم فورية — JSONBin (بدون تأخير)</h1>
 
     <div class="card">
-      <label>🔑 GitHub Token (مرة واحدة)</label>
-      <input id="token" type="password" placeholder="ghp_xxx أو github_pat_xxx" />
-      <div class="muted">يُخزن محلياً في متصفحك فقط. الصلاحيات المطلوبة: <b>contents:write</b>.</div>
+      <label>🔑 JSONBin API Key (مرة واحدة)</label>
+      <input id="apiKey" type="password" placeholder="ابدأ من jsonbin.io > API Keys" />
       <div class="row" style="margin-top:10px">
         <div>
-          <label>👤 المستخدم</label>
-          <input id="owner" value="beamingkhaled" />
+          <label>🆔 Bin ID</label>
+          <input id="binId" placeholder="فارغ إذا ستنشئ Bin جديد" />
         </div>
         <div>
-          <label>📦 المستودع</label>
-          <input id="repo" value="Q8" />
-        </div>
-        <div>
-          <label>🌿 الفرع</label>
-          <input id="branch" value="main" />
-        </div>
-        <div>
-          <label>📄 مسار الملف</label>
-          <input id="path" value="choices.json" />
+          <label>🌍 رابط المشاهدة</label>
+          <div id="viewerLink" class="link">—</div>
         </div>
       </div>
+      <div class="row" style="margin-top:10px">
+        <button id="createBin">✨ إنشاء Bin عام للقراءة الفورية</button>
+        <button id="saveCreds">💾 حفظ الإعدادات</button>
+      </div>
+      <div class="muted">- إنشاء Bin يجعل القراءة عامة (Public) لتعمل للعرض بدون مفاتيح. الكتابة محمية بالمفتاح فقط لديك.</div>
     </div>
 
     <div class="card">
       <div class="row">
         <div>
           <label>عنوان المشهد</label>
-          <input id="title" placeholder="مثال: المول — القرار الأول" />
+          <input id="title" placeholder="مثال: القرار في المول" />
         </div>
       </div>
       <div class="row">
         <div>
-          <label>الخيـار الأيسر</label>
+          <label>الخيار الأيسر</label>
           <input id="left" placeholder="ندخل القهوة؟" />
         </div>
         <div>
@@ -75,115 +67,100 @@
           <input id="right" placeholder="نتمشى أول؟" />
         </div>
       </div>
-
       <div class="row" style="margin-top:10px">
-        <button class="primary" id="saveBtn">💾 حفظ إلى <code>choices.json</code></button>
+        <button class="primary" id="saveBtn">💾 حفظ الآن (فوري)</button>
         <button id="loadBtn">⟳ قراءة المحتوى الحالي</button>
       </div>
-
       <div id="status" style="margin-top:10px"></div>
     </div>
 
     <div class="card">
-      <label>المحتوى الحالي (للتأكيد)</label>
+      <label>المحتوى الحالي (تأكيد)</label>
       <pre id="preview">—</pre>
-      <div class="muted">التغييرات تظهر فورًا في الواجهة (تقرأ الملف كل 4 ثوانٍ مع تعطيل الكاش).</div>
+      <div class="muted">رابط المشاهدة سيظهر فوق. استخدمه على البث؛ يحدث تلقائيًا كل ثانية بدون تحديث الصفحة.</div>
     </div>
   </div>
 
 <script>
   const $ = id => document.getElementById(id);
-  const tokenInput  = $('token');
-  const ownerInput  = $('owner');
-  const repoInput   = $('repo');
-  const branchInput = $('branch');
-  const pathInput   = $('path');
+  const apiKeyInput = $('apiKey');
+  const binIdInput  = $('binId');
   const titleInput  = $('title');
   const leftInput   = $('left');
   const rightInput  = $('right');
   const statusEl    = $('status');
   const previewEl   = $('preview');
+  const viewerLinkEl= $('viewerLink');
 
-  // restore saved settings
-  tokenInput.value  = localStorage.getItem('gh_token')  || '';
-  ownerInput.value  = localStorage.getItem('gh_owner')  || ownerInput.value;
-  repoInput.value   = localStorage.getItem('gh_repo')   || repoInput.value;
-  branchInput.value = localStorage.getItem('gh_branch') || branchInput.value;
-  pathInput.value   = localStorage.getItem('gh_path')   || pathInput.value;
+  // restore saved
+  apiKeyInput.value = localStorage.getItem('jsonbin_api_key') || '';
+  binIdInput.value  = localStorage.getItem('jsonbin_id') || '';
 
-  function saveLocals(){
-    localStorage.setItem('gh_token',  tokenInput.value.trim());
-    localStorage.setItem('gh_owner',  ownerInput.value.trim());
-    localStorage.setItem('gh_repo',   repoInput.value.trim());
-    localStorage.setItem('gh_branch', branchInput.value.trim());
-    localStorage.setItem('gh_path',   pathInput.value.trim());
+  function saveCreds(){
+    localStorage.setItem('jsonbin_api_key', apiKeyInput.value.trim());
+    localStorage.setItem('jsonbin_id', binIdInput.value.trim());
+    updateViewerLink();
   }
 
-  // --- GitHub API helpers ---
-  const GH_HEADERS = () => ({
-    Authorization:`Bearer ${tokenInput.value.trim()}`,
-    Accept:'application/vnd.github+json',
-    'X-GitHub-Api-Version':'2022-11-28'
-  });
-
-  async function githubGetContents(owner, repo, path, ref){
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}&_=${Date.now()}`,
-      { headers: GH_HEADERS() }
-    );
-    if(res.status === 404) return null;
-    if(!res.ok) throw new Error('GET '+res.status+' '+(await res.text()));
-    return res.json();
+  function updateViewerLink(){
+    const id = binIdInput.value.trim();
+    if(!id){ viewerLinkEl.textContent = '—'; return; }
+    const url = `https://beamingkhaled.github.io/Q8/?bin=${encodeURIComponent(id)}`;
+    viewerLinkEl.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
   }
+  updateViewerLink();
 
-  async function githubPutContents(owner, repo, path, message, contentB64, sha, branch){
-    const body = { message, content: contentB64, branch };
-    if(sha) body.sha = sha;               // always send sha if file exists
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
-      { method:'PUT', headers: GH_HEADERS(), body: JSON.stringify(body) }
-    );
-    if(!res.ok){
-      const txt = await res.text();
-      const err = new Error('PUT '+res.status+' '+txt);
-      err.status = res.status;
-      throw err;
-    }
-    return res.json();
-  }
-
-  const toB64 = str => btoa(unescape(encodeURIComponent(str)));
-  const fromB64 = b => decodeURIComponent(escape(atob(b)));
-  const pretty = obj => JSON.stringify(obj, null, 2);
-
-  async function loadPreview(){
+  async function createBin(){
     try{
-      saveLocals();
-      statusEl.textContent = '⏳ جاري القراءة…';
-      const owner  = ownerInput.value.trim();
-      const repo   = repoInput.value.trim();
-      const path   = pathInput.value.trim();
-      const branch = branchInput.value.trim();
-
-      const file = await githubGetContents(owner, repo, path, branch);
-      if(!file){ previewEl.textContent = 'لم يتم إنشاء الملف بعد.'; statusEl.textContent=''; return; }
-      const json = JSON.parse(fromB64(file.content));
-      previewEl.textContent = pretty(json);
-      statusEl.textContent='';
+      statusEl.textContent = '⏳ جاري إنشاء Bin...';
+      const body = { title: "", left: "", right: "", updatedAt: "" };
+      const res = await fetch('https://api.jsonbin.io/v3/b', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'X-Master-Key': apiKeyInput.value.trim(),
+          // make it readable publicly so viewer needs no key:
+          'X-Bin-Private':'false'
+        },
+        body: JSON.stringify(body)
+      });
+      if(!res.ok) throw new Error('Create '+res.status+' '+await res.text());
+      const data = await res.json();
+      // v3 returns metadata.id
+      const id = (data && data.metadata && data.metadata.id) ? data.metadata.id : (data.id || '').replace('/b/','').replace('/latest','');
+      if(!id) throw new Error('لم أستطع استخراج Bin ID');
+      binIdInput.value = id;
+      saveCreds();
+      statusEl.innerHTML = '✅ تم إنشاء Bin — تم توليد Bin ID';
+      previewEl.textContent = JSON.stringify(body, null, 2);
     }catch(e){
-      statusEl.textContent = '⚠️ خطأ في القراءة: '+e.message;
+      statusEl.innerHTML = '❌ فشل الإنشاء: '+String(e.message).replace(/</g,'&lt;');
     }
   }
 
-  async function save(){
+  async function loadCurrent(){
     try{
-      saveLocals();
-      statusEl.textContent = '⏳ جارٍ الحفظ…';
+      statusEl.textContent = '⏳ قراءة...';
+      const id = binIdInput.value.trim();
+      if(!id) throw new Error('أدخل Bin ID أو أنشئ واحداً');
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest?t=${Date.now()}`, { cache:'no-store' });
+      if(!res.ok) throw new Error('GET '+res.status+' '+await res.text());
+      const data = await res.json();
+      const record = data && data.record ? data.record : data;
+      previewEl.textContent = JSON.stringify(record, null, 2);
+      statusEl.textContent = '';
+    }catch(e){
+      statusEl.innerHTML = '⚠️ خطأ في القراءة: '+String(e.message).replace(/</g,'&lt;');
+    }
+  }
 
-      const owner  = ownerInput.value.trim();
-      const repo   = repoInput.value.trim();
-      const path   = pathInput.value.trim();
-      const branch = branchInput.value.trim();
+  async function saveNow(){
+    try{
+      statusEl.textContent = '⏳ حفظ...';
+      const id    = binIdInput.value.trim();
+      const key   = apiKeyInput.value.trim();
+      if(!id) throw new Error('لا يوجد Bin ID');
+      if(!key) throw new Error('أدخل API Key');
 
       const payload = {
         title: titleInput.value.trim(),
@@ -192,42 +169,26 @@
         updatedAt: new Date().toISOString()
       };
 
-      // Always fetch latest SHA first
-      let file = await githubGetContents(owner, repo, path, branch);
-      let sha = file && file.sha ? file.sha : undefined;
-
-      const bodyB64 = toB64(pretty(payload));
-
-      // Try up to 5 times if GitHub returns 409 (stale SHA)
-      const maxTries = 5;
-      let attempt = 0;
-      while(true){
-        try{
-          await githubPutContents(owner, repo, path, `update choices.json`, bodyB64, sha, branch);
-          break; // success
-        }catch(err){
-          if(err.status === 409 && attempt < maxTries-1){
-            // wait a bit, refetch latest SHA, and retry
-            await new Promise(r => setTimeout(r, 500 + attempt*300));
-            file = await githubGetContents(owner, repo, path, branch);
-            sha = file && file.sha ? file.sha : undefined;
-            attempt++;
-            continue;
-          }
-          throw err;
-        }
-      }
-
-      statusEl.innerHTML = '✅ تم الحفظ — <span class="ok">choices.json</span> تم تحديثه';
-      previewEl.textContent = pretty(payload);
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
+        method:'PUT',
+        headers:{
+          'Content-Type':'application/json',
+          'X-Master-Key': key
+        },
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('PUT '+res.status+' '+await res.text());
+      statusEl.innerHTML = '✅ تم الحفظ — يظهر فورًا في صفحة العرض';
+      previewEl.textContent = JSON.stringify(payload, null, 2);
     }catch(e){
       statusEl.innerHTML = '❌ فشل الحفظ: '+String(e.message).replace(/</g,'&lt;');
     }
   }
 
-  $('saveBtn').addEventListener('click', save);
-  $('loadBtn').addEventListener('click', loadPreview);
-  loadPreview();
+  $('createBin').addEventListener('click', createBin);
+  $('saveCreds').addEventListener('click', saveCreds);
+  $('saveBtn').addEventListener('click', saveNow);
+  $('loadBtn').addEventListener('click', loadCurrent);
 </script>
 </body>
 </html>
