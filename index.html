@@ -107,4 +107,157 @@
       display:flex; align-items:center; justify-content:space-between;
       gap:10px; padding:12px 14px;
       border-top:1px solid rgba(255,255,255,.08);
-      background:linear-gradient(0deg, rgba
+      background:linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+      font-size:12px; color:var(--muted)
+    }
+    .status-ok{color:#9effc1}
+    .status-bad{color:#ffb0b0}
+
+    /* Loading shimmer */
+    .shimmer{
+      position:relative; overflow:hidden; background: #12121b;
+    }
+    .shimmer::after{
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.06) 30%, transparent 60%);
+      transform:translateX(-100%); animation:sh 1.2s linear infinite;
+    }
+    @keyframes sh { to { transform:translateX(100%) } }
+
+    /* Scroll safety for chat overlays */
+    .scrollpad{height:8px}
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <main class="phone" role="main" aria-live="polite">
+      <header class="topbar">
+        <div class="brand">
+          <span class="dot" id="liveDot" title="LIVE"></span>
+          <span>Tfadhloon</span>
+          <span class="live">LIVE</span>
+        </div>
+        <div class="stamp" id="stamp">—</div>
+      </header>
+
+      <section class="wrap">
+        <div id="title" class="title shimmer">جارِ التحميل…</div>
+
+        <div class="choice a" id="left">
+          <div class="tag">١</div>
+          <div class="text">—</div>
+        </div>
+
+        <div class="choice b" id="right">
+          <div class="tag">٢</div>
+          <div class="text">—</div>
+        </div>
+
+        <div class="scrollpad"></div>
+      </section>
+
+      <footer class="foot">
+        <div id="status">Connecting…</div>
+        <div id="source" class="stamp">source: raw.githubusercontent.com</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    /*
+      FINAL LIVE FRONT-END
+      - Polls your JSON every 1500ms
+      - Forces a fresh copy each time (?nocache=timestamp + cache:'no-store')
+      - Updates UI only when content actually changes (no flicker)
+      - Accepts multiple key names so your backend can be flexible
+
+      Expected JSON (any of these key sets work):
+      {"title": "...", "left": "...", "right": "..."}
+      or {"q": "...", "a": "...", "b": "..."}
+      or {"question":"...", "option1":"...", "option2":"..."}
+    */
+
+    const JSON_URL = "https://raw.githubusercontent.com/beamingkhaled/BQ8/main/choices.json";
+
+    const $title = document.getElementById("title");
+    const $left  = document.getElementById("left").querySelector(".text");
+    const $right = document.getElementById("right").querySelector(".text");
+    const $stamp = document.getElementById("stamp");
+    const $status = document.getElementById("status");
+    const $dot = document.getElementById("liveDot");
+    const $source = document.getElementById("source");
+
+    let lastPayloadHash = "";
+    let failCount = 0;
+
+    function nowClock(){
+      const d = new Date();
+      return d.toLocaleTimeString([], {hour12:false});
+    }
+
+    function normalize(data){
+      // Map multiple possible schemas to one
+      const title = data.title ?? data.q ?? data.question ?? "—";
+      const left  = data.left  ?? data.a ?? data.option1 ?? "—";
+      const right = data.right ?? data.b ?? data.option2 ?? "—";
+      return {title, left, right};
+    }
+
+    async function getChoices(){
+      const url = JSON_URL + (JSON_URL.includes("?") ? "&" : "?") + "nocache=" + Date.now();
+      const res = await fetch(url, { cache: "no-store" });
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    }
+
+    function applyUI({title,left,right}){
+      // Remove loading shimmer on first success
+      $title.classList.remove("shimmer");
+
+      const newHash = JSON.stringify({title,left,right});
+      if(newHash === lastPayloadHash) return;  // nothing changed; keep calm
+
+      lastPayloadHash = newHash;
+
+      $title.textContent = title || "—";
+      $left.textContent  = left  || "—";
+      $right.textContent = right || "—";
+
+      // Little pulse to signal an update landed
+      $dot.classList.remove("pulse");
+      void $dot.offsetWidth; // reflow to restart animation
+      $dot.classList.add("pulse");
+
+      $stamp.textContent = "تم التحديث " + nowClock();
+    }
+
+    async function tick(){
+      try{
+        const data = await getChoices();
+        const norm = normalize(data);
+        applyUI(norm);
+
+        failCount = 0;
+        $status.textContent = "LIVE · OK";
+        $status.className = "status-ok";
+      }catch(err){
+        failCount++;
+        $status.textContent = "إعادة المحاولة… (" + failCount + ")";
+        $status.className = "status-bad";
+        if(failCount > 2){
+          // keep the LIVE dot visible but reduce glow on repeated failures
+          $dot.style.boxShadow = "0 0 8px rgba(255,77,77,.65)";
+          $dot.style.background = "var(--bad)";
+        }
+      }
+    }
+
+    // Kickoff
+    (function init(){
+      $source.textContent = "source: raw.githubusercontent.com";
+      tick();
+      setInterval(tick, 1500); // ~1.5s cadence feels instant on stream
+    })();
+  </script>
+</body>
+</html>
