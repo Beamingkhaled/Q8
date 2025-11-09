@@ -1,246 +1,56 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>لوحة التحكم — Avenues & Dragons</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#0b0b12;--card:#121228;--ink:#fff;--muted:#c8c8e0;--accent:#7a5cff;--ok:#47d18c;--bad:#ff6b6b}
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:"Tajawal",sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#1a1935 0%,#0b0b12 55%);color:var(--ink)}
-    .wrap{max-width:720px;margin:24px auto;padding:16px}
-    h1{font-weight:800;margin:0 0 14px;font-size:28px}
-    p.hint{color:var(--muted);margin:0 0 18px;font-size:14px}
-    .card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:16px;margin-bottom:16px}
-    .row{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin:10px 0}
-    label{font-weight:700}
-    input[type="text"],input[type="url"],input[type="number"],select,textarea{
-      width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.05);color:var(--ink);font-size:16px;outline:none
-    }
-    textarea{min-height:72px;resize:vertical}
-    .muted{color:var(--muted);font-size:12px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-    button{
-      appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;
-      background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 0 18px #7a5cff66
-    }
-    button.secondary{background:rgba(255,255,255,.08)}
-    button.good{background:var(--ok)}
-    button.bad{background:var(--bad)}
-    .status{margin-top:10px;font-size:14px}
-    .ok{color:var(--ok)} .err{color:var(--bad)}
-    .footer{margin-top:12px;color:var(--muted);font-size:13px}
-    .inline{display:inline-block;margin-inline-start:6px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);font-size:12px}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media (max-width:640px){.row{grid-template-columns:1fr}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة التحكم (نفس الجهاز)</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--card:#121228;--accent:#7a5cff}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:"Tajawal",sans-serif;background:#0b0b12;color:#fff}
+.wrap{max-width:720px;margin:24px auto;padding:16px}
+h1{margin:0 0 12px;font-weight:800}
+.card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:16px}
+.row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:10px 0}
+input,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px}
+textarea{min-height:64px}
+button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer;background:var(--accent);color:#fff}
+.status{margin-top:8px;font-size:14px;opacity:.9}
+.tip{font-size:12px;opacity:.75;margin-top:8px}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>لوحة التحكم — Avenues & Dragons</h1>
-    <p class="hint">عدّل العنوان والسؤال والاختيارات والخلفية مع حفظ فوري إلى <span class="pill">MyJSON</span> — لا حاجة لأي JSON أو كود.</p>
-
-    <!-- Connection -->
-    <div class="card">
-      <div class="row">
-        <label>رابط MyJSON</label>
-        <input id="recordUrl" type="url" placeholder="https://api.myjson.online/v1/records/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-      </div>
-      <div class="row">
-        <label>API Key</label>
-        <input id="apiKey" type="text" placeholder="ألصق مفتاح MyJSON (سيُحفظ محليًا في جهازك)">
-      </div>
-      <div class="actions">
-        <button id="loadBtn" class="secondary">تحميل المحتوى الحالي</button>
-        <button id="saveBtn" class="good">حفظ الآن (فوري)</button>
-        <button id="clearBtn" class="bad">مسح الحقول</button>
-      </div>
-      <div id="connStatus" class="status"></div>
-    </div>
-
-    <!-- Content form -->
-    <div class="card">
-      <div class="row">
-        <label>عنوان اللعبة</label>
-        <input id="title" type="text" placeholder="Avenues & Dragons">
-      </div>
-      <div class="row">
-        <label>السؤال</label>
-        <textarea id="question" placeholder="اكتب السؤال هنا"></textarea>
-      </div>
-      <div class="grid2">
-        <div class="row">
-          <label>الخيار ١</label>
-          <input id="choice1" type="text" placeholder="نروح نشتري قهوة">
-        </div>
-        <div class="row">
-          <label>الخيار ٢</label>
-          <input id="choice2" type="text" placeholder="نتمشى شوي">
-        </div>
-      </div>
-      <div class="row">
-        <label>الخلفية</label>
-        <input id="bg" type="text" placeholder="bg.jpg أو رابط صورة كامل">
-      </div>
-      <div class="row">
-        <label>النمط</label>
-        <select id="mode">
-          <option value="vote">تصويت (خيارين)</option>
-          <option value="tap">تحدّي الطق</option>
-        </select>
-      </div>
-      <div id="tapWrap">
-        <div class="grid2">
-          <div class="row">
-            <label>هدف الطق</label>
-            <input id="tapGoal" type="number" min="1" value="1000">
-          </div>
-          <div class="row">
-            <label>المدة (ث)</label>
-            <input id="tapDuration" type="number" min="5" value="60">
-          </div>
-        </div>
-        <div class="row">
-          <label>عنوان التحدّي</label>
-          <input id="tapTitle" type="text" value="تحدّي الطق 🔥">
-        </div>
-        <div class="row">
-          <label>وصف التحدّي</label>
-          <input id="tapDesc" type="text" value="نوصل ١٠٠٠ طقة خلال دقيقة؟">
-        </div>
-      </div>
-      <div id="saveStatus" class="status"></div>
-    </div>
-
-    <!-- Viewer link -->
-    <div class="card">
-      <div class="row">
-        <label>رابط العرض</label>
-        <input id="viewerLink" type="text" readonly>
-      </div>
-      <div class="actions">
-        <a id="openViewer" class="inline" href="#" target="_blank"><button>فتح الصفحة مباشرة</button></a>
-      </div>
-      <div class="footer">هذه الصفحة تحفظ الإعدادات في متصفحك (localStorage) حتى لا تُعيد لصق المفاتيح كل مرة.</div>
-    </div>
+<div class="wrap">
+  <h1>لوحة التحكم — نفس الجهاز فقط</h1>
+  <div class="card">
+    <div class="row"><label>العنوان</label><input id="t" placeholder="Avenues & Dragons"></div>
+    <div class="row"><label>السؤال</label><textarea id="q" placeholder="اكتب السؤال هنا"></textarea></div>
+    <div class="row"><label>الخيار ١</label><input id="c1" placeholder="الخيار الأول"></div>
+    <div class="row"><label>الخيار ٢</label><input id="c2" placeholder="الخيار الثاني"></div>
+    <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة كامل"></div>
+    <button id="save">حفظ الآن</button>
+    <div id="st" class="status"></div>
+    <div class="tip">افتح <b>علامة تبويب أخرى</b> على نفس الآيباد: <code>https://beamingkhaled.github.io/Q8/</code> وشاركها على TikTok. أي تعديل هنا يظهر فورًا هناك.</div>
   </div>
-
-  <script>
-    // ---- helpers ----
-    const $ = (id)=>document.getElementById(id);
-    const fields = ["title","question","choice1","choice2","bg","mode","tapGoal","tapDuration","tapTitle","tapDesc"];
-    const ls = {
-      get:k=>localStorage.getItem(k)||"",
-      set:(k,v)=>localStorage.setItem(k,v||""),
-    };
-
-    // Prefill secrets from localStorage
-    $("recordUrl").value = ls.get("myjson_record_url") || "https://api.myjson.online/v1/records/f3c971a4-3c36-408b-a054-8720c4316121";
-    $("apiKey").value    = ls.get("myjson_api_key");
-
-    // Update viewer link
-    function refreshViewerLink(){
-      const u = $("recordUrl").value.trim();
-      const enc = encodeURIComponent(u);
-      const link = location.origin + location.pathname.replace(/admin\.html$/,"") + "?data_url=" + enc;
-      $("viewerLink").value = link;
-      $("openViewer").href = link;
-    }
-    refreshViewerLink();
-
-    // Show/hide tap fields
-    function toggleTap(){
-      $("tapWrap").style.display = $("mode").value === "tap" ? "block" : "none";
-    }
-    $("mode").addEventListener("change", toggleTap); toggleTap();
-
-    // Compose payload
-    function gather(){
-      const data = {
-        title: $("title").value.trim(),
-        mode: $("mode").value,
-        question: $("question").value.trim(),
-        choice1: $("choice1").value.trim(),
-        choice2: $("choice2").value.trim(),
-        bg: $("bg").value.trim()
-      };
-      if (data.mode === "tap") {
-        data.tap = {
-          goal: Number($("tapGoal").value||1000),
-          duration: Number($("tapDuration").value||60),
-          title: $("tapTitle").value.trim() || "تحدّي الطق 🔥",
-          description: $("tapDesc").value.trim() || "نوصل ١٠٠٠ طقة خلال دقيقة؟"
-        };
-      }
-      return data;
-    }
-
-    // Load existing from MyJSON
-    $("loadBtn").onclick = async ()=>{
-      const url = $("recordUrl").value.trim();
-      if(!url){ $("connStatus").innerHTML = '<span class="err">أدخل رابط MyJSON</span>'; return; }
-      $("connStatus").textContent = "جارِ التحميل...";
-      try{
-        const res = await fetch(url + (url.includes("?")?"&":"?") + "nocache=" + Date.now());
-        const json = await res.json();
-        const data = json && json.data ? json.data : json;
-
-        $("title").value    = data.title || "";
-        $("mode").value     = (data.mode || "vote");
-        $("question").value = data.question || "";
-        $("choice1").value  = data.choice1 || "";
-        $("choice2").value  = data.choice2 || "";
-        $("bg").value       = data.bg || "";
-        if(data.tap){
-          $("tapGoal").value     = data.tap.goal || 1000;
-          $("tapDuration").value = data.tap.duration || 60;
-          $("tapTitle").value    = data.tap.title || "تحدّي الطق 🔥";
-          $("tapDesc").value     = data.tap.description || "";
-        }
-        toggleTap();
-        $("connStatus").innerHTML = '<span class="ok">تم التحميل ✅</span>';
-        ls.set("myjson_record_url", url);
-        refreshViewerLink();
-      }catch(e){
-        $("connStatus").innerHTML = '<span class="err">فشل التحميل ❌</span>';
-      }
-    };
-
-    // Save to MyJSON (PUT with API key)
-    $("saveBtn").onclick = async ()=>{
-      const url = $("recordUrl").value.trim();
-      const key = $("apiKey").value.trim();
-      if(!url || !key){
-        $("saveStatus").innerHTML = '<span class="err">أدخل رابط MyJSON و الـ API Key</span>';
-        return;
-      }
-      const payload = { data: gather() };
-      $("saveStatus").textContent = "جارِ الحفظ...";
-      try{
-        const res = await fetch(url, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", "X-API-KEY": key },
-          body: JSON.stringify(payload)
-        });
-        if(!res.ok) throw new Error(await res.text());
-        $("saveStatus").innerHTML = '<span class="ok">تم الحفظ ✅ — يتم التحديث فورًا على صفحة العرض</span>';
-        ls.set("myjson_api_key", key);
-        ls.set("myjson_record_url", url);
-        refreshViewerLink();
-      }catch(e){
-        $("saveStatus").innerHTML = '<span class="err">فشل الحفظ ❌ — تأكد من صحة الـ API Key وصلاحيات الكتابة</span>';
-      }
-    };
-
-    $("clearBtn").onclick = ()=>{
-      fields.forEach(id=>$(id).value="");
-      $("mode").value="vote"; toggleTap();
-      $("saveStatus").textContent=""; $("connStatus").textContent="";
-    };
-  </script>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function load(){
+  $('t').value  = localStorage.getItem('t')  || 'Avenues & Dragons';
+  $('q').value  = localStorage.getItem('q')  || 'المرأة مع ولدها في الأفنيوز — شنسوي؟';
+  $('c1').value = localStorage.getItem('c1') || 'نروح نشتري قهوة';
+  $('c2').value = localStorage.getItem('c2') || 'نتمشى شوي';
+  $('bg').value = localStorage.getItem('bg') || '';
+}
+$('save').onclick = ()=>{
+  localStorage.setItem('t', $('t').value.trim());
+  localStorage.setItem('q', $('q').value.trim());
+  localStorage.setItem('c1', $('c1').value.trim());
+  localStorage.setItem('c2', $('c2').value.trim());
+  localStorage.setItem('bg', $('bg').value.trim());
+  $('st').textContent='تم الحفظ ✅ (يظهر فورًا في صفحة العرض على نفس الآيباد)';
+};
+load();
+</script>
 </body>
 </html>
