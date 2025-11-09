@@ -53,9 +53,9 @@
       line-height: 1.5;
     }
 
-    /* Neon boxes (Option 5) */
+    /* Neon boxes */
     .choice {
-      position: relative; /* needed for sticker */
+      position: relative;
       background: rgba(20,20,35,0.75);
       border: 2px solid #7a5cff;
       padding: 18px;
@@ -66,36 +66,40 @@
       margin-bottom: 18px;
       transition: 0.15s ease;
     }
-    .choice:active { transform: scale(0.97); box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55; }
+    .choice:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55;
+    }
 
-    /* CTA sticker */
+    /* Stickers */
     .sticker {
-      position: absolute; top: -12px; left: -12px;
+      position: absolute;
+      top: -12px;
+      left: -12px;
       background: rgba(255,255,255,0.25);
       backdrop-filter: blur(6px);
       padding: 6px 12px;
       border-radius: 12px;
-      font-size: 16px; font-weight: 700; color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
       border: 1px solid rgba(255,255,255,0.45);
       box-shadow: 0 0 12px rgba(255,255,255,0.2);
       pointer-events: none;
     }
 
-    /* Status line */
     #status { margin-top: 10px; font-size: 14px; color: #ddd; opacity: 0.85; }
 
-    /* Tap Challenge UI */
+    /* TAP CHALLENGE */
     #tapChallenge { display: none; }
     .tap-wrap {
       display: flex; flex-direction: column; gap: 14px; align-items: center;
     }
-    .tap-title {
-      font-size: 24px; font-weight: 800; text-shadow: 0 0 8px rgba(255,255,255,0.35);
-    }
+    .tap-title { font-size: 24px; font-weight: 800; }
     .tap-sub { font-size: 16px; opacity: 0.9; }
 
     .tap-hud {
-      display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;
+      display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center;
       font-size: 16px;
     }
     .hud-pill {
@@ -107,53 +111,39 @@
     }
 
     .tap-progress {
-      width: 100%;
-      height: 16px;
+      width: 100%; height: 16px;
       background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.25);
       border-radius: 999px;
       overflow: hidden;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
     }
     .tap-bar {
       height: 100%; width: 0%;
       background: radial-gradient(120% 120% at 0% 50%, #7a5cff, #a46bff);
-      box-shadow: 0 0 18px #7a5cff88;
       transition: width 0.08s linear;
     }
 
     .tap-button {
-      font-family: inherit;
       font-size: 26px; font-weight: 800;
       padding: 14px 28px;
       border: 2px solid #7a5cff;
       border-radius: 16px;
       color: #fff;
       background: rgba(20,20,35,0.9);
-      box-shadow: 0 0 18px #7a5cff66, inset 0 0 12px #7a5cff22;
-      cursor: pointer;
-      touch-action: manipulation;
+      box-shadow: 0 0 18px #7a5cff66;
     }
-    .tap-button:active { transform: scale(0.98); box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55; }
+    .tap-button:active { transform: scale(0.98); }
 
-    .tap-result {
-      font-size: 20px; font-weight: 800; margin-top: 6px;
-      text-shadow: 0 0 10px rgba(0,0,0,0.4);
-    }
+    .tap-result { font-size: 20px; font-weight: 800; margin-top: 6px; }
     .win { color: #7dffae; }
     .lose { color: #ff7d7d; }
-    @media (max-height: 680px) {
-      .game-container { margin-top: 8vh; }
-    }
   </style>
 </head>
 <body>
 
-  <!-- Background -->
   <div class="bg" id="bg" style="background-image: url('bg.jpg');"></div>
   <div class="overlay"></div>
 
-  <!-- Card -->
   <div class="game-container" id="card">
 
     <!-- VOTE MODE -->
@@ -174,15 +164,15 @@
       <div id="status">متصل · يتم التحديث تلقائيًا</div>
     </div>
 
-    <!-- TAP CHALLENGE MODE -->
+    <!-- TAP MODE -->
     <div id="tapChallenge">
       <div class="tap-wrap">
         <div class="tap-title" id="tapTitle">تحدّي الطق 🔥</div>
-        <div class="tap-sub" id="tapDesc">اضغطوا بأسرع ما يمكن خلال الوقت المحدد!</div>
+        <div class="tap-sub" id="tapDesc">اضغطوا بأسرع ما يمكن!</div>
 
         <div class="tap-hud">
-          <div class="hud-pill">الهدف: <span id="tapGoal">1000</span> طقة</div>
-          <div class="hud-pill">الوقت: <span id="tapTimer">60</span> ثانية</div>
+          <div class="hud-pill">الهدف: <span id="tapGoal">1000</span></div>
+          <div class="hud-pill">الوقت: <span id="tapTimer">60</span></div>
           <div class="hud-pill">المجموع: <span id="tapCount">0</span></div>
         </div>
 
@@ -192,186 +182,136 @@
         <div class="tap-result" id="tapResult"></div>
       </div>
 
-      <div id="statusTap" style="margin-top:10px; font-size:14px; opacity:0.85;">متصل · يتم التحديث تلقائيًا</div>
+      <div id="statusTap" style="margin-top:10px; font-size:14px;">متصل · يتم التحديث تلقائيًا</div>
     </div>
 
   </div>
 
   <script>
-    // ====== CONFIG ======
     const BACKEND_URL = "https://beamingkhaled.github.io/backend.json";
-    const POLL_MS = 1000; // keep it snappy
-    // ====================
+    const POLL = 1000;
 
-    let currentMode = null; // 'vote' or 'tap'
-    let tapTimerId = null;
-    let tapRemaining = 0;
-    let tapGoal = 1000;
-    let tapCount = 0;
-    let tapEndTime = 0;
+    let mode = null;
+    let tapTimer = null;
+    let tapGoal = 0, tapCount = 0, tapEnd = 0;
 
     const el = {
-      bg: document.getElementById('bg'),
-      voteMode: document.getElementById('voteMode'),
-      tapMode: document.getElementById('tapChallenge'),
-      question: document.getElementById('question'),
-      choice1Text: document.getElementById('choice1Text'),
-      choice2Text: document.getElementById('choice2Text'),
-      status: document.getElementById('status'),
-      statusTap: document.getElementById('statusTap'),
-      // tap elements
-      tapTitle: document.getElementById('tapTitle'),
-      tapDesc: document.getElementById('tapDesc'),
-      tapGoal: document.getElementById('tapGoal'),
-      tapTimer: document.getElementById('tapTimer'),
-      tapCount: document.getElementById('tapCount'),
-      tapBar: document.getElementById('tapBar'),
-      tapBtn: document.getElementById('tapButton'),
-      tapResult: document.getElementById('tapResult'),
+      bg: document.getElementById("bg"),
+      vote: document.getElementById("voteMode"),
+      tap: document.getElementById("tapChallenge"),
+      q: document.getElementById("question"),
+      c1: document.getElementById("choice1Text"),
+      c2: document.getElementById("choice2Text"),
+      st: document.getElementById("status"),
+      stt: document.getElementById("statusTap"),
+      tapTitle: document.getElementById("tapTitle"),
+      tapDesc: document.getElementById("tapDesc"),
+      tapGoal: document.getElementById("tapGoal"),
+      tapTimer: document.getElementById("tapTimer"),
+      tapCount: document.getElementById("tapCount"),
+      tapBar: document.getElementById("tapBar"),
+      tapBtn: document.getElementById("tapButton"),
+      tapResult: document.getElementById("tapResult")
     };
 
-    function showMode(mode) {
-      if (mode === 'tap') {
-        el.voteMode.style.display = 'none';
-        el.tapMode.style.display = 'block';
-      } else {
-        el.tapMode.style.display = 'none';
-        el.voteMode.style.display = 'block';
-      }
-      currentMode = mode;
+    function showVote() {
+      el.tap.style.display = "none";
+      el.vote.style.display = "block";
+      mode = "vote";
     }
 
-    function startTapChallenge(cfg) {
-      // cfg: { title, description, goal, duration }
-      stopTapChallenge();
-      tapGoal = Math.max(1, Number(cfg.goal || 1000));
+    function showTap() {
+      el.vote.style.display = "none";
+      el.tap.style.display = "block";
+      mode = "tap";
+    }
+
+    function stopTap() {
+      clearInterval(tapTimer);
+      tapTimer = null;
+    }
+
+    function startTap(cfg) {
+      stopTap();
+      tapGoal = Number(cfg.goal || 1000);
       tapCount = 0;
-      const duration = Math.max(1, Number(cfg.duration || 60));
-      tapRemaining = duration;
-      tapEndTime = Date.now() + duration * 1000;
-      el.tapTitle.textContent = cfg.title || 'تحدّي الطق 🔥';
-      el.tapDesc.textContent = cfg.description || 'اضغطوا بأسرع ما يمكن خلال الوقت المحدد!';
+      let duration = Number(cfg.duration || 60);
+      tapEnd = Date.now() + duration * 1000;
+
+      el.tapTitle.textContent = cfg.title || "تحدّي الطق 🔥";
+      el.tapDesc.textContent = cfg.description || "اضغطوا بأسرع ما يمكن!";
       el.tapGoal.textContent = tapGoal;
       el.tapCount.textContent = tapCount;
-      el.tapTimer.textContent = tapRemaining;
-      el.tapBar.style.width = '0%';
-      el.tapResult.textContent = '';
+      el.tapTimer.textContent = duration;
+      el.tapBar.style.width = "0%";
+      el.tapResult.textContent = "";
 
-      tapTimerId = setInterval(() => {
-        const now = Date.now();
-        tapRemaining = Math.max(0, Math.ceil((tapEndTime - now) / 1000));
-        el.tapTimer.textContent = tapRemaining;
-        const pct = Math.min(100, (tapCount / tapGoal) * 100);
-        el.tapBar.style.width = pct + '%';
+      el.tapBtn.onclick = () => {
+        if (Date.now() < tapEnd) {
+          tapCount++;
+          el.tapCount.textContent = tapCount;
+          el.tapBar.style.width = Math.min(100, tapCount / tapGoal * 100) + "%";
+        }
+      };
 
-        if (tapRemaining <= 0) {
-          stopTapChallenge();
-          // show result
+      document.getElementById("card").onclick = e => {
+        if (e.target === el.tapBtn) return;
+        if (Date.now() < tapEnd) {
+          tapCount++;
+          el.tapCount.textContent = tapCount;
+          el.tapBar.style.width = Math.min(100, tapCount / tapGoal * 100) + "%";
+        }
+      };
+
+      tapTimer = setInterval(() => {
+        let left = Math.ceil((tapEnd - Date.now()) / 1000);
+        if (left < 0) left = 0;
+        el.tapTimer.textContent = left;
+        if (left === 0) {
+          stopTap();
           if (tapCount >= tapGoal) {
-            el.tapResult.textContent = '🔥 مبروك! أنجزتوا التحدّي!';
-            el.tapResult.className = 'tap-result win';
+            el.tapResult.textContent = "🔥 مبروك! نجحتوا!";
+            el.tapResult.className = "tap-result win";
           } else {
-            el.tapResult.textContent = '😮‍💨 ما لحّقنا… مرّة ثانية!';
-            el.tapResult.className = 'tap-result lose';
+            el.tapResult.textContent = "😮‍💨 ما لحّقنا!";
+            el.tapResult.className = "tap-result lose";
           }
         }
       }, 200);
-
-      // tapping anywhere on the button (and screen on mobile if needed)
-      el.tapBtn.onclick = () => {
-        if (Date.now() <= tapEndTime) {
-          tapCount++;
-          el.tapCount.textContent = tapCount;
-          const pct = Math.min(100, (tapCount / tapGoal) * 100);
-          el.tapBar.style.width = pct + '%';
-        }
-      };
-      // Optional: also allow whole card taps to count during challenge
-      document.getElementById('card').onclick = (e) => {
-        // prevent double counting when clicking the button
-        if (e.target === el.tapBtn) return;
-        if (currentMode === 'tap' && Date.now() <= tapEndTime) {
-          tapCount++;
-          el.tapCount.textContent = tapCount;
-          const pct = Math.min(100, (tapCount / tapGoal) * 100);
-          el.tapBar.style.width = pct + '%';
-        }
-      };
     }
 
-    function stopTapChallenge() {
-      if (tapTimerId) {
-        clearInterval(tapTimerId);
-        tapTimerId = null;
-      }
-      // remove the global click if any
-      document.getElementById('card').onclick = null;
-    }
-
-    async function fetchData() {
+    async function loop() {
       try {
-        const res = await fetch(BACKEND_URL + '?nocache=' + Date.now());
+        const res = await fetch(BACKEND_URL + "?nocache=" + Date.now());
         const data = await res.json();
 
-        // Background override if provided
-        if (data.bg && typeof data.bg === 'string') {
-          el.bg.style.backgroundImage = `url('${data.bg}')`;
-        } else {
-          el.bg.style.backgroundImage = `url('bg.jpg')`;
-        }
+        if (data.bg) el.bg.style.backgroundImage = `url('${data.bg}')`;
 
-        const mode = (data.mode || 'vote').toLowerCase();
-
-        if (mode === 'tap') {
-          // prepare tap screen
-          if (currentMode !== 'tap') {
-            showMode('tap');
-            startTapChallenge({
-              title: data?.tap?.title,
-              description: data?.tap?.description,
-              goal: data?.tap?.goal,
-              duration: data?.tap?.duration
-            });
+        if (data.mode === "tap") {
+          if (mode !== "tap") {
+            showTap();
+            startTap(data.tap || {});
           }
-          el.statusTap.textContent = 'متصل · يتم التحديث تلقائيًا';
+          el.stt.textContent = "متصل · يتم التحديث تلقائيًا";
         } else {
-          // vote mode
-          if (currentMode !== 'vote') {
-            showMode('vote');
-            stopTapChallenge();
+          if (mode !== "vote") {
+            showVote();
+            stopTap();
           }
-          el.question.textContent = data.question || '...';
-          el.choice1Text.textContent = data.choice1 || '...';
-          el.choice2Text.textContent = data.choice2 || '...';
-          el.status.textContent = 'متصل · يتم التحديث تلقائيًا';
+          el.q.textContent = data.question || "...";
+          el.c1.textContent = data.choice1 || "...";
+          el.c2.textContent = data.choice2 || "...";
+          el.st.textContent = "متصل · يتم التحديث تلقائيًا";
         }
 
-      } catch (e) {
-        if (currentMode === 'tap') {
-          el.statusTap.textContent = 'غير متصل · حاول مرة أخرى';
-        } else {
-          el.status.textContent = 'غير متصل · حاول مرة أخرى';
-        }
+      } catch {
+        if (mode === "tap") el.stt.textContent = "غير متصل";
+        else el.st.textContent = "غير متصل";
       }
     }
 
-    // Polling
-    setInterval(fetchData, POLL_MS);
-    fetchData();
-
-    // Prevent space/enter from scrolling while tapping on desktop
-    window.addEventListener('keydown', (e) => {
-      if (currentMode === 'tap' && (e.code === 'Space' || e.code === 'Enter')) {
-        e.preventDefault();
-        // bonus: use keyboard to tap
-        if (Date.now() <= tapEndTime) {
-          tapCount++;
-          el.tapCount.textContent = tapCount;
-          const pct = Math.min(100, (tapCount / tapGoal) * 100);
-          el.tapBar.style.width = pct + '%';
-        }
-      }
-    }, { passive: false });
+    setInterval(loop, POLL);
+    loop();
   </script>
 </body>
 </html>
