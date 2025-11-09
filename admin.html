@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة التحكم — MyJSON</title>
+<title>لوحة التحكم — MyJSON (PUT بدون استهلاك رصيد)</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--accent:#7a5cff}
@@ -18,94 +18,113 @@ button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-wei
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
 .small{font-size:12px;opacity:.8;margin-top:8px}
 .ok{color:#7dff96}.err{color:#ff7d8f}
+.link{word-break:break-all}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>لوحة التحكّم (تحرير العنوان والخيارات مباشرة)</h1>
+  <h1>لوحة التحكّم (تعديل مباشر على نفس السجل — بدون استهلاك رصيد)</h1>
 
   <div class="card">
     <div class="row"><label>رابط MyJSON</label><input id="url" placeholder="https://api.myjson.online/v1/records/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div>
-    <div class="row"><label>(اختياري) API Key</label><input id="key" placeholder="إذا كان حسابك يطلبه" /></div>
+    <div class="row"><label>API Key (اختياري)</label><input id="key" placeholder="إن كان حسابك يطلبه"></div>
     <div class="btn-row">
-      <button id="saveUrl" style="background:#444">حفظ الرابط</button>
+      <button id="saveUrl" style="background:#444">حفظ الرابط/المفتاح</button>
       <button id="load">تحميل المحتوى الحالي</button>
-      <button id="openEdit" style="background:#2c2c3f">فتح MyJSON</button>
       <button id="openView" style="background:#2c2c3f">فتح صفحة العرض</button>
+      <button id="openEdit" style="background:#2c2c3f">فتح سجل MyJSON</button>
     </div>
     <div id="status" class="small"></div>
   </div>
 
   <div class="card">
-    <div class="row"><label>العنوان</label><input id="title"></div>
-    <div class="row"><label>السؤال</label><textarea id="question"></textarea></div>
-    <div class="row"><label>الخيار ١</label><input id="choice1"></div>
-    <div class="row"><label>الخيار ٢</label><input id="choice2"></div>
-    <div class="row"><label>الخلفية</label><input id="bg" placeholder="رابط صورة أو bg.jpg"></div>
+    <div class="row"><label>العنوان</label><input id="title" placeholder="Avenues & Dragons"></div>
+    <div class="row"><label>السؤال</label><textarea id="question" placeholder="…"></textarea></div>
+    <div class="row"><label>الخيار ١</label><input id="choice1" placeholder="…"></div>
+    <div class="row"><label>الخيار ٢</label><input id="choice2" placeholder="…"></div>
+    <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة"></div>
     <div class="btn-row">
-      <button id="save">حفظ الآن</button>
+      <button id="save">حفظ الآن (PUT)</button>
     </div>
-    <div class="small">يتم الحفظ في سجلّ MyJSON الخاص بك. صفحة العرض تسحب القيم كل ثانية تلقائيًا.</div>
+    <div class="small">يحفظ على نفس السجل في MyJSON باستخدام <b>PUT</b> — صفحة العرض تتحدث تلقائيًا.</div>
   </div>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-$('url').value = localStorage.getItem('myjson_data_url') || "https://api.myjson.online/v1/records/f3c971a4-3c36-408b-a054-8720c4316121";
+const viewerLink = u => location.origin + "/Q8/?data_url=" + encodeURIComponent(u);
+
+function setStatus(msg, ok){ $('status').innerHTML = ok ? `<span class="ok">${msg}</span>` : `<span class="err">${msg}</span>`; }
+
+// Restore saved URL/key
+$('url').value = localStorage.getItem('myjson_data_url') || "";
 $('key').value = localStorage.getItem('myjson_api_key') || "";
 
-function setStatus(msg,ok){ $('status').innerHTML = ok? `<span class="ok">${msg}</span>` : `<span class="err">${msg}</span>`; }
-function viewerLink(u){ return location.origin + "/Q8/?data_url=" + encodeURIComponent(u); }
-
+// Buttons
 $('saveUrl').onclick = ()=>{
   localStorage.setItem('myjson_data_url', $('url').value.trim());
   localStorage.setItem('myjson_api_key', $('key').value.trim());
   setStatus('تم حفظ الرابط والمفتاح (إن وجد) ✅', true);
 };
-$('openEdit').onclick = ()=> window.open($('url').value.trim(), '_blank');
-$('openView').onclick = ()=> window.open(viewerLink($('url').value.trim()), '_blank');
+$('openView').onclick = ()=>{
+  const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابطًا صحيحًا أولًا', false);
+  window.open(viewerLink(u),'_blank');
+};
+$('openEdit').onclick = ()=>{
+  const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابطًا صحيحًا أولًا', false);
+  window.open(u,'_blank');
+};
 
-async function loadNow(){
-  const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابط MyJSON',false);
+// Load current content (GET)
+$('load').onclick = async ()=>{
+  const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابط MyJSON', false);
   try{
-    const r=await fetch(u + (u.includes('?')?'&':'?') + '_ts=' + Date.now());
-    const j=await r.json();
-    const d=j && j.data ? j.data : j;
-    $('title').value   = d.title||'';
-    $('question').value= d.question||'';
-    $('choice1').value = d.choice1||'';
-    $('choice2').value = d.choice2||'';
-    $('bg').value      = d.bg||'';
-    setStatus('تم التحميل ✅',true);
-  }catch(e){ setStatus('فشل التحميل ❌',false); }
-}
-$('load').onclick = loadNow;
+    const r = await fetch(u + (u.includes('?')?'&':'?') + '_ts=' + Date.now());
+    const j = await r.json();
+    const d = j && j.data ? j.data : j;
+    $('title').value   = d.title || '';
+    $('question').value= d.question || '';
+    $('choice1').value = d.choice1 || '';
+    $('choice2').value = d.choice2 || '';
+    $('bg').value      = d.bg || '';
+    setStatus('تم التحميل ✅', true);
+  }catch(e){
+    setStatus('فشل التحميل ❌ — تحقق من الرابط', false);
+  }
+};
 
-async function saveNow(){
-  const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابط MyJSON',false);
+// Save using PUT (no credits)
+$('save').onclick = async ()=>{
+  const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابط MyJSON', false);
   const key=$('key').value.trim();
-  const payload={ data:{
-    title: $('title').value.trim(),
-    question: $('question').value.trim(),
-    choice1: $('choice1').value.trim(),
-    choice2: $('choice2').value.trim(),
-    bg: $('bg').value.trim()
+  const headers={'Content-Type':'application/json'};
+  if(key) headers['X-API-KEY']=key;
+
+  const payload = { data:{
+    title: $('title').value.trim() || 'Avenues & Dragons',
+    question: $('question').value.trim() || '…',
+    choice1: $('choice1').value.trim() || '…',
+    choice2: $('choice2').value.trim() || '…',
+    bg: $('bg').value.trim() || ''
   }};
   try{
-    const headers={'Content-Type':'application/json'};
-    if(key) headers['X-API-KEY']=key; // used only if your account requires it
-    const r=await fetch(u,{method:'PUT',headers,body:JSON.stringify(payload)});
-    if(!r.ok){ const txt=await r.text(); throw new Error(txt||('HTTP '+r.status)); }
-    setStatus('تم الحفظ ✅ — افتح صفحة العرض لترى التحديث',true);
-  }catch(e){ setStatus('فشل الحفظ ❌ — جرّب إضافة API Key أو افتح MyJSON وعدّل هناك',false); }
-}
-$('save').onclick = saveNow;
-
-// auto-prepare viewer button on load
-(function init(){
-  const u=$('url').value.trim();
-  if(u){ $('status').innerHTML = `<span class="small">رابط العرض: <a href="${viewerLink(u)}" target="_blank" style="color:#7a5cff">${viewerLink(u)}</a></span>`; }
-})();
+    const r = await fetch(u, { method:'PUT', headers, body: JSON.stringify(payload) });
+    if(!r.ok){
+      const txt = await r.text();
+      // Helpful errors
+      if(r.status===401 || r.status===403){
+        throw new Error('السجل يتطلب API Key — الصق المفتاح ثم جرّب الحفظ مجددًا.');
+      }
+      if(r.status===404){
+        throw new Error('الرابط غير صحيح أو محذوف — افتح السجل من زر "فتح سجل MyJSON".');
+      }
+      throw new Error(txt || ('HTTP '+r.status));
+    }
+    setStatus('تم الحفظ ✅ — نفس الرابط، بدون استهلاك رصيد.', true);
+  }catch(e){
+    setStatus('فشل الحفظ ❌ — ' + (e.message || e), false);
+  }
+};
 </script>
 </body>
 </html>
