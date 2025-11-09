@@ -1,161 +1,200 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Avenues & Dragons — One-Source (MyJSON)</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avenues & Dragons — Simple 3 Boxes (Title + 2 Choices)</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%}
-    body{font-family:'Tajawal',sans-serif;background:#000;color:#fff;overflow:hidden;user-select:none}
-    .bg{position:fixed;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;filter:blur(6px);transform:scale(1.1);z-index:1}
-    .overlay{position:fixed;inset:0;z-index:2;background:rgba(0,0,0,.15)}
-    .game-container{position:relative;z-index:3;width:92%;max-width:560px;margin:12vh auto 0;padding:20px;text-align:center;backdrop-filter:blur(6px);background:rgba(10,10,30,.25);border:1px solid rgba(255,255,255,.08);border-radius:18px;box-shadow:0 0 28px rgba(0,0,0,.25)}
-    h1{font-size:34px;font-weight:800;margin-bottom:10px;text-shadow:0 0 8px rgba(255,255,255,.4)}
-    #question{font-size:22px;margin-bottom:18px;color:#eee;text-shadow:0 0 6px rgba(0,0,0,.4);line-height:1.5}
-    .choice{position:relative;background:rgba(20,20,35,.75);border:2px solid #7a5cff;padding:18px;font-size:22px;color:#fff;border-radius:16px;box-shadow:0 0 18px #7a5cff66,inset 0 0 12px #7a5cff22;margin-bottom:18px;transition:.15s ease}
-    .choice:active{transform:scale(.97);box-shadow:0 0 26px #a889ffcc,inset 0 0 18px #7a5cff55}
-    .sticker{position:absolute;top:-12px;left:-12px;background:rgba(255,255,255,.25);backdrop-filter:blur(6px);padding:6px 12px;border-radius:12px;font-size:16px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 12px rgba(255,255,255,.2);pointer-events:none}
-    #status{margin-top:10px;font-size:14px;color:#ddd;opacity:.85}
-    #tapChallenge{display:none}
-    .tap-wrap{display:flex;flex-direction:column;gap:14px;align-items:center}
-    .tap-title{font-size:24px;font-weight:800}
-    .tap-sub{font-size:16px;opacity:.9}
-    .tap-hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:16px}
-    .hud-pill{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:6px 12px;backdrop-filter:blur(6px)}
-    .tap-progress{width:100%;height:16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;overflow:hidden}
-    .tap-bar{height:100%;width:0%;background:radial-gradient(120% 120% at 0% 50%,#7a5cff,#a46bff);transition:width .08s linear}
-    .tap-button{font-size:26px;font-weight:800;padding:14px 28px;border:2px solid #7a5cff;border-radius:16px;color:#fff;background:rgba(20,20,35,.9);box-shadow:0 0 18px #7a5cff66}
-    .tap-button:active{transform:scale(.98)}
-    .tap-result{font-size:20px;font-weight:800;margin-top:6px}
-    .win{color:#7dffae}.lose{color:#ff7d7d}
+    body{margin:0;font-family:"Tajawal",sans-serif;background:#000;color:#fff;overflow:hidden;user-select:none}
+    .bg{position:fixed;inset:0;background:#000 center/cover no-repeat;filter:blur(6px);transform:scale(1.08);z-index:1}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:2}
+    .card{position:relative;z-index:3;width:92%;max-width:560px;margin:12vh auto 0;padding:20px;text-align:center;
+      backdrop-filter:blur(6px);background:rgba(10,10,30,.25);border:1px solid rgba(255,255,255,.08);border-radius:18px;box-shadow:0 0 28px rgba(0,0,0,.25)}
+    h1{font-size:34px;font-weight:800;margin:0 0 10px;text-shadow:0 0 8px rgba(255,255,255,.4)}
+    #question{font-size:22px;margin:0 0 18px;color:#eee;text-shadow:0 0 6px rgba(0,0,0,.4);line-height:1.5}
+
+    .choice{position:relative;background:rgba(20,20,35,.78);border:2px solid #7a5cff;padding:18px;font-size:22px;color:#fff;border-radius:16px;
+      box-shadow:0 0 18px #7a5cff66,inset 0 0 12px #7a5cff22;margin-bottom:18px;transition:.15s ease}
+    .choice:active{transform:scale(.98);box-shadow:0 0 26px #a889ffcc,inset 0 0 18px #7a5cff55}
+
+    .sticker{position:absolute;top:-12px;left:-12px;background:rgba(255,255,255,.25);backdrop-filter:blur(6px);padding:6px 12px;border-radius:12px;
+      font-size:16px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 12px rgba(255,255,255,.2);pointer-events:none}
+
+    /* Floating settings button */
+    .gear{position:fixed;right:14px;bottom:14px;z-index:5;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+      border-radius:14px;padding:10px 14px;font-weight:800;box-shadow:0 6px 20px rgba(0,0,0,.35);cursor:pointer}
+
+    /* Panel */
+    .panel{position:fixed;inset:auto 0 0 0;z-index:6;background:rgba(10,10,25,.96);border-top:1px solid rgba(255,255,255,.08);
+      box-shadow:0 -12px 40px rgba(0,0,0,.5);padding:12px 14px;display:none}
+    .panel.open{display:block}
+    .row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:8px 0}
+    .row label{font-weight:700}
+    .panel input[type="text"], .panel input[type="url"], .panel textarea{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none}
+    .panel textarea{min-height:64px;resize:vertical}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer}
+    .save{background:#7a5cff;color:#fff;box-shadow:0 0 18px #7a5cff66}
+    .copy{background:rgba(255,255,255,.12);color:#fff}
+    .close{background:rgba(255,255,255,.12);color:#fff}
+    .note{font-size:12px;opacity:.8;margin-top:6px}
+    @media (max-width:640px){.row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <div class="bg" id="bg" style="background-image:url('bg.jpg')"></div>
+  <div id="bg" class="bg"></div>
   <div class="overlay"></div>
 
-  <div class="game-container" id="card">
-    <div id="voteMode">
-      <h1 id="title">Avenues & Dragons</h1>
-      <div id="question">...</div>
-      <div id="choice1" class="choice"><div class="sticker">اكتبوا ١</div><span id="choice1Text">...</span></div>
-      <div id="choice2" class="choice"><div class="sticker">اكتبوا ٢</div><span id="choice2Text">...</span></div>
-      <div id="status">متصل · يتم التحديث تلقائيًا</div>
+  <div class="card">
+    <h1 id="title">Avenues & Dragons</h1>
+    <div id="question">المرأة مع ولدها في الأفنيوز — شنسوي؟</div>
+
+    <div class="choice">
+      <div class="sticker">اكتبوا ١</div>
+      <span id="c1">نروح نشتري قهوة</span>
     </div>
 
-    <div id="tapChallenge">
-      <div class="tap-wrap">
-        <div class="tap-title" id="tapTitle">تحدّي الطق 🔥</div>
-        <div class="tap-sub" id="tapDesc">اضغطوا بأسرع ما يمكن!</div>
-        <div class="tap-hud">
-          <div class="hud-pill">الهدف: <span id="tapGoal">1000</span></div>
-          <div class="hud-pill">الوقت: <span id="tapTimer">60</span></div>
-          <div class="hud-pill">المجموع: <span id="tapCount">0</span></div>
-        </div>
-        <div class="tap-progress"><div class="tap-bar" id="tapBar"></div></div>
-        <button class="tap-button" id="tapButton">طَق!</button>
-        <div class="tap-result" id="tapResult"></div>
-      </div>
-      <div id="statusTap" style="margin-top:10px;font-size:14px">متصل · يتم التحديث تلقائيًا</div>
+    <div class="choice">
+      <div class="sticker">اكتبوا ٢</div>
+      <span id="c2">نتمشى شوي</span>
     </div>
   </div>
 
+  <button class="gear" id="gearBtn">⚙️ تحكم</button>
+
+  <div class="panel" id="panel">
+    <div class="row">
+      <label>العنوان</label>
+      <input id="f_title" type="text" placeholder="عنوان اللعبة">
+    </div>
+    <div class="row">
+      <label>السؤال</label>
+      <textarea id="f_question" placeholder="اكتب السؤال هنا"></textarea>
+    </div>
+    <div class="row">
+      <label>الخيار ١</label>
+      <input id="f_c1" type="text" placeholder="الخيار الأول">
+    </div>
+    <div class="row">
+      <label>الخيار ٢</label>
+      <input id="f_c2" type="text" placeholder="الخيار الثاني">
+    </div>
+    <div class="row">
+      <label>الخلفية (اختياري)</label>
+      <input id="f_bg" type="url" placeholder="bg.jpg أو رابط صورة كامل">
+    </div>
+    <div class="actions">
+      <button class="save" id="saveBtn">حفظ الآن</button>
+      <button class="copy" id="copyBtn">نسخ رابط المشاركة</button>
+      <button class="close" id="closeBtn">إغلاق</button>
+    </div>
+    <div class="note">يحفظ تلقائيًا على جهازك (localStorage). زر “نسخ رابط المشاركة” يصنع رابطًا فيه كل النصوص ليفتح بنفس المحتوى على أي جهاز.</div>
+  </div>
+
   <script>
-    // ----- ONE SOURCE: ?data_url=<encoded MyJSON link> -----
-    const qs = new URLSearchParams(location.search);
-    const DATA_URL_PARAM = qs.get('data_url');
-    if(!DATA_URL_PARAM){
-      document.getElementById('status').textContent='غير متصل · أضف ?data_url=';
-    }
-
-    const POLL_MS = 1000;
-
-    let mode=null, tapTimer=null, tapGoal=0, tapCount=0, tapEnd=0;
-
-    const el={
-      bg:document.getElementById('bg'),
-      title:document.getElementById('title'),
-      vote:document.getElementById('voteMode'),
-      tap:document.getElementById('tapChallenge'),
-      q:document.getElementById('question'),
-      c1:document.getElementById('choice1Text'),
-      c2:document.getElementById('choice2Text'),
-      st:document.getElementById('status'),
-      stt:document.getElementById('statusTap'),
-      tapTitle:document.getElementById('tapTitle'),
-      tapDesc:document.getElementById('tapDesc'),
-      tapGoal:document.getElementById('tapGoal'),
-      tapTimer:document.getElementById('tapTimer'),
-      tapCount:document.getElementById('tapCount'),
-      tapBar:document.getElementById('tapBar'),
-      tapBtn:document.getElementById('tapButton'),
-      tapResult:document.getElementById('tapResult')
+    // --- Elements
+    const el = {
+      title: document.getElementById('title'),
+      question: document.getElementById('question'),
+      c1: document.getElementById('c1'),
+      c2: document.getElementById('c2'),
+      bg: document.getElementById('bg'),
+      panel: document.getElementById('panel'),
+      gear: document.getElementById('gearBtn'),
+      close: document.getElementById('closeBtn'),
+      save: document.getElementById('saveBtn'),
+      copy: document.getElementById('copyBtn'),
+      f_title: document.getElementById('f_title'),
+      f_question: document.getElementById('f_question'),
+      f_c1: document.getElementById('f_c1'),
+      f_c2: document.getElementById('f_c2'),
+      f_bg: document.getElementById('f_bg'),
     };
 
-    function showVote(){el.tap.style.display='none';el.vote.style.display='block';mode='vote';}
-    function showTap(){el.vote.style.display='none';el.tap.style.display='block';mode='tap';}
-    function stopTap(){clearInterval(tapTimer);tapTimer=null;}
+    // --- Load from URL (?t=&q=&c1=&c2=&bg=) or localStorage
+    function getQS() {
+      const q = new URLSearchParams(location.search);
+      return {
+        t: q.get('t') || '',
+        q: q.get('q') || '',
+        c1: q.get('c1') || '',
+        c2: q.get('c2') || '',
+        bg: q.get('bg') || ''
+      };
+    }
+    function loadState() {
+      const qs = getQS();
+      const ls = (k, d='') => localStorage.getItem(k) || d;
 
-    function startTap(cfg){
-      stopTap();
-      tapGoal=Number(cfg.goal||1000);
-      tapCount=0;
-      const duration=Number(cfg.duration||60);
-      tapEnd=Date.now()+duration*1000;
+      const title   = qs.t  || ls('t', el.title.textContent);
+      const question= qs.q  || ls('q', el.question.textContent);
+      const c1      = qs.c1 || ls('c1', el.c1.textContent);
+      const c2      = qs.c2 || ls('c2', el.c2.textContent);
+      const bg      = qs.bg || ls('bg', '');
 
-      el.tapTitle.textContent=cfg.title||'تحدّي الطق 🔥';
-      el.tapDesc.textContent=cfg.description||'اضغطوا بأسرع ما يمكن!';
-      el.tapGoal.textContent=tapGoal;
-      el.tapCount.textContent=tapCount;
-      el.tapTimer.textContent=duration;
-      el.tapBar.style.width='0%';
-      el.tapResult.textContent='';
+      el.title.textContent    = title;
+      el.question.textContent = question;
+      el.c1.textContent       = c1;
+      el.c2.textContent       = c2;
+      if (bg) el.bg.style.backgroundImage = `url('${bg}')`;
 
-      el.tapBtn.onclick=()=>{ if(Date.now()<tapEnd){ tapCount++; el.tapCount.textContent=tapCount; el.tapBar.style.width=Math.min(100,tapCount/tapGoal*100)+'%'; } };
-      document.getElementById('card').onclick=(e)=>{ if(e.target===el.tapBtn) return; if(Date.now()<tapEnd && mode==='tap'){ tapCount++; el.tapCount.textContent=tapCount; el.tapBar.style.width=Math.min(100,tapCount/tapGoal*100)+'%'; } };
-
-      tapTimer=setInterval(()=>{
-        let left=Math.ceil((tapEnd-Date.now())/1000); if(left<0) left=0;
-        el.tapTimer.textContent=left;
-        if(left===0){
-          stopTap();
-          if(tapCount>=tapGoal){ el.tapResult.textContent='🔥 مبروك! نجحتوا!'; el.tapResult.className='tap-result win'; }
-          else { el.tapResult.textContent='😮‍💨 ما لحّقنا!'; el.tapResult.className='tap-result lose'; }
-        }
-      },200);
+      // Prefill panel fields
+      el.f_title.value   = title;
+      el.f_question.value= question;
+      el.f_c1.value      = c1;
+      el.f_c2.value      = c2;
+      el.f_bg.value      = bg;
     }
 
-    async function fetchJSON(url){
-      const sep=url.includes('?')?'&':'?';
-      const res=await fetch(url+sep+'nocache='+Date.now());
-      return res.json();
+    function saveState() {
+      const title = el.f_title.value.trim() || 'Avenues & Dragons';
+      const question = el.f_question.value.trim() || '...';
+      const c1 = el.f_c1.value.trim() || '...';
+      const c2 = el.f_c2.value.trim() || '...';
+      const bg = el.f_bg.value.trim();
+
+      // Update view
+      el.title.textContent = title;
+      el.question.textContent = question;
+      el.c1.textContent = c1;
+      el.c2.textContent = c2;
+      el.bg.style.backgroundImage = bg ? `url('${bg}')` : '';
+
+      // Save locally
+      localStorage.setItem('t', title);
+      localStorage.setItem('q', question);
+      localStorage.setItem('c1', c1);
+      localStorage.setItem('c2', c2);
+      localStorage.setItem('bg', bg);
     }
 
-    async function loop(){
-      try{
-        const raw=await fetchJSON(decodeURIComponent(DATA_URL_PARAM));
-        const data=raw && raw.data ? raw.data : raw; // MyJSON wraps in {data:{...}}
-
-        // Title / Question / Choices / BG / Mode all from MyJSON
-        el.title.textContent = data.title || 'Avenues & Dragons';
-        el.q.textContent     = data.question || '...';
-        if (data.bg) el.bg.style.backgroundImage = `url('${data.bg}')`;
-
-        const newMode=(data.mode||'vote').toLowerCase();
-        if(newMode==='tap'){ if(mode!=='tap'){ showTap(); startTap(data.tap||{});} el.stt.textContent='متصل · يتم التحديث تلقائيًا'; }
-        else { if(mode!=='vote'){ showVote(); stopTap(); } el.st.textContent='متصل · يتم التحديث تلقائيًا'; }
-
-        if(mode!=='tap'){ el.c1.textContent=String(data.choice1||'...'); el.c2.textContent=String(data.choice2||'...'); }
-      }catch(e){
-        if(mode==='tap') el.stt.textContent='غير متصل';
-        else el.st.textContent='غير متصل';
-      }
+    function shareLink() {
+      const params = new URLSearchParams({
+        t: el.title.textContent,
+        q: el.question.textContent,
+        c1: el.c1.textContent,
+        c2: el.c2.textContent
+      });
+      const bg = localStorage.getItem('bg') || '';
+      if (bg) params.set('bg', bg);
+      const url = location.origin + location.pathname + '?' + params.toString();
+      navigator.clipboard.writeText(url).catch(()=>{});
+      el.copy.textContent = 'تم النسخ ✅';
+      setTimeout(()=> el.copy.textContent='نسخ رابط المشاركة', 1200);
     }
 
-    setInterval(loop, POLL_MS);
-    if(DATA_URL_PARAM) loop();
+    // --- Bind
+    el.gear.onclick = ()=> el.panel.classList.add('open');
+    el.close.onclick = ()=> el.panel.classList.remove('open');
+    el.save.onclick = ()=> { saveState(); el.panel.classList.remove('open'); };
+    el.copy.onclick = shareLink;
+
+    // Init
+    loadState();
   </script>
 </body>
 </html>
