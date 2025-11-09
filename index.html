@@ -6,84 +6,64 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{height:100%}
-body{margin:0;font-family:"Tajawal",sans-serif;background:#000;color:#fff;overflow:hidden;user-select:none}
-.bg{position:fixed;inset:0;background:#000 center/cover no-repeat;filter:blur(6px);transform:scale(1.08);z-index:1}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:2}
-.card{position:relative;z-index:3;width:92%;max-width:560px;margin:12vh auto 0;padding:20px;text-align:center;
-backdrop-filter:blur(6px);background:rgba(10,10,30,.25);border:1px solid rgba(255,255,255,.08);border-radius:18px;box-shadow:0 0 28px rgba(0,0,0,.25)}
-h1{font-size:34px;font-weight:800;margin:0 0 10px;text-shadow:0 0 8px rgba(255,255,255,.4)}
+body{margin:0;font-family:"Tajawal",sans-serif;background:#000;color:#fff;overflow:hidden}
+.bg{position:fixed;inset:0;background:#000 center/cover no-repeat;filter:blur(5px);transform:scale(1.08);opacity:.9;z-index:1}
+.card{position:relative;z-index:3;width:92%;max-width:560px;margin:10vh auto 0;padding:20px;text-align:center;
+backdrop-filter:blur(6px);background:rgba(10,10,30,.2);border:1px solid rgba(255,255,255,.08);border-radius:18px;box-shadow:0 0 28px rgba(0,0,0,.25)}
+h1{font-size:34px;font-weight:800;margin:0 0 10px;text-shadow:0 0 8px rgba(255,255,255,.35)}
 #question{font-size:22px;margin:0 0 18px;color:#eee;text-shadow:0 0 6px rgba(0,0,0,.4);line-height:1.5}
-.choice{position:relative;background:rgba(20,20,35,.78);border:2px solid #7a5cff;padding:18px;font-size:22px;color:#fff;border-radius:16px;
+.choice{position:relative;background:rgba(20,20,35,.82);border:2px solid #7a5cff;padding:18px;font-size:22px;color:#fff;border-radius:16px;
 box-shadow:0 0 18px #7a5cff66,inset 0 0 12px #7a5cff22;margin-bottom:18px}
 .sticker{position:absolute;top:-12px;left:-12px;background:rgba(255,255,255,.25);backdrop-filter:blur(6px);padding:6px 12px;border-radius:12px;
 font-size:16px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 12px rgba(255,255,255,.2);pointer-events:none}
-.status{margin-top:8px;font-size:12px;opacity:.75}
-.gear{position:fixed;right:12px;bottom:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
-border-radius:12px;padding:8px 12px;font-weight:800;color:#fff;text-decoration:none}
+.status{margin-top:8px;font-size:12px;opacity:.8}
+.ctrl{position:fixed;right:12px;bottom:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+border-radius:12px;padding:8px 12px;font-weight:800;color:#fff;text-decoration:none;z-index:4}
 </style>
 </head>
 <body>
 <div id="bg" class="bg"></div>
-<div class="overlay"></div>
+
 <div class="card">
   <h1 id="title">Avenues & Dragons</h1>
-  <div id="question">المرأة مع ولدها في الأفنيوز — شنسوي؟</div>
-  <div class="choice"><div class="sticker">اكتبوا ١</div><span id="c1">نروح نشتري قهوة</span></div>
-  <div class="choice"><div class="sticker">اكتبوا ٢</div><span id="c2">نتمشى شوي</span></div>
+  <div id="question">…</div>
+  <div class="choice"><div class="sticker">اكتبوا ١</div><span id="c1">…</span></div>
+  <div class="choice"><div class="sticker">اكتبوا ٢</div><span id="c2">…</span></div>
   <div id="st" class="status">جاهز</div>
 </div>
 
-<a class="gear" href="./admin.html">تحكم ⚙️</a>
+<a class="ctrl" href="./admin.html">تحكم ⚙️</a>
 
 <script>
-const el={title:document.getElementById('title'),question:document.getElementById('question'),
+const el={t:document.getElementById('title'),q:document.getElementById('question'),
 c1:document.getElementById('c1'),c2:document.getElementById('c2'),bg:document.getElementById('bg'),st:document.getElementById('st')};
 
-function apply(vals){
-  if(vals.t!==undefined){ el.title.textContent = vals.t || 'Avenues & Dragons'; }
-  if(vals.q!==undefined){ el.question.textContent = vals.q || '...'; }
-  if(vals.c1!==undefined){ el.c1.textContent = vals.c1 || '...'; }
-  if(vals.c2!==undefined){ el.c2.textContent = vals.c2 || '...'; }
-  if(vals.bg!==undefined){ el.bg.style.backgroundImage = vals.bg ? `url('${vals.bg}')` : ''; }
-  el.st.textContent='تم التحديث';
-  clearTimeout(window._st); window._st=setTimeout(()=>el.st.textContent='جاهز',800);
+// Where to read from: ?data_url=... OR saved once in admin.
+const qs=new URLSearchParams(location.search);
+const DATA_URL=qs.get('data_url')||localStorage.getItem('myjson_data_url')||"";
+if(!DATA_URL){ el.st.textContent="أدخل رابط MyJSON من صفحة التحكم"; }
+
+function apply(d){
+  if(!d) return;
+  el.t.textContent=d.title||"Avenues & Dragons";
+  el.q.textContent=d.question||"…";
+  el.c1.textContent=d.choice1||"…";
+  el.c2.textContent=d.choice2||"…";
+  el.bg.style.backgroundImage=d.bg?`url('${d.bg}')`:"";
 }
-// initial paint from localStorage
-apply({
-  t: localStorage.getItem('t'),
-  q: localStorage.getItem('q'),
-  c1: localStorage.getItem('c1'),
-  c2: localStorage.getItem('c2'),
-  bg: localStorage.getItem('bg')
-});
 
-// 1) normal storage event (works on many browsers)
-window.addEventListener('storage',(e)=>{
-  if(['t','q','c1','c2','bg'].includes(e.key)) apply({[e.key]: e.newValue});
-});
-
-// 2) SAFARI FALLBACK: poll localStorage every 400ms
-let last = JSON.stringify({
-  t: localStorage.getItem('t'),
-  q: localStorage.getItem('q'),
-  c1: localStorage.getItem('c1'),
-  c2: localStorage.getItem('c2'),
-  bg: localStorage.getItem('bg')
-});
-setInterval(()=>{
-  const now = JSON.stringify({
-    t: localStorage.getItem('t'),
-    q: localStorage.getItem('q'),
-    c1: localStorage.getItem('c1'),
-    c2: localStorage.getItem('c2'),
-    bg: localStorage.getItem('bg')
-  });
-  if(now!==last){
-    last = now;
-    const v = JSON.parse(now);
-    apply(v);
-  }
-},400);
+// Poll MyJSON every 1000ms; handle both {data:{...}} and {...}
+async function tick(){
+  if(!DATA_URL) return;
+  try{
+    const r=await fetch(DATA_URL + (DATA_URL.includes("?")?"&":"?") + "_ts=" + Date.now());
+    const j=await r.json();
+    const d=j && j.data ? j.data : j;
+    apply(d);
+    el.st.textContent="متصل";
+  }catch(e){ el.st.textContent="غير متصل"; }
+}
+tick(); setInterval(tick,1000);
 </script>
 </body>
 </html>
