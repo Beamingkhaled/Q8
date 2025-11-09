@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Avenues & Dragons — Neon + Tap (Repo Site)</title>
+  <title>Avenues & Dragons — One-Source (MyJSON)</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -63,73 +63,62 @@
   </div>
 
   <script>
-    // Resolve /Q8/backend.json correctly on a repo site
-    const BASE_URL = new URL('backend.json', location.href).toString();
-
-    // Optional choices override (MyJSON)
+    // ----- ONE SOURCE: ?data_url=<encoded MyJSON link> -----
     const qs = new URLSearchParams(location.search);
-    const CHOICES_URL_PARAM = qs.get('choices_url');
+    const DATA_URL_PARAM = qs.get('data_url');
+    if(!DATA_URL_PARAM){
+      document.getElementById('status').textContent='غير متصل · أضف ?data_url=';
+    }
 
     const POLL_MS = 1000;
 
-    let mode = null, tapTimer = null, tapGoal = 0, tapCount = 0, tapEnd = 0;
+    let mode=null, tapTimer=null, tapGoal=0, tapCount=0, tapEnd=0;
 
-    const el = {
-      bg: document.getElementById('bg'),
-      title: document.getElementById('title'),
-      vote: document.getElementById('voteMode'),
-      tap: document.getElementById('tapChallenge'),
-      q: document.getElementById('question'),
-      c1: document.getElementById('choice1Text'),
-      c2: document.getElementById('choice2Text'),
-      st: document.getElementById('status'),
-      stt: document.getElementById('statusTap'),
-      tapTitle: document.getElementById('tapTitle'),
-      tapDesc: document.getElementById('tapDesc'),
-      tapGoal: document.getElementById('tapGoal'),
-      tapTimer: document.getElementById('tapTimer'),
-      tapCount: document.getElementById('tapCount'),
-      tapBar: document.getElementById('tapBar'),
-      tapBtn: document.getElementById('tapButton'),
-      tapResult: document.getElementById('tapResult')
+    const el={
+      bg:document.getElementById('bg'),
+      title:document.getElementById('title'),
+      vote:document.getElementById('voteMode'),
+      tap:document.getElementById('tapChallenge'),
+      q:document.getElementById('question'),
+      c1:document.getElementById('choice1Text'),
+      c2:document.getElementById('choice2Text'),
+      st:document.getElementById('status'),
+      stt:document.getElementById('statusTap'),
+      tapTitle:document.getElementById('tapTitle'),
+      tapDesc:document.getElementById('tapDesc'),
+      tapGoal:document.getElementById('tapGoal'),
+      tapTimer:document.getElementById('tapTimer'),
+      tapCount:document.getElementById('tapCount'),
+      tapBar:document.getElementById('tapBar'),
+      tapBtn:document.getElementById('tapButton'),
+      tapResult:document.getElementById('tapResult')
     };
 
-    function showVote(){ el.tap.style.display='none'; el.vote.style.display='block'; mode='vote'; }
-    function showTap(){ el.vote.style.display='none'; el.tap.style.display='block'; mode='tap'; }
-    function stopTap(){ clearInterval(tapTimer); tapTimer=null; }
+    function showVote(){el.tap.style.display='none';el.vote.style.display='block';mode='vote';}
+    function showTap(){el.vote.style.display='none';el.tap.style.display='block';mode='tap';}
+    function stopTap(){clearInterval(tapTimer);tapTimer=null;}
 
     function startTap(cfg){
       stopTap();
-      tapGoal = Number(cfg.goal || 1000);
-      tapCount = 0;
-      const duration = Number(cfg.duration || 60);
-      tapEnd = Date.now() + duration*1000;
+      tapGoal=Number(cfg.goal||1000);
+      tapCount=0;
+      const duration=Number(cfg.duration||60);
+      tapEnd=Date.now()+duration*1000;
 
-      el.tapTitle.textContent = cfg.title || 'تحدّي الطق 🔥';
-      el.tapDesc.textContent  = cfg.description || 'اضغطوا بأسرع ما يمكن!';
-      el.tapGoal.textContent  = tapGoal;
-      el.tapCount.textContent = tapCount;
-      el.tapTimer.textContent = duration;
-      el.tapBar.style.width   = '0%';
-      el.tapResult.textContent = '';
+      el.tapTitle.textContent=cfg.title||'تحدّي الطق 🔥';
+      el.tapDesc.textContent=cfg.description||'اضغطوا بأسرع ما يمكن!';
+      el.tapGoal.textContent=tapGoal;
+      el.tapCount.textContent=tapCount;
+      el.tapTimer.textContent=duration;
+      el.tapBar.style.width='0%';
+      el.tapResult.textContent='';
 
-      el.tapBtn.onclick = () => {
-        if (Date.now() < tapEnd) {
-          tapCount++; el.tapCount.textContent=tapCount;
-          el.tapBar.style.width = Math.min(100, tapCount/tapGoal*100) + '%';
-        }
-      };
-      document.getElementById('card').onclick = (e)=>{
-        if(e.target===el.tapBtn) return;
-        if(Date.now()<tapEnd && mode==='tap'){
-          tapCount++; el.tapCount.textContent=tapCount;
-          el.tapBar.style.width = Math.min(100, tapCount/tapGoal*100) + '%';
-        }
-      };
+      el.tapBtn.onclick=()=>{ if(Date.now()<tapEnd){ tapCount++; el.tapCount.textContent=tapCount; el.tapBar.style.width=Math.min(100,tapCount/tapGoal*100)+'%'; } };
+      document.getElementById('card').onclick=(e)=>{ if(e.target===el.tapBtn) return; if(Date.now()<tapEnd && mode==='tap'){ tapCount++; el.tapCount.textContent=tapCount; el.tapBar.style.width=Math.min(100,tapCount/tapGoal*100)+'%'; } };
 
-      tapTimer = setInterval(()=>{
-        let left = Math.ceil((tapEnd - Date.now())/1000); if(left<0) left=0;
-        el.tapTimer.textContent = left;
+      tapTimer=setInterval(()=>{
+        let left=Math.ceil((tapEnd-Date.now())/1000); if(left<0) left=0;
+        el.tapTimer.textContent=left;
         if(left===0){
           stopTap();
           if(tapCount>=tapGoal){ el.tapResult.textContent='🔥 مبروك! نجحتوا!'; el.tapResult.className='tap-result win'; }
@@ -139,56 +128,34 @@
     }
 
     async function fetchJSON(url){
-      const sep = url.includes('?') ? '&' : '?';
-      const res = await fetch(url + sep + 'nocache=' + Date.now());
+      const sep=url.includes('?')?'&':'?';
+      const res=await fetch(url+sep+'nocache='+Date.now());
       return res.json();
     }
 
     async function loop(){
       try{
-        // 1) Load backend.json (title/question/mode/bg/tap)
-        const base = await fetchJSON(BASE_URL);
-        const data = base && base.record ? base.record : base;
+        const raw=await fetchJSON(decodeURIComponent(DATA_URL_PARAM));
+        const data=raw && raw.data ? raw.data : raw; // MyJSON wraps in {data:{...}}
 
-        // Title & Question from backend.json
-        el.title.textContent   = data.title    || 'Avenues & Dragons';
-        el.q.textContent       = data.question || '...';
-
-        // Background
+        // Title / Question / Choices / BG / Mode all from MyJSON
+        el.title.textContent = data.title || 'Avenues & Dragons';
+        el.q.textContent     = data.question || '...';
         if (data.bg) el.bg.style.backgroundImage = `url('${data.bg}')`;
 
-        // Mode switch
-        const newMode = (data.mode || 'vote').toLowerCase();
+        const newMode=(data.mode||'vote').toLowerCase();
         if(newMode==='tap'){ if(mode!=='tap'){ showTap(); startTap(data.tap||{});} el.stt.textContent='متصل · يتم التحديث تلقائيًا'; }
         else { if(mode!=='vote'){ showVote(); stopTap(); } el.st.textContent='متصل · يتم التحديث تلقائيًا'; }
 
-        // 2) Choices: default from backend, override via ?choices_url (MyJSON)
-        let c1 = data.choice1 || '...';
-        let c2 = data.choice2 || '...';
-
-        if (CHOICES_URL_PARAM) {
-          try {
-            const choicesURL = decodeURIComponent(CHOICES_URL_PARAM);
-            const c = await fetchJSON(choicesURL);
-            const obj = c && c.data ? c.data : c; // MyJSON returns {data:{...}}
-            if (obj) {
-              if (Array.isArray(obj.choices) && obj.choices.length>=2){ c1=String(obj.choices[0]); c2=String(obj.choices[1]); }
-              else if (obj.choice1 && obj.choice2){ c1=String(obj.choice1); c2=String(obj.choice2); }
-              else if (obj.one && obj.two){ c1=String(obj.one); c2=String(obj.two); }
-            }
-          } catch { /* keep fallback */ }
-        }
-
-        if(mode!=='tap'){ el.c1.textContent=c1; el.c2.textContent=c2; }
-
+        if(mode!=='tap'){ el.c1.textContent=String(data.choice1||'...'); el.c2.textContent=String(data.choice2||'...'); }
       }catch(e){
         if(mode==='tap') el.stt.textContent='غير متصل';
         else el.st.textContent='غير متصل';
       }
     }
 
-    setInterval(loop, 1000);
-    loop();
+    setInterval(loop, POLL_MS);
+    if(DATA_URL_PARAM) loop();
   </script>
 </body>
 </html>
