@@ -1,194 +1,246 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>لوحة التحكم الفورية | JSONBin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>لوحة التحكم — Avenues & Dragons</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#000;--card:#111;--border:#222;--text:#fff;--ok:#28c76f;--muted:#9aa0a6;--radius:16px}
+    :root{--bg:#0b0b12;--card:#121228;--ink:#fff;--muted:#c8c8e0;--accent:#7a5cff;--ok:#47d18c;--bad:#ff6b6b}
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:'Tajawal',system-ui,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{width:min(900px,94vw);margin:24px auto;padding:8px 10px 40px}
-    h1{font-size:26px;margin:10px 0 18px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 14px;margin:14px 0;box-shadow:0 12px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04)}
-    label{display:block;font-weight:800;margin:6px 2px 8px}
-    input{width:100%;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:12px;color:#fff;padding:14px 12px;font-size:16px;outline:none}
-    .row{display:grid;grid-template-columns:1fr;gap:10px}
-    @media(min-width:720px){.row{grid-template-columns:1fr 1fr}}
-    button{background:#191919;border:1px solid #2b2b2b;border-radius:14px;color:#fff;padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer;width:100%}
-    button.primary{background:#1a3a22;border-color:#285d3a}
-    .ok{color:var(--ok);font-weight:800}
-    pre{white-space:pre-wrap;word-break:break-word;max-height:50vh;overflow:auto;background:#0b0b0b;border:1px solid #1f1f1f;border-radius:12px;padding:12px}
-    .muted{color:var(--muted);font-size:13px}
-    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    a{color:#9ad3ff;text-decoration:none}
-    .link{background:#0b0b0b;border:1px dashed #2b2b2b;border-radius:10px;padding:10px;font-size:13px;overflow:auto}
+    html,body{height:100%}
+    body{margin:0;font-family:"Tajawal",sans-serif;background:radial-gradient(1200px 600px at 50% -10%,#1a1935 0%,#0b0b12 55%);color:var(--ink)}
+    .wrap{max-width:720px;margin:24px auto;padding:16px}
+    h1{font-weight:800;margin:0 0 14px;font-size:28px}
+    p.hint{color:var(--muted);margin:0 0 18px;font-size:14px}
+    .card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:16px;margin-bottom:16px}
+    .row{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin:10px 0}
+    label{font-weight:700}
+    input[type="text"],input[type="url"],input[type="number"],select,textarea{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);color:var(--ink);font-size:16px;outline:none
+    }
+    textarea{min-height:72px;resize:vertical}
+    .muted{color:var(--muted);font-size:12px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    button{
+      appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;
+      background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 0 18px #7a5cff66
+    }
+    button.secondary{background:rgba(255,255,255,.08)}
+    button.good{background:var(--ok)}
+    button.bad{background:var(--bad)}
+    .status{margin-top:10px;font-size:14px}
+    .ok{color:var(--ok)} .err{color:var(--bad)}
+    .footer{margin-top:12px;color:var(--muted);font-size:13px}
+    .inline{display:inline-block;margin-inline-start:6px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);font-size:12px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:640px){.row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>لوحة تحكم فورية — JSONBin (بدون تأخير)</h1>
+    <h1>لوحة التحكم — Avenues & Dragons</h1>
+    <p class="hint">عدّل العنوان والسؤال والاختيارات والخلفية مع حفظ فوري إلى <span class="pill">MyJSON</span> — لا حاجة لأي JSON أو كود.</p>
 
-    <div class="card">
-      <label>🔑 JSONBin API Key (مرة واحدة)</label>
-      <input id="apiKey" type="password" placeholder="ابدأ من jsonbin.io > API Keys" />
-      <div class="row" style="margin-top:10px">
-        <div>
-          <label>🆔 Bin ID</label>
-          <input id="binId" placeholder="فارغ إذا ستنشئ Bin جديد" />
-        </div>
-        <div>
-          <label>🌍 رابط المشاهدة</label>
-          <div id="viewerLink" class="link">—</div>
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button id="createBin">✨ إنشاء Bin عام للقراءة الفورية</button>
-        <button id="saveCreds">💾 حفظ الإعدادات</button>
-      </div>
-      <div class="muted">- إنشاء Bin يجعل القراءة عامة (Public) لتعمل للعرض بدون مفاتيح. الكتابة محمية بالمفتاح فقط لديك.</div>
-    </div>
-
+    <!-- Connection -->
     <div class="card">
       <div class="row">
-        <div>
-          <label>عنوان المشهد</label>
-          <input id="title" placeholder="مثال: القرار في المول" />
+        <label>رابط MyJSON</label>
+        <input id="recordUrl" type="url" placeholder="https://api.myjson.online/v1/records/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      </div>
+      <div class="row">
+        <label>API Key</label>
+        <input id="apiKey" type="text" placeholder="ألصق مفتاح MyJSON (سيُحفظ محليًا في جهازك)">
+      </div>
+      <div class="actions">
+        <button id="loadBtn" class="secondary">تحميل المحتوى الحالي</button>
+        <button id="saveBtn" class="good">حفظ الآن (فوري)</button>
+        <button id="clearBtn" class="bad">مسح الحقول</button>
+      </div>
+      <div id="connStatus" class="status"></div>
+    </div>
+
+    <!-- Content form -->
+    <div class="card">
+      <div class="row">
+        <label>عنوان اللعبة</label>
+        <input id="title" type="text" placeholder="Avenues & Dragons">
+      </div>
+      <div class="row">
+        <label>السؤال</label>
+        <textarea id="question" placeholder="اكتب السؤال هنا"></textarea>
+      </div>
+      <div class="grid2">
+        <div class="row">
+          <label>الخيار ١</label>
+          <input id="choice1" type="text" placeholder="نروح نشتري قهوة">
+        </div>
+        <div class="row">
+          <label>الخيار ٢</label>
+          <input id="choice2" type="text" placeholder="نتمشى شوي">
         </div>
       </div>
       <div class="row">
-        <div>
-          <label>الخيار الأيسر</label>
-          <input id="left" placeholder="ندخل القهوة؟" />
+        <label>الخلفية</label>
+        <input id="bg" type="text" placeholder="bg.jpg أو رابط صورة كامل">
+      </div>
+      <div class="row">
+        <label>النمط</label>
+        <select id="mode">
+          <option value="vote">تصويت (خيارين)</option>
+          <option value="tap">تحدّي الطق</option>
+        </select>
+      </div>
+      <div id="tapWrap">
+        <div class="grid2">
+          <div class="row">
+            <label>هدف الطق</label>
+            <input id="tapGoal" type="number" min="1" value="1000">
+          </div>
+          <div class="row">
+            <label>المدة (ث)</label>
+            <input id="tapDuration" type="number" min="5" value="60">
+          </div>
         </div>
-        <div>
-          <label>الخيار الأيمن</label>
-          <input id="right" placeholder="نتمشى أول؟" />
+        <div class="row">
+          <label>عنوان التحدّي</label>
+          <input id="tapTitle" type="text" value="تحدّي الطق 🔥">
+        </div>
+        <div class="row">
+          <label>وصف التحدّي</label>
+          <input id="tapDesc" type="text" value="نوصل ١٠٠٠ طقة خلال دقيقة؟">
         </div>
       </div>
-      <div class="row" style="margin-top:10px">
-        <button class="primary" id="saveBtn">💾 حفظ الآن (فوري)</button>
-        <button id="loadBtn">⟳ قراءة المحتوى الحالي</button>
-      </div>
-      <div id="status" style="margin-top:10px"></div>
+      <div id="saveStatus" class="status"></div>
     </div>
 
+    <!-- Viewer link -->
     <div class="card">
-      <label>المحتوى الحالي (تأكيد)</label>
-      <pre id="preview">—</pre>
-      <div class="muted">رابط المشاهدة سيظهر فوق. استخدمه على البث؛ يحدث تلقائيًا كل ثانية بدون تحديث الصفحة.</div>
+      <div class="row">
+        <label>رابط العرض</label>
+        <input id="viewerLink" type="text" readonly>
+      </div>
+      <div class="actions">
+        <a id="openViewer" class="inline" href="#" target="_blank"><button>فتح الصفحة مباشرة</button></a>
+      </div>
+      <div class="footer">هذه الصفحة تحفظ الإعدادات في متصفحك (localStorage) حتى لا تُعيد لصق المفاتيح كل مرة.</div>
     </div>
   </div>
 
-<script>
-  const $ = id => document.getElementById(id);
-  const apiKeyInput = $('apiKey');
-  const binIdInput  = $('binId');
-  const titleInput  = $('title');
-  const leftInput   = $('left');
-  const rightInput  = $('right');
-  const statusEl    = $('status');
-  const previewEl   = $('preview');
-  const viewerLinkEl= $('viewerLink');
+  <script>
+    // ---- helpers ----
+    const $ = (id)=>document.getElementById(id);
+    const fields = ["title","question","choice1","choice2","bg","mode","tapGoal","tapDuration","tapTitle","tapDesc"];
+    const ls = {
+      get:k=>localStorage.getItem(k)||"",
+      set:(k,v)=>localStorage.setItem(k,v||""),
+    };
 
-  // restore saved
-  apiKeyInput.value = localStorage.getItem('jsonbin_api_key') || '';
-  binIdInput.value  = localStorage.getItem('jsonbin_id') || '';
+    // Prefill secrets from localStorage
+    $("recordUrl").value = ls.get("myjson_record_url") || "https://api.myjson.online/v1/records/f3c971a4-3c36-408b-a054-8720c4316121";
+    $("apiKey").value    = ls.get("myjson_api_key");
 
-  function saveCreds(){
-    localStorage.setItem('jsonbin_api_key', apiKeyInput.value.trim());
-    localStorage.setItem('jsonbin_id', binIdInput.value.trim());
-    updateViewerLink();
-  }
-
-  function updateViewerLink(){
-    const id = binIdInput.value.trim();
-    if(!id){ viewerLinkEl.textContent = '—'; return; }
-    const url = `https://beamingkhaled.github.io/Q8/?bin=${encodeURIComponent(id)}`;
-    viewerLinkEl.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
-  }
-  updateViewerLink();
-
-  async function createBin(){
-    try{
-      statusEl.textContent = '⏳ جاري إنشاء Bin...';
-      const body = { title: "", left: "", right: "", updatedAt: "" };
-      const res = await fetch('https://api.jsonbin.io/v3/b', {
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
-          'X-Master-Key': apiKeyInput.value.trim(),
-          // make it readable publicly so viewer needs no key:
-          'X-Bin-Private':'false'
-        },
-        body: JSON.stringify(body)
-      });
-      if(!res.ok) throw new Error('Create '+res.status+' '+await res.text());
-      const data = await res.json();
-      // v3 returns metadata.id
-      const id = (data && data.metadata && data.metadata.id) ? data.metadata.id : (data.id || '').replace('/b/','').replace('/latest','');
-      if(!id) throw new Error('لم أستطع استخراج Bin ID');
-      binIdInput.value = id;
-      saveCreds();
-      statusEl.innerHTML = '✅ تم إنشاء Bin — تم توليد Bin ID';
-      previewEl.textContent = JSON.stringify(body, null, 2);
-    }catch(e){
-      statusEl.innerHTML = '❌ فشل الإنشاء: '+String(e.message).replace(/</g,'&lt;');
+    // Update viewer link
+    function refreshViewerLink(){
+      const u = $("recordUrl").value.trim();
+      const enc = encodeURIComponent(u);
+      const link = location.origin + location.pathname.replace(/admin\.html$/,"") + "?data_url=" + enc;
+      $("viewerLink").value = link;
+      $("openViewer").href = link;
     }
-  }
+    refreshViewerLink();
 
-  async function loadCurrent(){
-    try{
-      statusEl.textContent = '⏳ قراءة...';
-      const id = binIdInput.value.trim();
-      if(!id) throw new Error('أدخل Bin ID أو أنشئ واحداً');
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest?t=${Date.now()}`, { cache:'no-store' });
-      if(!res.ok) throw new Error('GET '+res.status+' '+await res.text());
-      const data = await res.json();
-      const record = data && data.record ? data.record : data;
-      previewEl.textContent = JSON.stringify(record, null, 2);
-      statusEl.textContent = '';
-    }catch(e){
-      statusEl.innerHTML = '⚠️ خطأ في القراءة: '+String(e.message).replace(/</g,'&lt;');
+    // Show/hide tap fields
+    function toggleTap(){
+      $("tapWrap").style.display = $("mode").value === "tap" ? "block" : "none";
     }
-  }
+    $("mode").addEventListener("change", toggleTap); toggleTap();
 
-  async function saveNow(){
-    try{
-      statusEl.textContent = '⏳ حفظ...';
-      const id    = binIdInput.value.trim();
-      const key   = apiKeyInput.value.trim();
-      if(!id) throw new Error('لا يوجد Bin ID');
-      if(!key) throw new Error('أدخل API Key');
-
-      const payload = {
-        title: titleInput.value.trim(),
-        left:  leftInput.value.trim(),
-        right: rightInput.value.trim(),
-        updatedAt: new Date().toISOString()
+    // Compose payload
+    function gather(){
+      const data = {
+        title: $("title").value.trim(),
+        mode: $("mode").value,
+        question: $("question").value.trim(),
+        choice1: $("choice1").value.trim(),
+        choice2: $("choice2").value.trim(),
+        bg: $("bg").value.trim()
       };
-
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${id}`, {
-        method:'PUT',
-        headers:{
-          'Content-Type':'application/json',
-          'X-Master-Key': key
-        },
-        body: JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error('PUT '+res.status+' '+await res.text());
-      statusEl.innerHTML = '✅ تم الحفظ — يظهر فورًا في صفحة العرض';
-      previewEl.textContent = JSON.stringify(payload, null, 2);
-    }catch(e){
-      statusEl.innerHTML = '❌ فشل الحفظ: '+String(e.message).replace(/</g,'&lt;');
+      if (data.mode === "tap") {
+        data.tap = {
+          goal: Number($("tapGoal").value||1000),
+          duration: Number($("tapDuration").value||60),
+          title: $("tapTitle").value.trim() || "تحدّي الطق 🔥",
+          description: $("tapDesc").value.trim() || "نوصل ١٠٠٠ طقة خلال دقيقة؟"
+        };
+      }
+      return data;
     }
-  }
 
-  $('createBin').addEventListener('click', createBin);
-  $('saveCreds').addEventListener('click', saveCreds);
-  $('saveBtn').addEventListener('click', saveNow);
-  $('loadBtn').addEventListener('click', loadCurrent);
-</script>
+    // Load existing from MyJSON
+    $("loadBtn").onclick = async ()=>{
+      const url = $("recordUrl").value.trim();
+      if(!url){ $("connStatus").innerHTML = '<span class="err">أدخل رابط MyJSON</span>'; return; }
+      $("connStatus").textContent = "جارِ التحميل...";
+      try{
+        const res = await fetch(url + (url.includes("?")?"&":"?") + "nocache=" + Date.now());
+        const json = await res.json();
+        const data = json && json.data ? json.data : json;
+
+        $("title").value    = data.title || "";
+        $("mode").value     = (data.mode || "vote");
+        $("question").value = data.question || "";
+        $("choice1").value  = data.choice1 || "";
+        $("choice2").value  = data.choice2 || "";
+        $("bg").value       = data.bg || "";
+        if(data.tap){
+          $("tapGoal").value     = data.tap.goal || 1000;
+          $("tapDuration").value = data.tap.duration || 60;
+          $("tapTitle").value    = data.tap.title || "تحدّي الطق 🔥";
+          $("tapDesc").value     = data.tap.description || "";
+        }
+        toggleTap();
+        $("connStatus").innerHTML = '<span class="ok">تم التحميل ✅</span>';
+        ls.set("myjson_record_url", url);
+        refreshViewerLink();
+      }catch(e){
+        $("connStatus").innerHTML = '<span class="err">فشل التحميل ❌</span>';
+      }
+    };
+
+    // Save to MyJSON (PUT with API key)
+    $("saveBtn").onclick = async ()=>{
+      const url = $("recordUrl").value.trim();
+      const key = $("apiKey").value.trim();
+      if(!url || !key){
+        $("saveStatus").innerHTML = '<span class="err">أدخل رابط MyJSON و الـ API Key</span>';
+        return;
+      }
+      const payload = { data: gather() };
+      $("saveStatus").textContent = "جارِ الحفظ...";
+      try{
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "X-API-KEY": key },
+          body: JSON.stringify(payload)
+        });
+        if(!res.ok) throw new Error(await res.text());
+        $("saveStatus").innerHTML = '<span class="ok">تم الحفظ ✅ — يتم التحديث فورًا على صفحة العرض</span>';
+        ls.set("myjson_api_key", key);
+        ls.set("myjson_record_url", url);
+        refreshViewerLink();
+      }catch(e){
+        $("saveStatus").innerHTML = '<span class="err">فشل الحفظ ❌ — تأكد من صحة الـ API Key وصلاحيات الكتابة</span>';
+      }
+    };
+
+    $("clearBtn").onclick = ()=>{
+      fields.forEach(id=>$(id).value="");
+      $("mode").value="vote"; toggleTap();
+      $("saveStatus").textContent=""; $("connStatus").textContent="";
+    };
+  </script>
 </body>
 </html>
