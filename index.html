@@ -39,10 +39,10 @@ const el={t:document.getElementById('title'),q:document.getElementById('question
 c1:document.getElementById('c1'),c2:document.getElementById('c2'),bg:document.getElementById('bg'),st:document.getElementById('st')};
 
 const qs=new URLSearchParams(location.search);
-const DATA_URL=qs.get('data_url')||localStorage.getItem('myjson_data_url')||"";
-if(!DATA_URL){ el.st.textContent="أدخل رابط MyJSON من صفحة التحكم"; }
+let DATA_URL = qs.get('data_url') || localStorage.getItem('myjson_data_url') || "";
 
 function apply(d){
+  if(!d) return;
   el.t.textContent=d.title||"Avenues & Dragons";
   el.q.textContent=d.question||"…";
   el.c1.textContent=d.choice1||"…";
@@ -50,17 +50,24 @@ function apply(d){
   el.bg.style.backgroundImage=d.bg?`url('${d.bg}')`:"";
 }
 
-async function tick(){
-  if(!DATA_URL) return;
+async function fetchData(){
+  if(!DATA_URL){ el.st.textContent="أدخل رابط MyJSON من صفحة التحكم"; return; }
   try{
-    const r=await fetch(DATA_URL + (DATA_URL.includes("?")?"&":"?") + "_ts=" + Date.now());
+    const r=await fetch(DATA_URL + (DATA_URL.includes('?')?'&':'?') + '_ts=' + Date.now());
     const j=await r.json();
     const d=j && j.data ? j.data : j;
     apply(d||{});
     el.st.textContent="متصل";
   }catch(e){ el.st.textContent="غير متصل"; }
 }
-tick(); setInterval(tick,1000);
+
+// follow the newest URL saved by admin
+setInterval(()=>{
+  const u = localStorage.getItem('myjson_data_url') || DATA_URL;
+  if(u && u!==DATA_URL){ DATA_URL=u; }
+  fetchData();
+}, 1000);
+fetchData();
 </script>
 </body>
 </html>
