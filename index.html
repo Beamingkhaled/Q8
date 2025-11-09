@@ -3,75 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Avenues & Dragons — Neon + Tap Challenge</title>
+  <title>Avenues & Dragons — Neon + Tap (Tickfinity Choices Only)</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { height: 100%; }
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: #000;
-      color: #fff;
-      overflow: hidden;
-      user-select: none;
-    }
+    body { font-family: 'Tajawal', sans-serif; background: #000; color: #fff; overflow: hidden; user-select: none; }
 
     /* Background */
-    .bg {
-      position: fixed; inset: 0;
-      background-size: cover; background-position: center; background-repeat: no-repeat;
-      filter: blur(6px); transform: scale(1.1);
-      z-index: 1;
-    }
+    .bg { position: fixed; inset: 0; background-size: cover; background-position: center; background-repeat: no-repeat; filter: blur(6px); transform: scale(1.1); z-index: 1; }
 
     /* Light overlay (0.15) */
-    .overlay {
-      position: fixed; inset: 0; z-index: 2;
-      background: rgba(0,0,0,0.15);
-    }
+    .overlay { position: fixed; inset: 0; z-index: 2; background: rgba(0,0,0,0.15); }
 
     /* Main card */
     .game-container {
-      position: relative; z-index: 3;
-      width: 92%; max-width: 560px; margin: 12vh auto 0; padding: 20px;
-      text-align: center;
-      backdrop-filter: blur(6px);
-      background: rgba(10,10,30,0.25);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
+      position: relative; z-index: 3; width: 92%; max-width: 560px; margin: 12vh auto 0; padding: 20px; text-align: center;
+      backdrop-filter: blur(6px); background: rgba(10,10,30,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px;
       box-shadow: 0 0 28px rgba(0,0,0,0.25);
     }
 
     h1 { font-size: 34px; font-weight: 800; margin-bottom: 10px; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
-
     #question { font-size: 22px; margin-bottom: 18px; color: #eee; text-shadow: 0 0 6px rgba(0,0,0,0.4); line-height: 1.5; }
 
     /* Neon boxes */
     .choice {
-      position: relative;
-      background: rgba(20,20,35,0.75);
-      border: 2px solid #7a5cff;
-      padding: 18px;
-      font-size: 22px;
-      color: #fff;
-      border-radius: 16px;
-      box-shadow: 0 0 18px #7a5cff66, inset 0 0 12px #7a5cff22;
-      margin-bottom: 18px;
-      transition: 0.15s ease;
+      position: relative; background: rgba(20,20,35,0.75); border: 2px solid #7a5cff; padding: 18px; font-size: 22px; color: #fff;
+      border-radius: 16px; box-shadow: 0 0 18px #7a5cff66, inset 0 0 12px #7a5cff22; margin-bottom: 18px; transition: 0.15s ease;
     }
     .choice:active { transform: scale(0.97); box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55; }
 
     /* Stickers */
     .sticker {
-      position: absolute; top: -12px; left: -12px;
-      background: rgba(255,255,255,0.25);
-      backdrop-filter: blur(6px);
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 16px; font-weight: 700; color: #fff;
-      border: 1px solid rgba(255,255,255,0.45);
-      box-shadow: 0 0 12px rgba(255,255,255,0.2);
-      pointer-events: none;
+      position: absolute; top: -12px; left: -12px; background: rgba(255,255,255,0.25); backdrop-filter: blur(6px);
+      padding: 6px 12px; border-radius: 12px; font-size: 16px; font-weight: 700; color: #fff; border: 1px solid rgba(255,255,255,0.45);
+      box-shadow: 0 0 12px rgba(255,255,255,0.2); pointer-events: none;
     }
 
     #status { margin-top: 10px; font-size: 14px; color: #ddd; opacity: 0.85; }
@@ -89,8 +55,7 @@
     .tap-bar { height: 100%; width: 0%; background: radial-gradient(120% 120% at 0% 50%, #7a5cff, #a46bff); transition: width 0.08s linear; }
 
     .tap-button {
-      font-size: 26px; font-weight: 800; padding: 14px 28px;
-      border: 2px solid #7a5cff; border-radius: 16px; color: #fff;
+      font-size: 26px; font-weight: 800; padding: 14px 28px; border: 2px solid #7a5cff; border-radius: 16px; color: #fff;
       background: rgba(20,20,35,0.9); box-shadow: 0 0 18px #7a5cff66;
     }
     .tap-button:active { transform: scale(0.98); }
@@ -148,29 +113,21 @@
   </div>
 
   <script>
-    // ---------- SOURCE AUTO-DETECT ----------
-    // Priority:
-    // 1) ?bin=XXXXXXXX  (JSONBin public-read)
-    // 2) ?url=ENCODED_ABSOLUTE_URL
-    // 3) default GitHub JSON (backend.json)
-    const qp = new URLSearchParams(location.search);
-    const BIN = qp.get('bin');
-    const URL_PARAM = qp.get('url');
-    const DEFAULT_GITHUB_URL = "https://beamingkhaled.github.io/backend.json";
+    // ========= PARAMS & DEFAULTS =========
+    const qs = new URLSearchParams(location.search);
 
-    function getDataURL() {
-      if (BIN) {
-        // JSONBin latest record (public read must be enabled in your bin)
-        return `https://api.jsonbin.io/v3/b/${BIN}/latest`;
-      }
-      if (URL_PARAM) {
-        try { return decodeURIComponent(URL_PARAM); } catch { return URL_PARAM; }
-      }
-      return DEFAULT_GITHUB_URL;
-    }
+    // Where your base admin (question, mode, bg, tap config) lives:
+    // Keep using GitHub backend.json (fast + stable). We auto-bust cache.
+    const DEFAULT_BASE_URL = location.origin + "/backend.json";
 
-    // ---------- UI REFS ----------
-    let mode = null;              // 'vote' | 'tap'
+    // Optional: pass a separate choices source (Tickfinity JSON) via ?choices_url=ENCODED_URL
+    const CHOICES_URL_PARAM = qs.get("choices_url"); // if provided, overrides choice1/choice2
+
+    // Polling speed
+    const POLL_MS = 1000;
+
+    // ========= STATE =========
+    let mode = null;  // 'vote' | 'tap'
     let tapTimer = null;
     let tapGoal = 0, tapCount = 0, tapEnd = 0;
 
@@ -202,7 +159,8 @@
       tapGoal = Number(cfg.goal || 1000);
       tapCount = 0;
       const duration = Number(cfg.duration || 60);
-      tapEnd = Date.now() + duration * 1000;
+      const now = Date.now();
+      tapEnd = now + duration * 1000;
 
       el.tapTitle.textContent = cfg.title || "تحدّي الطق 🔥";
       el.tapDesc.textContent = cfg.description || "اضغطوا بأسرع ما يمكن!";
@@ -219,9 +177,10 @@
           el.tapBar.style.width = Math.min(100, (tapCount / tapGoal) * 100) + "%";
         }
       };
+
       document.getElementById("card").onclick = (e) => {
         if (e.target === el.tapBtn) return;
-        if (Date.now() < tapEnd) {
+        if (Date.now() < tapEnd && mode === "tap") {
           tapCount++;
           el.tapCount.textContent = tapCount;
           el.tapBar.style.width = Math.min(100, (tapCount / tapGoal) * 100) + "%";
@@ -245,36 +204,77 @@
       }, 200);
     }
 
-    async function fetchData() {
-      const url = getDataURL();
+    // Fetch helper with auto cache-bust
+    async function fetchJSON(url) {
+      const sep = url.includes("?") ? "&" : "?";
+      const res = await fetch(url + sep + "nocache=" + Date.now());
+      return await res.json();
+    }
+
+    async function loop() {
       try {
-        const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'nocache=' + Date.now());
-        const raw = await res.json();
+        // 1) Load BASE (question/mode/bg/tap) from GitHub backend.json
+        const base = await fetchJSON(DEFAULT_BASE_URL);
+        const data = base && base.record ? base.record : base; // (if someone ever feeds a JSONBin-style)
 
-        // JSONBin returns {record: {...}}; GitHub/URL returns the object directly
-        const data = raw && raw.record ? raw.record : raw;
-
-        // optional background override
+        // Background
         if (data.bg) el.bg.style.backgroundImage = `url('${data.bg}')`;
 
-        if ((data.mode || 'vote').toLowerCase() === 'tap') {
-          if (mode !== 'tap') { showTap(); startTap(data.tap || {}); }
-          el.stt.textContent = 'متصل · يتم التحديث تلقائيًا';
+        // 2) Mode switch
+        const newMode = (data.mode || "vote").toLowerCase();
+        if (newMode === "tap") {
+          if (mode !== "tap") { showTap(); startTap(data.tap || {}); }
+          el.stt.textContent = "متصل · يتم التحديث تلقائيًا";
         } else {
-          if (mode !== 'vote') { showVote(); stopTap(); }
-          el.q.textContent  = data.question || '...';
-          el.c1.textContent = data.choice1  || '...';
-          el.c2.textContent = data.choice2  || '...';
-          el.st.textContent = 'متصل · يتم التحديث تلقائيًا';
+          if (mode !== "vote") { showVote(); stopTap(); }
+          el.st.textContent = "متصل · يتم التحديث تلقائيًا";
         }
+
+        // 3) Question (from base)
+        el.q.textContent = data.question || "...";
+
+        // 4) Choices: by default from base; if CHOICES_URL_PARAM exists, override with it
+        let choice1 = data.choice1 || "...";
+        let choice2 = data.choice2 || "...";
+
+        if (CHOICES_URL_PARAM) {
+          try {
+            const choicesURL = decodeURIComponent(CHOICES_URL_PARAM);
+            const c = await fetchJSON(choicesURL);
+            // We accept a few common shapes:
+            // {choice1:"...", choice2:"..."} OR {choices:["...", "..."]} OR {one:"...", two:"..."}
+            if (typeof c === "object" && c) {
+              if (Array.isArray(c.choices) && c.choices.length >= 2) {
+                choice1 = String(c.choices[0]);
+                choice2 = String(c.choices[1]);
+              } else if (c.choice1 && c.choice2) {
+                choice1 = String(c.choice1);
+                choice2 = String(c.choice2);
+              } else if (c.one && c.two) {
+                choice1 = String(c.one);
+                choice2 = String(c.two);
+              }
+            }
+          } catch (e) {
+            // If Tickfinity/choices URL fails, keep base choices and show small warning in status
+            if (mode === "vote") el.st.textContent = "متصل · (اختيارات احتياطية من GitHub)";
+          }
+        }
+
+        // Set choices
+        if (mode !== "tap") {
+          document.getElementById("choice1Text").textContent = choice1;
+          document.getElementById("choice2Text").textContent = choice2;
+        }
+
       } catch (e) {
-        if (mode === 'tap') el.stt.textContent = 'غير متصل · تحقق من الرابط';
-        else el.st.textContent = 'غير متصل · تحقق من الرابط';
+        if (mode === "tap") el.stt.textContent = "غير متصل";
+        else el.st.textContent = "غير متصل";
       }
     }
 
-    setInterval(fetchData, 1000);
-    fetchData();
+    setInterval(loop, POLL_MS);
+    loop();
   </script>
 </body>
 </html>
