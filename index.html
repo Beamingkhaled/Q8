@@ -4,82 +4,101 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Avenues & Dragons</title>
-
-  <!-- kill aggressive caching on iPad/Safari -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#0d0b1a; --card:#1b1630; --ink:#fff; --muted:#9aa0b3; --accent:#7057ff; }
-    *{box-sizing:border-box} html,body{height:100%}
+    :root{--bg:#0d0b1a;--card:#1b1630;--muted:#9aa0b3}
+    *{box-sizing:border-box}html,body{height:100%}
     body{margin:0;background:radial-gradient(1200px 700px at 50% -10%,#1a1530 0%,#0d0b1a 60%,#090815 100%);
-         color:var(--ink);font-family:system-ui,-apple-system,"Tajawal",sans-serif;
+         color:#fff;font-family:'Tajawal',system-ui,-apple-system,sans-serif;
          display:flex;align-items:center;justify-content:center}
-    .card{width:min(92vw,760px);background:linear-gradient(180deg, #211a3b 0%, #17142a 100%);
+    .card{width:min(92vw,760px);background:linear-gradient(180deg,#211a3b 0%,#17142a 100%);
           border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:28px}
-    .title{font-size:26px;font-weight:800;text-align:center;letter-spacing:.3px}
-    .prompt{margin:18px 0 22px;text-align:center;color:var(--muted);min-height:28px}
+    .title{font-size:26px;font-weight:800;text-align:center}
+    .q{margin:18px 0 22px;text-align:center;color:var(--muted);min-height:28px}
     .row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
-    .opt{flex:1 1 300px;background:#2a2346;border:1px solid rgba(255,255,255,.05);
+    .opt{flex:1 1 300px;background:#2a2346;border:1px solid rgba(255,255,255,.06);
          border-radius:14px;padding:18px 20px;text-align:center;font-size:18px;font-weight:700;
-         outline:none;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.25)}
-    .opt:active{transform:scale(.99)}
-    .status{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+         box-shadow:0 10px 24px rgba(0,0,0,.25)}
+    .s{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
   <div class="card">
     <div class="title">Avenues & Dragons</div>
-    <div id="question" class="prompt">–</div>
+    <div id="q" class="q">–</div>
     <div class="row">
-      <button id="a" class="opt">–</button>
-      <button id="b" class="opt">–</button>
+      <div id="a" class="opt">–</div>
+      <div id="b" class="opt">–</div>
     </div>
-    <div id="status" class="status">بانتظار الاتصال…</div>
+    <div id="s" class="s">بانتظار الاتصال…</div>
   </div>
 
   <script>
-    // ▼ If your JSON lives elsewhere, change this ONCE to that full URL.
-    // Keep it as-is if choices.json is in the same site.
-    const DATA_URL = 'choices.json';
+    // ---- AUTO-CONFIG ----
+    const urlParams = new URLSearchParams(location.search);
+    const bin = urlParams.get('bin') || '690fb624d0ea881f40dc579f'; // fallback to your shown Bin
+    const BASE = `https://api.jsonbin.io/v3/b/${bin}/latest`;
 
-    const els = {
-      q: document.getElementById('question'),
-      a: document.getElementById('a'),
-      b: document.getElementById('b'),
-      s: document.getElementById('status')
-    };
-
+    const els = { q: document.getElementById('q'), a: document.getElementById('a'), b: document.getElementById('b'), s: document.getElementById('s') };
     let last = '';
 
-    async function pull() {
-      try {
-        // Always bypass cache; you never have to add anything manually.
-        const url = DATA_URL + (DATA_URL.includes('?') ? '&' : '?') + 'ts=' + Date.now();
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
+    function normalize(rec){
+      const r = rec && rec.record ? rec.record : rec || {};
+      return {
+        question: r.question ?? r.title ?? '–',
+        a: r.a ?? r.left ?? '–',
+        b: r.b ?? r.right ?? '–'
+      };
+    }
 
-        // Expecting: { "question": "...", "a": "...", "b": "..." }
-        const key = JSON.stringify(data);
-        if (key !== last) {
-          els.q.textContent = data.question || '–';
-          els.a.textContent = data.a || '–';
-          els.b.textContent = data.b || '–';
+    async function pull(){
+      try{
+        // Try meta=false first (gives plain record), then fall back to wrapped.
+        const t = Date.now();
+        let res = await fetch(`${BASE}?meta=false&ts=${t}`, { cache: 'no-store' });
+        let data = await res.json();
+        if (!res.ok) throw new Error('bad');
+        // if meta=false isn’t allowed on this bin, try without it:
+        if (data && typeof data === 'object' && ('record' in data)) {
+          // some responses still wrap—normalize handles both
+        }
+        const next = normalize(data);
+        const key = JSON.stringify(next);
+        if (key !== last){
+          els.q.textContent = next.question || '–';
+          els.a.textContent = next.a || '–';
+          els.b.textContent = next.b || '–';
           last = key;
         }
         els.s.textContent = 'متصل • يتم التحديث تلقائيًا';
-      } catch (e) {
-        els.s.textContent = 'لا يوجد اتصال (سيُعاد المحاولة)…';
+      } catch(e){
+        // Fallback attempt without meta=false if first failed
+        try{
+          const t = Date.now();
+          const res2 = await fetch(`${BASE}?ts=${t}`, { cache: 'no-store' });
+          const data2 = await res2.json();
+          const next2 = normalize(data2);
+          const key2 = JSON.stringify(next2);
+          if (key2 !== last){
+            els.q.textContent = next2.question || '–';
+            els.a.textContent = next2.a || '–';
+            els.b.textContent = next2.b || '–';
+            last = key2;
+          }
+          els.s.textContent = 'متصل • يتم التحديث تلقائيًا';
+        } catch(e2){
+          els.s.textContent = 'لا يوجد اتصال (سيُعاد المحاولة)…';
+        }
       }
     }
 
-    // First load, then poll every 2 seconds.
     pull();
-    setInterval(pull, 2000);
+    setInterval(pull, 1500);
 
-    // Optional: unregister any old service worker that might be caching
+    // Nuke any old service worker that could cache old files
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
     }
