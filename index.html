@@ -18,6 +18,8 @@ box-shadow:0 0 18px #7a5cff66,inset 0 0 12px #7a5cff22;margin-bottom:18px}
 .sticker{position:absolute;top:-12px;left:-12px;background:rgba(255,255,255,.25);backdrop-filter:blur(6px);padding:6px 12px;border-radius:12px;
 font-size:16px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 12px rgba(255,255,255,.2);pointer-events:none}
 .status{margin-top:8px;font-size:12px;opacity:.75}
+.gear{position:fixed;right:12px;bottom:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+border-radius:12px;padding:8px 12px;font-weight:800;color:#fff;text-decoration:none}
 </style>
 </head>
 <body>
@@ -31,20 +33,22 @@ font-size:16px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.45)
   <div id="st" class="status">جاهز</div>
 </div>
 
+<a class="gear" href="./admin.html">تحكم ⚙️</a>
+
 <script>
 const el={title:document.getElementById('title'),question:document.getElementById('question'),
 c1:document.getElementById('c1'),c2:document.getElementById('c2'),bg:document.getElementById('bg'),st:document.getElementById('st')};
 
 function apply(vals){
-  if(!vals) return;
-  if(vals.t!==undefined) el.title.textContent = vals.t || 'Avenues & Dragons';
-  if(vals.q!==undefined) el.question.textContent = vals.q || '...';
-  if(vals.c1!==undefined) el.c1.textContent = vals.c1 || '...';
-  if(vals.c2!==undefined) el.c2.textContent = vals.c2 || '...';
-  if(vals.bg!==undefined) el.bg.style.backgroundImage = vals.bg ? `url('${vals.bg}')` : '';
+  if(vals.t!==undefined){ el.title.textContent = vals.t || 'Avenues & Dragons'; }
+  if(vals.q!==undefined){ el.question.textContent = vals.q || '...'; }
+  if(vals.c1!==undefined){ el.c1.textContent = vals.c1 || '...'; }
+  if(vals.c2!==undefined){ el.c2.textContent = vals.c2 || '...'; }
+  if(vals.bg!==undefined){ el.bg.style.backgroundImage = vals.bg ? `url('${vals.bg}')` : ''; }
+  el.st.textContent='تم التحديث';
+  clearTimeout(window._st); window._st=setTimeout(()=>el.st.textContent='جاهز',800);
 }
-
-// initial from localStorage (same-device)
+// initial paint from localStorage
 apply({
   t: localStorage.getItem('t'),
   q: localStorage.getItem('q'),
@@ -53,14 +57,33 @@ apply({
   bg: localStorage.getItem('bg')
 });
 
-// live updates when Admin tab saves (storage events fire across tabs on same device)
-window.addEventListener('storage', (e)=>{
-  if(['t','q','c1','c2','bg'].includes(e.key)){
-    apply({ [e.key]: e.newValue });
-    el.st.textContent = 'تم التحديث';
-    clearTimeout(window._st); window._st = setTimeout(()=> el.st.textContent='جاهز', 800);
-  }
+// 1) normal storage event (works on many browsers)
+window.addEventListener('storage',(e)=>{
+  if(['t','q','c1','c2','bg'].includes(e.key)) apply({[e.key]: e.newValue});
 });
+
+// 2) SAFARI FALLBACK: poll localStorage every 400ms
+let last = JSON.stringify({
+  t: localStorage.getItem('t'),
+  q: localStorage.getItem('q'),
+  c1: localStorage.getItem('c1'),
+  c2: localStorage.getItem('c2'),
+  bg: localStorage.getItem('bg')
+});
+setInterval(()=>{
+  const now = JSON.stringify({
+    t: localStorage.getItem('t'),
+    q: localStorage.getItem('q'),
+    c1: localStorage.getItem('c1'),
+    c2: localStorage.getItem('c2'),
+    bg: localStorage.getItem('bg')
+  });
+  if(now!==last){
+    last = now;
+    const v = JSON.parse(now);
+    apply(v);
+  }
+},400);
 </script>
 </body>
 </html>
