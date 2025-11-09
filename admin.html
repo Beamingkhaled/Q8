@@ -17,13 +17,13 @@ button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-wei
 <h1>لوحة التحكّم (إنشاء سجل جديد داخل Collection — بدون API Key)</h1>
 
 <div class="card">
-  <div class="row"><label>Collection ID</label><input id="col" placeholder="مثال: c6b3f1d0-....-....-....-............"></div>
-  <div class="row"><label>رابط MyJSON الحالي</label><input id="url" placeholder="يُحدَّث تلقائيًا بعد الحفظ"></div>
+  <div class="row"><label>Collection ID</label><input id="col" placeholder="مثال: 9fb63b72-4017-4756-bd7b-2aeb49c9c574"></div>
+  <div class="row"><label>رابط MyJSON الحالي</label><input id="url" placeholder="https://api.myjson.online/v1/records/xxxxx (يُحدَّث بعد الحفظ)"></div>
   <div class="btn-row">
     <button id="saveMeta" style="background:#444">حفظ المعرّف/الرابط</button>
     <button id="load"    >تحميل المحتوى الحالي</button>
     <button id="openView" style="background:#2c2c3f">فتح صفحة العرض</button>
-    <button id="openEdit" style="background:#2c2c3ف">فتح سجل MyJSON</button>
+    <button id="openEdit" style="background:#2c2c3f">فتح سجل MyJSON</button>
   </div>
   <div id="status" class="small"></div>
 </div>
@@ -45,6 +45,7 @@ const API_BASE="https://api.myjson.online/v1";
 const viewerLink=u=>location.origin+"/Q8/?data_url="+encodeURIComponent(u);
 const setStatus=(m,ok)=>{$('status').innerHTML=ok?`<span class="ok">${m}</span>`:`<span class="err">${m}</span>`};
 
+// restore saved meta
 $('col').value=localStorage.getItem('myjson_collection_id')||"";
 $('url').value=localStorage.getItem('myjson_data_url')||"";
 
@@ -62,15 +63,22 @@ $('load').onclick=async()=>{const u=$('url').value.trim(); if(!u) return setStat
 
 $('save').onclick=async()=>{
   const col=$('col').value.trim(); if(!col) return setStatus('أدخل Collection ID أولًا',false);
-  const body={ collectionId: col, jsonData:{
+
+  const dataObj = {
     title:$('title').value.trim()||'Avenues & Dragons',
     question:$('question').value.trim()||'…',
     choice1:$('choice1').value.trim()||'…',
     choice2:$('choice2').value.trim()||'…',
     bg:$('bg').value.trim()||''
-  }};
+  };
+
+  // MyJSON expects jsonData to be a STRING inside POST with collectionId
+  const body={ collectionId: col, jsonData: JSON.stringify(dataObj) };
+
   try{
-    const r=await fetch(`${API_BASE}/records`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch(`${API_BASE}/records`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+    });
     if(!r.ok) throw new Error(await r.text()||('HTTP '+r.status));
     const j=await r.json(); const id=j.id||j.recordId; if(!id) throw new Error('لم يتم إرجاع id');
     const newUrl=`${API_BASE}/records/${id}`;
