@@ -42,16 +42,9 @@
       box-shadow: 0 0 28px rgba(0,0,0,0.25);
     }
 
-    h1 {
-      font-size: 34px; font-weight: 800; margin-bottom: 10px;
-      text-shadow: 0 0 8px rgba(255,255,255,0.4);
-    }
+    h1 { font-size: 34px; font-weight: 800; margin-bottom: 10px; text-shadow: 0 0 8px rgba(255,255,255,0.4); }
 
-    #question {
-      font-size: 22px; margin-bottom: 18px; color: #eee;
-      text-shadow: 0 0 6px rgba(0,0,0,0.4);
-      line-height: 1.5;
-    }
+    #question { font-size: 22px; margin-bottom: 18px; color: #eee; text-shadow: 0 0 6px rgba(0,0,0,0.4); line-height: 1.5; }
 
     /* Neon boxes */
     .choice {
@@ -66,23 +59,16 @@
       margin-bottom: 18px;
       transition: 0.15s ease;
     }
-    .choice:active {
-      transform: scale(0.97);
-      box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55;
-    }
+    .choice:active { transform: scale(0.97); box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55; }
 
     /* Stickers */
     .sticker {
-      position: absolute;
-      top: -12px;
-      left: -12px;
+      position: absolute; top: -12px; left: -12px;
       background: rgba(255,255,255,0.25);
       backdrop-filter: blur(6px);
       padding: 6px 12px;
       border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
+      font-size: 16px; font-weight: 700; color: #fff;
       border: 1px solid rgba(255,255,255,0.45);
       box-shadow: 0 0 12px rgba(255,255,255,0.2);
       pointer-events: none;
@@ -92,51 +78,25 @@
 
     /* TAP CHALLENGE */
     #tapChallenge { display: none; }
-    .tap-wrap {
-      display: flex; flex-direction: column; gap: 14px; align-items: center;
-    }
+    .tap-wrap { display: flex; flex-direction: column; gap: 14px; align-items: center; }
     .tap-title { font-size: 24px; font-weight: 800; }
     .tap-sub { font-size: 16px; opacity: 0.9; }
 
-    .tap-hud {
-      display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center;
-      font-size: 16px;
-    }
-    .hud-pill {
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(255,255,255,0.35);
-      border-radius: 999px;
-      padding: 6px 12px;
-      backdrop-filter: blur(6px);
-    }
+    .tap-hud { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; font-size: 16px; }
+    .hud-pill { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 999px; padding: 6px 12px; backdrop-filter: blur(6px); }
 
-    .tap-progress {
-      width: 100%; height: 16px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .tap-bar {
-      height: 100%; width: 0%;
-      background: radial-gradient(120% 120% at 0% 50%, #7a5cff, #a46bff);
-      transition: width 0.08s linear;
-    }
+    .tap-progress { width: 100%; height: 16px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; overflow: hidden; }
+    .tap-bar { height: 100%; width: 0%; background: radial-gradient(120% 120% at 0% 50%, #7a5cff, #a46bff); transition: width 0.08s linear; }
 
     .tap-button {
-      font-size: 26px; font-weight: 800;
-      padding: 14px 28px;
-      border: 2px solid #7a5cff;
-      border-radius: 16px;
-      color: #fff;
-      background: rgba(20,20,35,0.9);
-      box-shadow: 0 0 18px #7a5cff66;
+      font-size: 26px; font-weight: 800; padding: 14px 28px;
+      border: 2px solid #7a5cff; border-radius: 16px; color: #fff;
+      background: rgba(20,20,35,0.9); box-shadow: 0 0 18px #7a5cff66;
     }
     .tap-button:active { transform: scale(0.98); }
 
     .tap-result { font-size: 20px; font-weight: 800; margin-top: 6px; }
-    .win { color: #7dffae; }
-    .lose { color: #ff7d7d; }
+    .win { color: #7dffae; } .lose { color: #ff7d7d; }
   </style>
 </head>
 <body>
@@ -188,10 +148,29 @@
   </div>
 
   <script>
-    const BACKEND_URL = "https://beamingkhaled.github.io/backend.json";
-    const POLL = 1000;
+    // ---------- SOURCE AUTO-DETECT ----------
+    // Priority:
+    // 1) ?bin=XXXXXXXX  (JSONBin public-read)
+    // 2) ?url=ENCODED_ABSOLUTE_URL
+    // 3) default GitHub JSON (backend.json)
+    const qp = new URLSearchParams(location.search);
+    const BIN = qp.get('bin');
+    const URL_PARAM = qp.get('url');
+    const DEFAULT_GITHUB_URL = "https://beamingkhaled.github.io/backend.json";
 
-    let mode = null;
+    function getDataURL() {
+      if (BIN) {
+        // JSONBin latest record (public read must be enabled in your bin)
+        return `https://api.jsonbin.io/v3/b/${BIN}/latest`;
+      }
+      if (URL_PARAM) {
+        try { return decodeURIComponent(URL_PARAM); } catch { return URL_PARAM; }
+      }
+      return DEFAULT_GITHUB_URL;
+    }
+
+    // ---------- UI REFS ----------
+    let mode = null;              // 'vote' | 'tap'
     let tapTimer = null;
     let tapGoal = 0, tapCount = 0, tapEnd = 0;
 
@@ -214,28 +193,15 @@
       tapResult: document.getElementById("tapResult")
     };
 
-    function showVote() {
-      el.tap.style.display = "none";
-      el.vote.style.display = "block";
-      mode = "vote";
-    }
-
-    function showTap() {
-      el.vote.style.display = "none";
-      el.tap.style.display = "block";
-      mode = "tap";
-    }
-
-    function stopTap() {
-      clearInterval(tapTimer);
-      tapTimer = null;
-    }
+    function showVote() { el.tap.style.display = "none"; el.vote.style.display = "block"; mode = "vote"; }
+    function showTap()  { el.vote.style.display = "none"; el.tap.style.display = "block"; mode = "tap"; }
+    function stopTap()  { clearInterval(tapTimer); tapTimer = null; }
 
     function startTap(cfg) {
       stopTap();
       tapGoal = Number(cfg.goal || 1000);
       tapCount = 0;
-      let duration = Number(cfg.duration || 60);
+      const duration = Number(cfg.duration || 60);
       tapEnd = Date.now() + duration * 1000;
 
       el.tapTitle.textContent = cfg.title || "تحدّي الطق 🔥";
@@ -250,16 +216,15 @@
         if (Date.now() < tapEnd) {
           tapCount++;
           el.tapCount.textContent = tapCount;
-          el.tapBar.style.width = Math.min(100, tapCount / tapGoal * 100) + "%";
+          el.tapBar.style.width = Math.min(100, (tapCount / tapGoal) * 100) + "%";
         }
       };
-
-      document.getElementById("card").onclick = e => {
+      document.getElementById("card").onclick = (e) => {
         if (e.target === el.tapBtn) return;
         if (Date.now() < tapEnd) {
           tapCount++;
           el.tapCount.textContent = tapCount;
-          el.tapBar.style.width = Math.min(100, tapCount / tapGoal * 100) + "%";
+          el.tapBar.style.width = Math.min(100, (tapCount / tapGoal) * 100) + "%";
         }
       };
 
@@ -280,38 +245,36 @@
       }, 200);
     }
 
-    async function loop() {
+    async function fetchData() {
+      const url = getDataURL();
       try {
-        const res = await fetch(BACKEND_URL + "?nocache=" + Date.now());
-        const data = await res.json();
+        const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'nocache=' + Date.now());
+        const raw = await res.json();
 
+        // JSONBin returns {record: {...}}; GitHub/URL returns the object directly
+        const data = raw && raw.record ? raw.record : raw;
+
+        // optional background override
         if (data.bg) el.bg.style.backgroundImage = `url('${data.bg}')`;
 
-        if (data.mode === "tap") {
-          if (mode !== "tap") {
-            showTap();
-            startTap(data.tap || {});
-          }
-          el.stt.textContent = "متصل · يتم التحديث تلقائيًا";
+        if ((data.mode || 'vote').toLowerCase() === 'tap') {
+          if (mode !== 'tap') { showTap(); startTap(data.tap || {}); }
+          el.stt.textContent = 'متصل · يتم التحديث تلقائيًا';
         } else {
-          if (mode !== "vote") {
-            showVote();
-            stopTap();
-          }
-          el.q.textContent = data.question || "...";
-          el.c1.textContent = data.choice1 || "...";
-          el.c2.textContent = data.choice2 || "...";
-          el.st.textContent = "متصل · يتم التحديث تلقائيًا";
+          if (mode !== 'vote') { showVote(); stopTap(); }
+          el.q.textContent  = data.question || '...';
+          el.c1.textContent = data.choice1  || '...';
+          el.c2.textContent = data.choice2  || '...';
+          el.st.textContent = 'متصل · يتم التحديث تلقائيًا';
         }
-
-      } catch {
-        if (mode === "tap") el.stt.textContent = "غير متصل";
-        else el.st.textContent = "غير متصل";
+      } catch (e) {
+        if (mode === 'tap') el.stt.textContent = 'غير متصل · تحقق من الرابط';
+        else el.st.textContent = 'غير متصل · تحقق من الرابط';
       }
     }
 
-    setInterval(loop, POLL);
-    loop();
+    setInterval(fetchData, 1000);
+    fetchData();
   </script>
 </body>
 </html>
