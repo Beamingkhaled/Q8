@@ -2,55 +2,49 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة التحكم (نفس الجهاز)</title>
+<title>لوحة مساعدة — MyJSON</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--card:#121228;--accent:#7a5cff}
-*{box-sizing:border-box}html,body{height:100%}
-body{margin:0;font-family:"Tajawal",sans-serif;background:#0b0b12;color:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:"Tajawal",sans-serif;background:#0b0b12;color:#fff}
 .wrap{max-width:720px;margin:24px auto;padding:16px}
-h1{margin:0 0 12px;font-weight:800}
-.card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:16px}
-.row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:10px 0}
-input,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px}
-textarea{min-height:64px}
-button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer;background:var(--accent);color:#fff}
-.status{margin-top:8px;font-size:14px;opacity:.9}
-.tip{font-size:12px;opacity:.75;margin-top:8px}
+.card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px}
+.row{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;margin:10px 0}
+input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px}
+button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer;background:#7a5cff;color:#fff}
+.small{font-size:12px;opacity:.8;margin-top:8px}
+a.btn{display:inline-block;margin-top:10px;text-decoration:none;background:#2c2c3f;color:#fff;padding:12px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.15)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>لوحة التحكم — نفس الجهاز فقط</h1>
+  <h1>لوحة التحكّم (تستخدم MyJSON)</h1>
   <div class="card">
-    <div class="row"><label>العنوان</label><input id="t" placeholder="Avenues & Dragons"></div>
-    <div class="row"><label>السؤال</label><textarea id="q" placeholder="اكتب السؤال هنا"></textarea></div>
-    <div class="row"><label>الخيار ١</label><input id="c1" placeholder="الخيار الأول"></div>
-    <div class="row"><label>الخيار ٢</label><input id="c2" placeholder="الخيار الثاني"></div>
-    <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة كامل"></div>
-    <button id="save">حفظ الآن</button>
-    <div id="st" class="status"></div>
-    <div class="tip">افتح <b>علامة تبويب أخرى</b> على نفس الآيباد: <code>https://beamingkhaled.github.io/Q8/</code> وشاركها على TikTok. أي تعديل هنا يظهر فورًا هناك.</div>
+    <div class="row">
+      <label>رابط MyJSON</label>
+      <input id="url" placeholder="https://api.myjson.online/v1/records/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+    </div>
+    <button id="save">حفظ الرابط</button>
+    <div class="small">سيتم حفظ الرابط على جهازك ولا تحتاج لإدخاله مرة أخرى.</div>
+
+    <a id="openEdit" class="btn" target="_blank">فتح MyJSON للتعديل</a>
+    <a id="openView" class="btn" target="_blank">فتح صفحة العرض</a>
   </div>
 </div>
+
 <script>
 const $=id=>document.getElementById(id);
-function load(){
-  $('t').value  = localStorage.getItem('t')  || 'Avenues & Dragons';
-  $('q').value  = localStorage.getItem('q')  || 'المرأة مع ولدها في الأفنيوز — شنسوي؟';
-  $('c1').value = localStorage.getItem('c1') || 'نروح نشتري قهوة';
-  $('c2').value = localStorage.getItem('c2') || 'نتمشى شوي';
-  $('bg').value = localStorage.getItem('bg') || '';
+const saved=localStorage.getItem('myjson_data_url')||"";
+$('url').value = saved || "https://api.myjson.online/v1/records/f3c971a4-3c36-408b-a054-8720c4316121";
+function refreshLinks(){
+  const u=$('url').value.trim();
+  $('openEdit').href = u.replace("/v1/records/","/v1/records/"); // open same record; you’ll edit on myjson.online site
+  $('openEdit').textContent = "فتح MyJSON للتعديل";
+  const viewer = location.origin + "/Q8/?data_url=" + encodeURIComponent(u);
+  $('openView').href = viewer;
+  $('openView').textContent = "فتح صفحة العرض";
 }
-$('save').onclick = ()=>{
-  localStorage.setItem('t', $('t').value.trim());
-  localStorage.setItem('q', $('q').value.trim());
-  localStorage.setItem('c1', $('c1').value.trim());
-  localStorage.setItem('c2', $('c2').value.trim());
-  localStorage.setItem('bg', $('bg').value.trim());
-  $('st').textContent='تم الحفظ ✅ (يظهر فورًا في صفحة العرض على نفس الآيباد)';
-};
-load();
+$('save').onclick=()=>{ localStorage.setItem('myjson_data_url',$('url').value.trim()); refreshLinks(); alert('تم الحفظ ✅'); };
+refreshLinks();
 </script>
 </body>
 </html>
