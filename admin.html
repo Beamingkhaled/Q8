@@ -1,116 +1,82 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة التحكم — MyJSON (يحفظ بإنشاء سجل جديد)</title>
+<title>لوحة التحكّم — MyJSON (POST داخل Collection)</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--accent:#7a5cff}
-*{box-sizing:border-box}html,body{height:100%}
+:root{--accent:#7a5cff}*{box-sizing:border-box}html,body{height:100%}
 body{margin:0;font-family:"Tajawal",sans-serif;background:#0b0b12;color:#fff}
-.wrap{max-width:760px;margin:24px auto;padding:16px}
-h1{margin:0 0 12px;font-weight:800}
+.wrap{max-width:760px;margin:24px auto;padding:16px}h1{margin:0 0 12px;font-weight:800}
 .card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:16px}
 .row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;margin:10px 0}
 input,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px}
 textarea{min-height:64px}
 button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer;background:var(--accent);color:#fff}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap}
-.small{font-size:12px;opacity:.8;margin-top:8px}
-.ok{color:#7dff96}.err{color:#ff7d8f}
-.link{word-break:break-all}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>لوحة التحكّم (إنشاء سجل جديد كل حفظ — بدون API Key)</h1>
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}.small{font-size:12px;opacity:.8;margin-top:8px}
+.ok{color:#7dff96}.err{color:#ff7d8f}.link{word-break:break-all}
+</style></head><body><div class="wrap">
+<h1>لوحة التحكّم (إنشاء سجل جديد داخل Collection — بدون API Key)</h1>
 
-  <div class="card">
-    <div class="row"><label>رابط MyJSON الحالي</label><input id="url" placeholder="سيظهر هنا تلقائيًا بعد أول حفظ"></div>
-    <div class="btn-row">
-      <button id="saveUrl" style="background:#444">حفظ الرابط يدويًا</button>
-      <button id="load">تحميل المحتوى الحالي</button>
-      <button id="openView" style="background:#2c2c3f">فتح صفحة العرض</button>
-      <button id="openEdit" style="background:#2c2c3f">فتح سجل MyJSON</button>
-    </div>
-    <div id="status" class="small"></div>
+<div class="card">
+  <div class="row"><label>Collection ID</label><input id="col" placeholder="مثال: c6b3f1d0-....-....-....-............"></div>
+  <div class="row"><label>رابط MyJSON الحالي</label><input id="url" placeholder="يُحدَّث تلقائيًا بعد الحفظ"></div>
+  <div class="btn-row">
+    <button id="saveMeta" style="background:#444">حفظ المعرّف/الرابط</button>
+    <button id="load"    >تحميل المحتوى الحالي</button>
+    <button id="openView" style="background:#2c2c3f">فتح صفحة العرض</button>
+    <button id="openEdit" style="background:#2c2c3ف">فتح سجل MyJSON</button>
   </div>
+  <div id="status" class="small"></div>
+</div>
 
-  <div class="card">
-    <div class="row"><label>العنوان</label><input id="title" placeholder="Avenues & Dragons"></div>
-    <div class="row"><label>السؤال</label><textarea id="question" placeholder="…"></textarea></div>
-    <div class="row"><label>الخيار ١</label><input id="choice1" placeholder="…"></div>
-    <div class="row"><label>الخيار ٢</label><input id="choice2" placeholder="…"></div>
-    <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة"></div>
-    <div class="btn-row">
-      <button id="save">حفظ الآن (ينشئ سجلًا جديدًا)</button>
-    </div>
-    <div class="small">كل حفظ = سجل MyJSON جديد (POST). يتم تحديث رابط العرض تلقائيًا إلى أحدث سجل.</div>
-  </div>
+<div class="card">
+  <div class="row"><label>العنوان</label><input id="title" placeholder="Avenues & Dragons"></div>
+  <div class="row"><label>السؤال</label><textarea id="question" placeholder="…"></textarea></div>
+  <div class="row"><label>الخيار ١</label><input id="choice1" placeholder="…"></div>
+  <div class="row"><label>الخيار ٢</label><input id="choice2" placeholder="…"></div>
+  <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة"></div>
+  <div class="btn-row"><button id="save">حفظ الآن (ينشئ سجلًا جديدًا في الـCollection)</button></div>
+  <div class="small">كل حفظ = POST إلى الـCollection المحدد. يتم تحديث رابط العرض تلقائيًا.</div>
+</div>
 </div>
 
 <script>
 const $=id=>document.getElementById(id);
-function setStatus(msg,ok){ $('status').innerHTML = ok? `<span class="ok">${msg}</span>` : `<span class="err">${msg}</span>`; }
-function viewerLink(u){ return location.origin + "/Q8/?data_url=" + encodeURIComponent(u); }
+const API_BASE="https://api.myjson.online/v1";
+const viewerLink=u=>location.origin+"/Q8/?data_url="+encodeURIComponent(u);
+const setStatus=(m,ok)=>{$('status').innerHTML=ok?`<span class="ok">${m}</span>`:`<span class="err">${m}</span>`};
 
-const API_BASE = "https://api.myjson.online/v1/records";
-$('url').value = localStorage.getItem('myjson_data_url') || "";
+$('col').value=localStorage.getItem('myjson_collection_id')||"";
+$('url').value=localStorage.getItem('myjson_data_url')||"";
 
-// Buttons
-$('saveUrl').onclick = ()=>{ localStorage.setItem('myjson_data_url', $('url').value.trim()); setStatus('تم حفظ الرابط يدويًا ✅',true); };
+$('saveMeta').onclick=()=>{localStorage.setItem('myjson_collection_id',$('col').value.trim());
+                           localStorage.setItem('myjson_data_url',$('url').value.trim());
+                           setStatus('تم حفظ المعرّف/الرابط ✅',true);};
 
-$('openView').onclick = ()=>{
-  const u=$('url').value.trim(); if(!u) return setStatus('لا يوجد رابط بعد',false);
-  window.open(viewerLink(u),'_blank');
-};
-$('openEdit').onclick = ()=>{
-  const u=$('url').value.trim(); if(!u) return setStatus('لا يوجد رابط بعد',false);
-  window.open(u,'_blank');
-};
+$('openView').onclick=()=>{const u=$('url').value.trim(); if(!u) return setStatus('لا يوجد رابط بعد',false); window.open(viewerLink(u),'_blank');};
+$('openEdit').onclick=()=>{const u=$('url').value.trim(); if(!u) return setStatus('لا يوجد رابط بعد',false); window.open(u,'_blank');};
 
-$('load').onclick = async ()=>{
-  const u=$('url').value.trim(); if(!u) return setStatus('أدخل أو أنشئ رابطًا أولًا',false);
+$('load').onclick=async()=>{const u=$('url').value.trim(); if(!u) return setStatus('أدخل أو أنشئ رابطًا أولًا',false);
+  try{const r=await fetch(u+(u.includes('?')?'&':'?')+'_ts='+Date.now()); const j=await r.json(); const d=j&&j.data?j.data:j;
+      $('title').value=d.title||''; $('question').value=d.question||''; $('choice1').value=d.choice1||''; $('choice2').value=d.choice2||''; $('bg').value=d.bg||'';
+      setStatus('تم التحميل ✅',true);}catch(e){setStatus('فشل التحميل ❌',false);}};
+
+$('save').onclick=async()=>{
+  const col=$('col').value.trim(); if(!col) return setStatus('أدخل Collection ID أولًا',false);
+  const body={ collectionId: col, jsonData:{
+    title:$('title').value.trim()||'Avenues & Dragons',
+    question:$('question').value.trim()||'…',
+    choice1:$('choice1').value.trim()||'…',
+    choice2:$('choice2').value.trim()||'…',
+    bg:$('bg').value.trim()||''
+  }};
   try{
-    const r=await fetch(u + (u.includes('?')?'&':'?') + '_ts=' + Date.now());
-    const j=await r.json(); const d=j && j.data ? j.data : j;
-    $('title').value   = d.title||''; $('question').value= d.question||'';
-    $('choice1').value = d.choice1||''; $('choice2').value = d.choice2||'';
-    $('bg').value      = d.bg||'';
-    setStatus('تم التحميل ✅',true);
-  }catch(e){ setStatus('فشل التحميل ❌',false); }
-};
-
-$('save').onclick = async ()=>{
-  const dataObj = {
-    title:   $('title').value.trim()   || 'Avenues & Dragons',
-    question:$('question').value.trim()|| '…',
-    choice1: $('choice1').value.trim() || '…',
-    choice2: $('choice2').value.trim() || '…',
-    bg:      $('bg').value.trim()      || ''
-  };
-
-  // Try POST with jsonData first; if API expects "data", retry automatically.
-  async function postWith(body){
-    const r = await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    return r.ok ? r.json() : Promise.reject(await r.text()||('HTTP '+r.status));
-  }
-
-  try{
-    let j;
-    try { j = await postWith({jsonData:dataObj}); }
-    catch(_){ j = await postWith({data:dataObj}); } // fallback
-
-    const id = j.id || j.recordId;
-    if(!id) throw new Error('لم يتم إرجاع المعرّف من MyJSON');
-    const newUrl = `${API_BASE}/${id}`;
-    localStorage.setItem('myjson_data_url', newUrl);
-    $('url').value = newUrl;
-    setStatus(`تم الحفظ ✅ — رابط جديد: <span class="link">${newUrl}</span><br>صفحة العرض ستتحدث تلقائيًا.`, true);
-  }catch(e){
-    setStatus('فشل الحفظ ❌ — ' + (e.message || e), false);
-  }
+    const r=await fetch(`${API_BASE}/records`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(await r.text()||('HTTP '+r.status));
+    const j=await r.json(); const id=j.id||j.recordId; if(!id) throw new Error('لم يتم إرجاع id');
+    const newUrl=`${API_BASE}/records/${id}`;
+    localStorage.setItem('myjson_data_url',newUrl); $('url').value=newUrl;
+    setStatus(`تم الحفظ ✅ — <span class="link">${newUrl}</span>`,true);
+  }catch(e){ setStatus('فشل الحفظ ❌ — '+(e.message||e),false);}
 };
 </script>
-</body>
-</html>
+</body></html>
