@@ -1,141 +1,377 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avenues & Dragons</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avenues & Dragons — Neon + Tap Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+      user-select: none;
+    }
 
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    /* Background */
+    .bg {
+      position: fixed; inset: 0;
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      filter: blur(6px); transform: scale(1.1);
+      z-index: 1;
+    }
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    /* Light overlay (0.15) */
+    .overlay {
+      position: fixed; inset: 0; z-index: 2;
+      background: rgba(0,0,0,0.15);
+    }
 
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: #000;
-            color: white;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
+    /* Main card */
+    .game-container {
+      position: relative; z-index: 3;
+      width: 92%; max-width: 560px; margin: 12vh auto 0; padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      background: rgba(10,10,30,0.25);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      box-shadow: 0 0 28px rgba(0,0,0,0.25);
+    }
 
-        /* Background image */
-        .bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            filter: blur(6px);
-            transform: scale(1.1);
-        }
+    h1 {
+      font-size: 34px; font-weight: 800; margin-bottom: 10px;
+      text-shadow: 0 0 8px rgba(255,255,255,0.4);
+    }
 
-        /* LIGHT overlay (0.15) */
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.15);
-        }
+    #question {
+      font-size: 22px; margin-bottom: 18px; color: #eee;
+      text-shadow: 0 0 6px rgba(0,0,0,0.4);
+      line-height: 1.5;
+    }
 
-        .game-container {
-            position: relative;
-            z-index: 10;
-            width: 92%;
-            max-width: 500px;
-            margin: 0 auto;
-            margin-top: 14vh;
-            text-align: center;
-            padding: 20px;
-            backdrop-filter: blur(6px);
-            background: rgba(10, 10, 30, 0.25);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
-        }
+    /* Neon boxes (Option 5) */
+    .choice {
+      position: relative; /* needed for sticker */
+      background: rgba(20,20,35,0.75);
+      border: 2px solid #7a5cff;
+      padding: 18px;
+      font-size: 22px;
+      color: #fff;
+      border-radius: 16px;
+      box-shadow: 0 0 18px #7a5cff66, inset 0 0 12px #7a5cff22;
+      margin-bottom: 18px;
+      transition: 0.15s ease;
+    }
+    .choice:active { transform: scale(0.97); box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55; }
 
-        h1 {
-            font-size: 34px;
-            font-weight: 800;
-            margin-bottom: 12px;
-            color: white;
-            text-shadow: 0 0 8px rgba(255,255,255,0.4);
-        }
+    /* CTA sticker */
+    .sticker {
+      position: absolute; top: -12px; left: -12px;
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(6px);
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 16px; font-weight: 700; color: #fff;
+      border: 1px solid rgba(255,255,255,0.45);
+      box-shadow: 0 0 12px rgba(255,255,255,0.2);
+      pointer-events: none;
+    }
 
-        #question {
-            font-size: 22px;
-            margin-bottom: 20px;
-            color: #eee;
-            text-shadow: 0 0 6px rgba(0,0,0,0.4);
-        }
+    /* Status line */
+    #status { margin-top: 10px; font-size: 14px; color: #ddd; opacity: 0.85; }
 
-        /* NEON CHOICE BUTTONS (Option 5) */
-        .choice {
-            background: rgba(20,20,35,0.75);
-            border: 2px solid #7a5cff;
-            padding: 18px;
-            font-size: 22px;
-            color: #fff;
-            border-radius: 16px;
-            box-shadow: 0 0 18px #7a5cff66, inset 0 0 12px #7a5cff22;
-            margin-bottom: 18px;
-            transition: 0.15s ease;
-        }
+    /* Tap Challenge UI */
+    #tapChallenge { display: none; }
+    .tap-wrap {
+      display: flex; flex-direction: column; gap: 14px; align-items: center;
+    }
+    .tap-title {
+      font-size: 24px; font-weight: 800; text-shadow: 0 0 8px rgba(255,255,255,0.35);
+    }
+    .tap-sub { font-size: 16px; opacity: 0.9; }
 
-        .choice:active {
-            transform: scale(0.97);
-            box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55;
-        }
+    .tap-hud {
+      display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap;
+      font-size: 16px;
+    }
+    .hud-pill {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 999px;
+      padding: 6px 12px;
+      backdrop-filter: blur(6px);
+    }
 
-        #status {
-            margin-top: 12px;
-            font-size: 14px;
-            color: #ddd;
-            opacity: 0.85;
-        }
-    </style>
+    .tap-progress {
+      width: 100%;
+      height: 16px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+    }
+    .tap-bar {
+      height: 100%; width: 0%;
+      background: radial-gradient(120% 120% at 0% 50%, #7a5cff, #a46bff);
+      box-shadow: 0 0 18px #7a5cff88;
+      transition: width 0.08s linear;
+    }
+
+    .tap-button {
+      font-family: inherit;
+      font-size: 26px; font-weight: 800;
+      padding: 14px 28px;
+      border: 2px solid #7a5cff;
+      border-radius: 16px;
+      color: #fff;
+      background: rgba(20,20,35,0.9);
+      box-shadow: 0 0 18px #7a5cff66, inset 0 0 12px #7a5cff22;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .tap-button:active { transform: scale(0.98); box-shadow: 0 0 26px #a889ffcc, inset 0 0 18px #7a5cff55; }
+
+    .tap-result {
+      font-size: 20px; font-weight: 800; margin-top: 6px;
+      text-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    .win { color: #7dffae; }
+    .lose { color: #ff7d7d; }
+    @media (max-height: 680px) {
+      .game-container { margin-top: 8vh; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <!-- Background Image (replace with your GitHub link if needed) -->
-    <div class="bg" style="background-image: url('bg.jpg');"></div>
+  <!-- Background -->
+  <div class="bg" id="bg" style="background-image: url('bg.jpg');"></div>
+  <div class="overlay"></div>
 
-    <div class="overlay"></div>
+  <!-- Card -->
+  <div class="game-container" id="card">
 
-    <div class="game-container">
-        <h1>Avenues & Dragons</h1>
-        <div id="question">...</div>
+    <!-- VOTE MODE -->
+    <div id="voteMode">
+      <h1>Avenues & Dragons</h1>
+      <div id="question">...</div>
 
-        <div id="choice1" class="choice">...</div>
-        <div id="choice2" class="choice">...</div>
+      <div id="choice1" class="choice">
+        <div class="sticker">اكتبوا ١</div>
+        <span id="choice1Text">...</span>
+      </div>
 
-        <div id="status">متصل · يتم التحديث تلقائيًا</div>
+      <div id="choice2" class="choice">
+        <div class="sticker">اكتبوا ٢</div>
+        <span id="choice2Text">...</span>
+      </div>
+
+      <div id="status">متصل · يتم التحديث تلقائيًا</div>
     </div>
 
-    <script>
-        async function fetchData() {
-            try {
-                const res = await fetch("https://beamingkhaled.github.io/backend.json?nocache=" + Date.now());
-                const data = await res.json();
+    <!-- TAP CHALLENGE MODE -->
+    <div id="tapChallenge">
+      <div class="tap-wrap">
+        <div class="tap-title" id="tapTitle">تحدّي الطق 🔥</div>
+        <div class="tap-sub" id="tapDesc">اضغطوا بأسرع ما يمكن خلال الوقت المحدد!</div>
 
-                document.getElementById("question").innerText = data.question;
-                document.getElementById("choice1").innerText = data.choice1;
-                document.getElementById("choice2").innerText = data.choice2;
+        <div class="tap-hud">
+          <div class="hud-pill">الهدف: <span id="tapGoal">1000</span> طقة</div>
+          <div class="hud-pill">الوقت: <span id="tapTimer">60</span> ثانية</div>
+          <div class="hud-pill">المجموع: <span id="tapCount">0</span></div>
+        </div>
 
-            } catch {
-                document.getElementById("status").innerText = "غير متصل · حاول مرة أخرى";
-            }
+        <div class="tap-progress"><div class="tap-bar" id="tapBar"></div></div>
+
+        <button class="tap-button" id="tapButton">طَق!</button>
+        <div class="tap-result" id="tapResult"></div>
+      </div>
+
+      <div id="statusTap" style="margin-top:10px; font-size:14px; opacity:0.85;">متصل · يتم التحديث تلقائيًا</div>
+    </div>
+
+  </div>
+
+  <script>
+    // ====== CONFIG ======
+    const BACKEND_URL = "https://beamingkhaled.github.io/backend.json";
+    const POLL_MS = 1000; // keep it snappy
+    // ====================
+
+    let currentMode = null; // 'vote' or 'tap'
+    let tapTimerId = null;
+    let tapRemaining = 0;
+    let tapGoal = 1000;
+    let tapCount = 0;
+    let tapEndTime = 0;
+
+    const el = {
+      bg: document.getElementById('bg'),
+      voteMode: document.getElementById('voteMode'),
+      tapMode: document.getElementById('tapChallenge'),
+      question: document.getElementById('question'),
+      choice1Text: document.getElementById('choice1Text'),
+      choice2Text: document.getElementById('choice2Text'),
+      status: document.getElementById('status'),
+      statusTap: document.getElementById('statusTap'),
+      // tap elements
+      tapTitle: document.getElementById('tapTitle'),
+      tapDesc: document.getElementById('tapDesc'),
+      tapGoal: document.getElementById('tapGoal'),
+      tapTimer: document.getElementById('tapTimer'),
+      tapCount: document.getElementById('tapCount'),
+      tapBar: document.getElementById('tapBar'),
+      tapBtn: document.getElementById('tapButton'),
+      tapResult: document.getElementById('tapResult'),
+    };
+
+    function showMode(mode) {
+      if (mode === 'tap') {
+        el.voteMode.style.display = 'none';
+        el.tapMode.style.display = 'block';
+      } else {
+        el.tapMode.style.display = 'none';
+        el.voteMode.style.display = 'block';
+      }
+      currentMode = mode;
+    }
+
+    function startTapChallenge(cfg) {
+      // cfg: { title, description, goal, duration }
+      stopTapChallenge();
+      tapGoal = Math.max(1, Number(cfg.goal || 1000));
+      tapCount = 0;
+      const duration = Math.max(1, Number(cfg.duration || 60));
+      tapRemaining = duration;
+      tapEndTime = Date.now() + duration * 1000;
+      el.tapTitle.textContent = cfg.title || 'تحدّي الطق 🔥';
+      el.tapDesc.textContent = cfg.description || 'اضغطوا بأسرع ما يمكن خلال الوقت المحدد!';
+      el.tapGoal.textContent = tapGoal;
+      el.tapCount.textContent = tapCount;
+      el.tapTimer.textContent = tapRemaining;
+      el.tapBar.style.width = '0%';
+      el.tapResult.textContent = '';
+
+      tapTimerId = setInterval(() => {
+        const now = Date.now();
+        tapRemaining = Math.max(0, Math.ceil((tapEndTime - now) / 1000));
+        el.tapTimer.textContent = tapRemaining;
+        const pct = Math.min(100, (tapCount / tapGoal) * 100);
+        el.tapBar.style.width = pct + '%';
+
+        if (tapRemaining <= 0) {
+          stopTapChallenge();
+          // show result
+          if (tapCount >= tapGoal) {
+            el.tapResult.textContent = '🔥 مبروك! أنجزتوا التحدّي!';
+            el.tapResult.className = 'tap-result win';
+          } else {
+            el.tapResult.textContent = '😮‍💨 ما لحّقنا… مرّة ثانية!';
+            el.tapResult.className = 'tap-result lose';
+          }
+        }
+      }, 200);
+
+      // tapping anywhere on the button (and screen on mobile if needed)
+      el.tapBtn.onclick = () => {
+        if (Date.now() <= tapEndTime) {
+          tapCount++;
+          el.tapCount.textContent = tapCount;
+          const pct = Math.min(100, (tapCount / tapGoal) * 100);
+          el.tapBar.style.width = pct + '%';
+        }
+      };
+      // Optional: also allow whole card taps to count during challenge
+      document.getElementById('card').onclick = (e) => {
+        // prevent double counting when clicking the button
+        if (e.target === el.tapBtn) return;
+        if (currentMode === 'tap' && Date.now() <= tapEndTime) {
+          tapCount++;
+          el.tapCount.textContent = tapCount;
+          const pct = Math.min(100, (tapCount / tapGoal) * 100);
+          el.tapBar.style.width = pct + '%';
+        }
+      };
+    }
+
+    function stopTapChallenge() {
+      if (tapTimerId) {
+        clearInterval(tapTimerId);
+        tapTimerId = null;
+      }
+      // remove the global click if any
+      document.getElementById('card').onclick = null;
+    }
+
+    async function fetchData() {
+      try {
+        const res = await fetch(BACKEND_URL + '?nocache=' + Date.now());
+        const data = await res.json();
+
+        // Background override if provided
+        if (data.bg && typeof data.bg === 'string') {
+          el.bg.style.backgroundImage = `url('${data.bg}')`;
+        } else {
+          el.bg.style.backgroundImage = `url('bg.jpg')`;
         }
 
-        setInterval(fetchData, 1000);
-        fetchData();
-    </script>
+        const mode = (data.mode || 'vote').toLowerCase();
 
+        if (mode === 'tap') {
+          // prepare tap screen
+          if (currentMode !== 'tap') {
+            showMode('tap');
+            startTapChallenge({
+              title: data?.tap?.title,
+              description: data?.tap?.description,
+              goal: data?.tap?.goal,
+              duration: data?.tap?.duration
+            });
+          }
+          el.statusTap.textContent = 'متصل · يتم التحديث تلقائيًا';
+        } else {
+          // vote mode
+          if (currentMode !== 'vote') {
+            showMode('vote');
+            stopTapChallenge();
+          }
+          el.question.textContent = data.question || '...';
+          el.choice1Text.textContent = data.choice1 || '...';
+          el.choice2Text.textContent = data.choice2 || '...';
+          el.status.textContent = 'متصل · يتم التحديث تلقائيًا';
+        }
+
+      } catch (e) {
+        if (currentMode === 'tap') {
+          el.statusTap.textContent = 'غير متصل · حاول مرة أخرى';
+        } else {
+          el.status.textContent = 'غير متصل · حاول مرة أخرى';
+        }
+      }
+    }
+
+    // Polling
+    setInterval(fetchData, POLL_MS);
+    fetchData();
+
+    // Prevent space/enter from scrolling while tapping on desktop
+    window.addEventListener('keydown', (e) => {
+      if (currentMode === 'tap' && (e.code === 'Space' || e.code === 'Enter')) {
+        e.preventDefault();
+        // bonus: use keyboard to tap
+        if (Date.now() <= tapEndTime) {
+          tapCount++;
+          el.tapCount.textContent = tapCount;
+          const pct = Math.min(100, (tapCount / tapGoal) * 100);
+          el.tapBar.style.width = pct + '%';
+        }
+      }
+    }, { passive: false });
+  </script>
 </body>
 </html>
