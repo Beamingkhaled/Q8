@@ -64,7 +64,6 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
     }
     
     .question-box.updating {
@@ -164,48 +163,59 @@
         <button class="choice-btn" id="choice4">الخيار الرابع</button>
     </div>
     
-    <div class="status" id="status">
-        جاري الاتصال...
+    <div class="status connected" id="status">
+        🟢 متصل - جاهز للتحديثات الفورية
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-
-    // Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyDXbUqp8FXuM_E5TixQbMpK-YZZ4gJqXxc",
-        authDomain: "live-game-demo.firebaseapp.com",
-        databaseURL: "https://live-game-demo-default-rtdb.firebaseio.com",
-        projectId: "live-game-demo",
-        storageBucket: "live-game-demo.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef123456"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const gameRef = ref(database, 'game/current');
-
-    // Listen for real-time updates
-    onValue(gameRef, (snapshot) => {
-        const data = snapshot.val();
-        
-        if (data) {
-            console.log('Received update:', data);
-            showUpdateAnimation();
-            updateGameDisplay(data);
-            
-            // Update status
-            document.getElementById('status').textContent = '🟢 متصل - جاهز للتحديثات الفورية';
-            document.getElementById('status').className = 'status connected';
+<script>
+    let lastTimestamp = 0;
+    
+    // Listen for storage events (works across tabs and on same device)
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'game_data' && e.newValue) {
+            const data = JSON.parse(e.newValue);
+            if (data.timestamp > lastTimestamp) {
+                lastTimestamp = data.timestamp;
+                showUpdateAnimation();
+                updateGameDisplay(data);
+            }
         }
-    }, (error) => {
-        console.error('Connection error:', error);
-        document.getElementById('status').textContent = '🔴 خطأ في الاتصال';
-        document.getElementById('status').className = 'status';
     });
+    
+    // Also check localStorage periodically
+    setInterval(async function() {
+        const stored = localStorage.getItem('game_data');
+        if (stored) {
+            const data = JSON.parse(stored);
+            if (data.timestamp > lastTimestamp) {
+                lastTimestamp = data.timestamp;
+                showUpdateAnimation();
+                updateGameDisplay(data);
+            }
+        }
+        
+        // Also check JSONBin
+        const binId = localStorage.getItem('game_bin_id');
+        if (binId) {
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                    headers: {
+                        'X-Master-Key': '$2a$10$ZQvHfNWJQqIYWxPKgWVcAeHpJH.qXn8x1W5fFx2MQk0Y8wYvPxYGC'
+                    }
+                });
+                const result = await response.json();
+                if (result.record && result.record.timestamp > lastTimestamp) {
+                    lastTimestamp = result.record.timestamp;
+                    localStorage.setItem('game_data', JSON.stringify(result.record));
+                    showUpdateAnimation();
+                    updateGameDisplay(result.record);
+                }
+            } catch (err) {
+                console.log('Polling error:', err);
+            }
+        }
+    }, 2000);
 
     function showUpdateAnimation() {
         const statusEl = document.getElementById('status');
@@ -245,6 +255,14 @@
         if (data.title) {
             document.querySelector('.game-title').textContent = data.title;
         }
+    }
+    
+    // Load initial data
+    const initialData = localStorage.getItem('game_data');
+    if (initialData) {
+        const data = JSON.parse(initialData);
+        lastTimestamp = data.timestamp;
+        updateGameDisplay(data);
     }
 </script>
 ```
