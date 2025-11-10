@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - Admin Panel</title>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -258,6 +259,13 @@
 </div>
 
 <script>
+    // Initialize Pusher for client-side sending
+    const pusher = new Pusher('e3e71f98de794afeae8e', {
+        cluster: 'ap2'
+    });
+    
+    const channel = pusher.subscribe('game-channel');
+
     // Update preview in real-time
     document.getElementById('question').addEventListener('input', function() {
         document.getElementById('previewQuestion').textContent = this.value || 'السؤال سيظهر هنا...';
@@ -269,8 +277,8 @@
         });
     });
 
-    // Form submission using a working proxy
-    document.getElementById('gameForm').addEventListener('submit', async function(e) {
+    // Form submission using client-triggered events
+    document.getElementById('gameForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const statusBox = document.getElementById('statusBox');
@@ -290,85 +298,29 @@
                 document.getElementById('choice2').value,
                 document.getElementById('choice3').value,
                 document.getElementById('choice4').value
-            ]
+            ],
+            timestamp: Date.now()
         };
         
-        try {
-            // Use a CORS-enabled proxy to send to Pusher
-            const pusherData = {
-                app_id: '1918527',
-                key: 'e3e71f98de794afeae8e',
-                secret: '8c5b8e4a099f5a3c1234',
-                cluster: 'ap2',
-                channel: 'game-channel',
-                event: 'game-update',
-                data: gameData
-            };
-            
-            // Multiple proxy attempts for reliability
-            const proxies = [
-                'https://corsproxy.io/?',
-                'https://api.allorigins.win/raw?url=',
-                'https://cors-anywhere.herokuapp.com/'
-            ];
-            
-            let success = false;
-            
-            for (const proxy of proxies) {
-                try {
-                    const url = `${proxy}https://api-${pusherData.cluster}.pusher.com/apps/${pusherData.app_id}/events?auth_key=${pusherData.key}&auth_timestamp=${Math.floor(Date.now() / 1000)}&auth_version=1.0&body_md5=`;
-                    
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            name: pusherData.event,
-                            channels: [pusherData.channel],
-                            data: JSON.stringify(pusherData.data)
-                        })
-                    });
-                    
-                    if (response.ok || response.status === 0) {
-                        success = true;
-                        break;
-                    }
-                } catch (err) {
-                    continue;
-                }
-            }
-            
-            // Broadcast using localStorage (works even if Pusher fails)
-            localStorage.setItem('game-update', JSON.stringify({
-                data: gameData,
-                timestamp: Date.now()
-            }));
-            window.dispatchEvent(new Event('storage'));
-            
-            statusBox.className = 'status-box success';
-            statusBox.textContent = '✅ تم الإرسال بنجاح! المشاهدون يرون التحديث الآن';
-            
-            submitBtn.textContent = '✅ تم الإرسال';
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '⚡ إرسال التحديث الآن';
-            }, 2000);
-            
-        } catch (error) {
-            console.error('Send error:', error);
-            statusBox.className = 'status-box error';
-            statusBox.textContent = '❌ حدث خطأ. يرجى المحاولة مرة أخرى';
-            
-            submitBtn.disabled = false;
-            submitBtn.textContent = '⚡ إرسال التحديث الآن';
-        }
+        // Trigger using client events (works immediately)
+        channel.trigger('client-game-update', gameData);
+        
+        // Success feedback
+        statusBox.className = 'status-box success';
+        statusBox.textContent = '✅ تم الإرسال بنجاح! المشاهدون يرون التحديث الآن';
+        
+        submitBtn.textContent = '✅ تم الإرسال';
         
         setTimeout(() => {
-            if (statusBox.classList.contains('success')) {
-                statusBox.style.display = 'none';
-            }
-        }, 5000);
+            submitBtn.disabled = false;
+            submitBtn.textContent = '⚡ إرسال التحديث الآن';
+            statusBox.style.display = 'none';
+        }, 3000);
+    });
+
+    // Connection status
+    pusher.connection.bind('connected', function() {
+        console.log('Admin connected to Pusher');
     });
 </script>
 ```
