@@ -73,10 +73,10 @@ const pusher = new Pusher(PUSHER_KEY, {
   cluster: PUSHER_CLUSTER
 });
 
-// 2. Subscribe to the control channel (Must match the webhook)
+// 2. Subscribe to the control channel (Must match the webhook in admin.html)
 const channel = pusher.subscribe('game-control');
 
-// 3. Bind to the 'scene-updated' event (Must match the webhook)
+// 3. Bind to the 'scene-updated' event (Must match the webhook in admin.html)
 channel.bind('scene-updated', function(data) {
   const u = localStorage.getItem('myjson_data_url') || DATA_URL;
   if(u && u!==DATA_URL){ DATA_URL=u; } // Check for new URL saved by admin
