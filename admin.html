@@ -186,6 +186,56 @@
         color: #1e3a8a;
         font-weight: 500;
     }
+
+    .url-box {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f0f9ff;
+        border: 2px solid #3b82f6;
+        border-radius: 10px;
+    }
+
+    .url-box h3 {
+        color: #1e3a8a;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+    }
+
+    .url-display {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .url-input {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.9em;
+        background: white;
+    }
+
+    .copy-btn {
+        padding: 12px 24px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .copy-btn:hover {
+        background: #2563eb;
+    }
+
+    .instruction {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 10px;
+    }
     
     @media (max-width: 600px) {
         .admin-container {
@@ -240,6 +290,15 @@
     </form>
     
     <div id="statusBox" class="status-box"></div>
+
+    <div class="url-box">
+        <h3>📱 رابط صفحة المشاهدين</h3>
+        <div class="url-display">
+            <input type="text" class="url-input" id="viewerUrl" readonly value="">
+            <button type="button" class="copy-btn" onclick="copyUrl()">نسخ</button>
+        </div>
+        <p class="instruction">افتح هذا الرابط على أجهزة المشاهدين أو شاركه في TikTok</p>
+    </div>
     
     <div class="preview-section">
         <h2>📱 معاينة ما سيراه المشاهدون</h2>
@@ -258,7 +317,16 @@
 </div>
 
 <script>
-    const CHANNEL_ID = 'q8-game-' + Date.now();
+    // Set viewer URL
+    const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+    document.getElementById('viewerUrl').value = baseUrl + 'index.html';
+
+    function copyUrl() {
+        const input = document.getElementById('viewerUrl');
+        input.select();
+        document.execCommand('copy');
+        alert('تم نسخ الرابط!');
+    }
     
     document.getElementById('question').addEventListener('input', function() {
         document.getElementById('previewQuestion').textContent = this.value || 'السؤال سيظهر هنا...';
@@ -270,7 +338,7 @@
         });
     });
 
-    document.getElementById('gameForm').addEventListener('submit', async function(e) {
+    document.getElementById('gameForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const statusBox = document.getElementById('statusBox');
@@ -280,7 +348,7 @@
         submitBtn.textContent = '⏳ جاري الإرسال...';
         
         statusBox.className = 'status-box sending';
-        statusBox.textContent = '⏳ جاري إرسال التحديث...';
+        statusBox.textContent = '⏳ جاري حفظ البيانات...';
         
         const gameData = {
             title: document.getElementById('gameTitle').value,
@@ -294,49 +362,26 @@
             timestamp: Date.now()
         };
         
-        try {
-            // Store in JSONBin.io (free, no auth required for public bins)
-            const response = await fetch('https://api.jsonbin.io/v3/b', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$ZQvHfNWJQqIYWxPKgWVcAeHpJH.qXn8x1W5fFx2MQk0Y8wYvPxYGC'
-                },
-                body: JSON.stringify(gameData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.metadata && result.metadata.id) {
-                localStorage.setItem('game_bin_id', result.metadata.id);
-                localStorage.setItem('game_data', JSON.stringify(gameData));
-                window.dispatchEvent(new StorageEvent('storage', {
-                    key: 'game_data',
-                    newValue: JSON.stringify(gameData)
-                }));
-                
-                statusBox.className = 'status-box success';
-                statusBox.textContent = '✅ تم الإرسال! المشاهدون يرون التحديث الآن';
-            } else {
-                throw new Error('Invalid response');
-            }
-            
-            submitBtn.textContent = '✅ تم الإرسال';
-            
-            setTimeout(() => {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '⚡ إرسال التحديث الآن';
-                statusBox.style.display = 'none';
-            }, 3000);
-            
-        } catch (error) {
-            console.error('Error:', error);
-            statusBox.className = 'status-box error';
-            statusBox.textContent = '❌ حدث خطأ. جرب مرة أخرى';
-            
+        // Save to localStorage
+        localStorage.setItem('q8_game_data', JSON.stringify(gameData));
+        
+        // Trigger storage event manually for same-page updates
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'q8_game_data',
+            newValue: JSON.stringify(gameData),
+            url: window.location.href
+        }));
+        
+        statusBox.className = 'status-box success';
+        statusBox.textContent = '✅ تم الحفظ! افتح رابط المشاهدين على جهاز آخر لرؤية التحديث';
+        
+        submitBtn.textContent = '✅ تم الإرسال';
+        
+        setTimeout(() => {
             submitBtn.disabled = false;
             submitBtn.textContent = '⚡ إرسال التحديث الآن';
-        }
+            statusBox.style.display = 'none';
+        }, 5000);
     });
 </script>
 ```
