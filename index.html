@@ -39,6 +39,11 @@
         to { opacity: 1; transform: translateY(0); }
     }
     
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
     .game-title {
         font-size: 2.5em;
         color: #667eea;
@@ -60,6 +65,11 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .question-box.updating {
+        animation: pulse 0.5s ease;
     }
     
     .choices-container {
@@ -87,8 +97,8 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
     
-    .choice-btn:active {
-        transform: translateY(-2px);
+    .choice-btn.updating {
+        animation: pulse 0.5s ease;
     }
     
     .status {
@@ -109,6 +119,7 @@
     .status.updating {
         color: #f59e0b;
         background: rgba(245, 158, 11, 0.1);
+        font-weight: 600;
     }
     
     @media (max-width: 600px) {
@@ -160,37 +171,83 @@
 </div>
 
 <script>
-    // Pusher configuration
+    let pusherConnected = false;
+    
+    // Initialize Pusher
     const pusher = new Pusher('e3e71f98de794afeae8e', {
         cluster: 'ap2'
     });
 
-    const channel = pusher.channel('game-channel') || pusher.subscribe('game-channel');
+    const channel = pusher.subscribe('game-channel');
     
-    // Connection status
+    // Pusher connection status
     pusher.connection.bind('connected', function() {
+        pusherConnected = true;
         document.getElementById('status').textContent = '🟢 متصل - جاهز للتحديثات الفورية';
         document.getElementById('status').className = 'status connected';
+        console.log('Pusher connected successfully');
     });
 
     pusher.connection.bind('unavailable', function() {
-        document.getElementById('status').textContent = '🔴 غير متصل - يرجى تحديث الصفحة';
+        pusherConnected = false;
+        document.getElementById('status').textContent = '🟡 متصل عبر الطريقة الاحتياطية';
         document.getElementById('status').className = 'status';
+        console.log('Pusher unavailable, using fallback');
     });
 
-    // Listen for game updates
+    // Listen for game updates via Pusher
     channel.bind('game-update', function(data) {
-        console.log('Received update:', data);
-        document.getElementById('status').textContent = '⚡ تم التحديث للتو!';
-        document.getElementById('status').className = 'status updating';
-        
+        console.log('Received Pusher update:', data);
+        showUpdateAnimation();
         updateGameDisplay(data);
+    });
+
+    // Fallback: Listen for updates via localStorage (for same-device testing)
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'game-update') {
+            const update = JSON.parse(e.newValue);
+            console.log('Received localStorage update:', update);
+            showUpdateAnimation();
+            updateGameDisplay(update.data);
+        }
+    });
+
+    // Also check localStorage on load (in case update happened before page loaded)
+    const lastUpdate = localStorage.getItem('game-update');
+    if (lastUpdate) {
+        const update = JSON.parse(lastUpdate);
+        if (Date.now() - update.timestamp < 60000) { // Only if less than 1 minute old
+            updateGameDisplay(update.data);
+        }
+    }
+
+    function showUpdateAnimation() {
+        const statusEl = document.getElementById('status');
+        const questionEl = document.getElementById('question');
+        
+        statusEl.textContent = '⚡ تم التحديث للتو!';
+        statusEl.className = 'status updating';
+        
+        questionEl.classList.add('updating');
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.classList.add('updating');
+        });
         
         setTimeout(() => {
-            document.getElementById('status').textContent = '🟢 متصل - جاهز للتحديثات الفورية';
-            document.getElementById('status').className = 'status connected';
+            questionEl.classList.remove('updating');
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.classList.remove('updating');
+            });
+            
+            if (pusherConnected) {
+                statusEl.textContent = '🟢 متصل - جاهز للتحديثات الفورية';
+                statusEl.className = 'status connected';
+            } else {
+                statusEl.textContent = '🟡 متصل عبر الطريقة الاحتياطية';
+                statusEl.className = 'status';
+            }
         }, 2000);
-    });
+    }
 
     function updateGameDisplay(data) {
         if (data.question) {
@@ -209,8 +266,16 @@
         }
     }
 
-    // Log connection state for debugging
-    console.log('Pusher initialized. Connection state:', pusher.connection.state);
+    // Keep checking connection status
+    setInterval(() => {
+        if (pusher.connection.state === 'connected') {
+            if (!pusherConnected) {
+                pusherConnected = true;
+                document.getElementById('status').textContent = '🟢 متصل - جاهز للتحديثات الفورية';
+                document.getElementById('status').className = 'status connected';
+            }
+        }
+    }, 5000);
 </script>
 ```
 
