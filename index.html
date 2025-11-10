@@ -73,10 +73,10 @@ const pusher = new Pusher(PUSHER_KEY, {
   cluster: PUSHER_CLUSTER
 });
 
-// 2. Subscribe to the control channel
+// 2. Subscribe to the control channel (Must match the webhook)
 const channel = pusher.subscribe('game-control');
 
-// 3. Bind to the 'scene-updated' event. This replaces the slow setInterval.
+// 3. Bind to the 'scene-updated' event (Must match the webhook)
 channel.bind('scene-updated', function(data) {
   const u = localStorage.getItem('myjson_data_url') || DATA_URL;
   if(u && u!==DATA_URL){ DATA_URL=u; } // Check for new URL saved by admin
@@ -88,7 +88,7 @@ channel.bind('scene-updated', function(data) {
 
 // Initial load
 fetchData();
-el.st.textContent = "متصل، ينتظر تحديث المدير..."; // Set status to 'waiting' after initial load
+el.st.textContent = "متصل، ينتظر تحديث المدير..."; 
 </script>
 </body>
 </html>
