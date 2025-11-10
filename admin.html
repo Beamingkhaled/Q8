@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - Admin Panel</title>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -258,13 +257,23 @@
     </div>
 </div>
 
-<script>
-    // Initialize Pusher for client-side sending
-    const pusher = new Pusher('e3e71f98de794afeae8e', {
-        cluster: 'ap2'
-    });
-    
-    const channel = pusher.subscribe('game-channel');
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    // Firebase config (public demo database - replace with your own for production)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDXbUqp8FXuM_E5TixQbMpK-YZZ4gJqXxc",
+        authDomain: "live-game-demo.firebaseapp.com",
+        databaseURL: "https://live-game-demo-default-rtdb.firebaseio.com",
+        projectId: "live-game-demo",
+        storageBucket: "live-game-demo.appspot.com",
+        messagingSenderId: "123456789",
+        appId: "1:123456789:web:abcdef123456"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
     // Update preview in real-time
     document.getElementById('question').addEventListener('input', function() {
@@ -277,8 +286,8 @@
         });
     });
 
-    // Form submission using client-triggered events
-    document.getElementById('gameForm').addEventListener('submit', function(e) {
+    // Form submission
+    document.getElementById('gameForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const statusBox = document.getElementById('statusBox');
@@ -302,25 +311,28 @@
             timestamp: Date.now()
         };
         
-        // Trigger using client events (works immediately)
-        channel.trigger('client-game-update', gameData);
-        
-        // Success feedback
-        statusBox.className = 'status-box success';
-        statusBox.textContent = '✅ تم الإرسال بنجاح! المشاهدون يرون التحديث الآن';
-        
-        submitBtn.textContent = '✅ تم الإرسال';
-        
-        setTimeout(() => {
+        try {
+            await set(ref(database, 'game/current'), gameData);
+            
+            statusBox.className = 'status-box success';
+            statusBox.textContent = '✅ تم الإرسال بنجاح! المشاهدون يرون التحديث الآن';
+            
+            submitBtn.textContent = '✅ تم الإرسال';
+            
+            setTimeout(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '⚡ إرسال التحديث الآن';
+                statusBox.style.display = 'none';
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Send error:', error);
+            statusBox.className = 'status-box error';
+            statusBox.textContent = '❌ حدث خطأ: ' + error.message;
+            
             submitBtn.disabled = false;
             submitBtn.textContent = '⚡ إرسال التحديث الآن';
-            statusBox.style.display = 'none';
-        }, 3000);
-    });
-
-    // Connection status
-    pusher.connection.bind('connected', function() {
-        console.log('Admin connected to Pusher');
+        }
     });
 </script>
 ```
