@@ -35,7 +35,7 @@ button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-wei
   <div class="row"><label>العنوان</label><input id="title" placeholder="Avenues & Dragons"></div>
   <div class="row"><label>السؤال</label><textarea id="question" placeholder="…"></textarea></div>
   <div class="row"><label>الخيار ١</label><input id="choice1" placeholder="…"></div>
-  <div class="row"><label>الخيار ٢</label><input id="choice2" placeholder="…"></div>
+  <div class="row"><label>الخيار ٢</label><input id="choice2" placeholder="…"></textarea></div>
   <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة"></div>
   <div class="btn-row"><button id="save">حفظ الآن (يُحدِّث ويُرسل إشارة التحديث)</button></div>
   <div class="small">كل حفظ = تحديث للسجل + إشارة فورية لتحديث صفحة العرض.</div>
@@ -43,8 +43,8 @@ button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-wei
 </div>
 
 <script>
-// THIS IS THE CORRECT, FINAL PUSHER TRIGGER URL!
-const PUSHER_TRIGGER_URL = 'https://webhook.site/0301d989-c586-4d94-bbf6-b5fa530184a4/pusher?event=scene-updated&channel=game-control'; 
+// *** PUSHER TRIGGER URL UPDATED WITH YOUR NEW WEBHOOK ***
+const PUSHER_TRIGGER_URL = 'https://webhook.site/5c03c741-9d84-4efd-b4d6-is/pusher?event=scene-updated&channel=game-control'; 
 
 const $=id=>document.getElementById(id);
 const API_BASE="https://api.myjson.online/v1";
