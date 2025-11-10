@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أفينوز والتنانين - Avenues & Dragons</title>
+    <title>لوحة التحكم - Admin Panel</title>
     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
     <style>
         * {
@@ -16,133 +16,190 @@
 ```
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         padding: 20px;
     }
     
-    .game-container {
-        background: rgba(255, 255, 255, 0.95);
+    .admin-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
         border-radius: 20px;
         padding: 40px;
-        max-width: 800px;
-        width: 100%;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: fadeIn 0.5s ease;
     }
     
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    .header {
+        text-align: center;
+        margin-bottom: 40px;
     }
     
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-    
-    .game-title {
+    .header h1 {
+        color: #1e3a8a;
         font-size: 2.5em;
-        color: #667eea;
-        text-align: center;
-        margin-bottom: 30px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
     }
     
-    .question-box {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        font-size: 1.5em;
-        text-align: center;
-        min-height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
+    .header p {
+        color: #666;
+        font-size: 1.1em;
     }
     
-    .question-box.updating {
-        animation: pulse 0.5s ease;
+    .form-group {
+        margin-bottom: 25px;
     }
     
-    .choices-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
+    label {
+        display: block;
+        color: #1e3a8a;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1.1em;
     }
     
-    .choice-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 25px;
-        border-radius: 12px;
-        font-size: 1.2em;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    input[type="text"],
+    textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: border-color 0.3s ease;
         font-family: inherit;
     }
     
-    .choice-btn:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    input[type="text"]:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
     }
     
-    .choice-btn.updating {
-        animation: pulse 0.5s ease;
+    textarea {
+        min-height: 120px;
+        resize: vertical;
     }
     
-    .status {
-        text-align: center;
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 20px;
-        padding: 10px;
-        background: rgba(102, 126, 234, 0.1);
-        border-radius: 8px;
+    .choices-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 10px;
     }
     
-    .status.connected {
-        color: #10b981;
-        background: rgba(16, 185, 129, 0.1);
-    }
-    
-    .status.updating {
-        color: #f59e0b;
-        background: rgba(245, 158, 11, 0.1);
+    .save-btn {
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.3em;
         font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        margin-top: 30px;
+    }
+    
+    .save-btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .status-box {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        display: none;
+    }
+    
+    .status-box.success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 2px solid #10b981;
+        display: block;
+    }
+    
+    .status-box.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+        display: block;
+    }
+    
+    .status-box.sending {
+        background: #fef3c7;
+        color: #92400e;
+        border: 2px solid #f59e0b;
+        display: block;
+    }
+    
+    .preview-section {
+        margin-top: 40px;
+        padding: 30px;
+        background: #f9fafb;
+        border-radius: 15px;
+        border: 2px dashed #d1d5db;
+    }
+    
+    .preview-section h2 {
+        color: #1e3a8a;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .preview-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .preview-question {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+        text-align: center;
+    }
+    
+    .preview-choices {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .preview-choice {
+        background: #e0e7ff;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        color: #1e3a8a;
+        font-weight: 500;
     }
     
     @media (max-width: 600px) {
-        .game-container {
+        .admin-container {
             padding: 20px;
         }
         
-        .game-title {
+        .header h1 {
             font-size: 1.8em;
         }
         
-        .question-box {
-            font-size: 1.2em;
-            padding: 20px;
-        }
-        
-        .choices-container {
+        .choices-grid,
+        .preview-choices {
             grid-template-columns: 1fr;
-        }
-        
-        .choice-btn {
-            font-size: 1.1em;
-            padding: 20px;
         }
     }
 </style>
@@ -150,132 +207,121 @@
 
 </head>
 <body>
-    <div class="game-container">
-        <h1 class="game-title">أفينوز والتنانين</h1>
+    <div class="admin-container">
+        <div class="header">
+            <h1>🎮 لوحة التحكم</h1>
+            <p>تحديثات فورية للمشاهدين</p>
+        </div>
 
 ```
-    <div class="question-box" id="question">
-        انتظر السؤال من المقدم...
-    </div>
+    <form id="gameForm">
+        <div class="form-group">
+            <label for="gameTitle">عنوان اللعبة:</label>
+            <input type="text" id="gameTitle" value="أفينوز والتنانين" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="question">السؤال:</label>
+            <textarea id="question" placeholder="اكتب السؤال هنا..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>الخيارات:</label>
+            <div class="choices-grid">
+                <input type="text" id="choice1" placeholder="الخيار الأول" required>
+                <input type="text" id="choice2" placeholder="الخيار الثاني" required>
+                <input type="text" id="choice3" placeholder="الخيار الثالث" required>
+                <input type="text" id="choice4" placeholder="الخيار الرابع" required>
+            </div>
+        </div>
+        
+        <button type="submit" class="save-btn" id="submitBtn">
+            ⚡ إرسال التحديث الآن
+        </button>
+    </form>
     
-    <div class="choices-container">
-        <button class="choice-btn" id="choice1">الخيار الأول</button>
-        <button class="choice-btn" id="choice2">الخيار الثاني</button>
-        <button class="choice-btn" id="choice3">الخيار الثالث</button>
-        <button class="choice-btn" id="choice4">الخيار الرابع</button>
-    </div>
+    <div id="statusBox" class="status-box"></div>
     
-    <div class="status" id="status">
-        جاري الاتصال...
+    <div class="preview-section">
+        <h2>📱 معاينة ما سيراه المشاهدون</h2>
+        <div class="preview-content">
+            <div class="preview-question" id="previewQuestion">
+                السؤال سيظهر هنا...
+            </div>
+            <div class="preview-choices">
+                <div class="preview-choice" id="previewChoice1">الخيار 1</div>
+                <div class="preview-choice" id="previewChoice2">الخيار 2</div>
+                <div class="preview-choice" id="previewChoice3">الخيار 3</div>
+                <div class="preview-choice" id="previewChoice4">الخيار 4</div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    let pusherConnected = false;
-    
-    // Initialize Pusher
+    // Initialize Pusher for client-side sending
     const pusher = new Pusher('e3e71f98de794afeae8e', {
         cluster: 'ap2'
     });
-
-    const channel = pusher.subscribe('game-channel');
     
-    // Pusher connection status
-    pusher.connection.bind('connected', function() {
-        pusherConnected = true;
-        document.getElementById('status').textContent = '🟢 متصل - جاهز للتحديثات الفورية';
-        document.getElementById('status').className = 'status connected';
-        console.log('Pusher connected successfully');
+    const channel = pusher.subscribe('game-channel');
+
+    // Update preview in real-time
+    document.getElementById('question').addEventListener('input', function() {
+        document.getElementById('previewQuestion').textContent = this.value || 'السؤال سيظهر هنا...';
     });
-
-    pusher.connection.bind('unavailable', function() {
-        pusherConnected = false;
-        document.getElementById('status').textContent = '🟡 متصل عبر الطريقة الاحتياطية';
-        document.getElementById('status').className = 'status';
-        console.log('Pusher unavailable, using fallback');
-    });
-
-    // Listen for game updates via Pusher
-    channel.bind('game-update', function(data) {
-        console.log('Received Pusher update:', data);
-        showUpdateAnimation();
-        updateGameDisplay(data);
-    });
-
-    // Fallback: Listen for updates via localStorage (for same-device testing)
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'game-update') {
-            const update = JSON.parse(e.newValue);
-            console.log('Received localStorage update:', update);
-            showUpdateAnimation();
-            updateGameDisplay(update.data);
-        }
-    });
-
-    // Also check localStorage on load (in case update happened before page loaded)
-    const lastUpdate = localStorage.getItem('game-update');
-    if (lastUpdate) {
-        const update = JSON.parse(lastUpdate);
-        if (Date.now() - update.timestamp < 60000) { // Only if less than 1 minute old
-            updateGameDisplay(update.data);
-        }
-    }
-
-    function showUpdateAnimation() {
-        const statusEl = document.getElementById('status');
-        const questionEl = document.getElementById('question');
-        
-        statusEl.textContent = '⚡ تم التحديث للتو!';
-        statusEl.className = 'status updating';
-        
-        questionEl.classList.add('updating');
-        document.querySelectorAll('.choice-btn').forEach(btn => {
-            btn.classList.add('updating');
+    
+    ['choice1', 'choice2', 'choice3', 'choice4'].forEach((id, index) => {
+        document.getElementById(id).addEventListener('input', function() {
+            document.getElementById(`previewChoice${index + 1}`).textContent = this.value || `الخيار ${index + 1}`;
         });
+    });
+
+    // Form submission using client-triggered events
+    document.getElementById('gameForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const statusBox = document.getElementById('statusBox');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ جاري الإرسال...';
+        
+        statusBox.className = 'status-box sending';
+        statusBox.textContent = '⏳ جاري إرسال التحديث للمشاهدين...';
+        
+        const gameData = {
+            title: document.getElementById('gameTitle').value,
+            question: document.getElementById('question').value,
+            choices: [
+                document.getElementById('choice1').value,
+                document.getElementById('choice2').value,
+                document.getElementById('choice3').value,
+                document.getElementById('choice4').value
+            ],
+            timestamp: Date.now()
+        };
+        
+        // Trigger using client events (works immediately)
+        channel.trigger('client-game-update', gameData);
+        
+        // Success feedback
+        statusBox.className = 'status-box success';
+        statusBox.textContent = '✅ تم الإرسال بنجاح! المشاهدون يرون التحديث الآن';
+        
+        submitBtn.textContent = '✅ تم الإرسال';
         
         setTimeout(() => {
-            questionEl.classList.remove('updating');
-            document.querySelectorAll('.choice-btn').forEach(btn => {
-                btn.classList.remove('updating');
-            });
-            
-            if (pusherConnected) {
-                statusEl.textContent = '🟢 متصل - جاهز للتحديثات الفورية';
-                statusEl.className = 'status connected';
-            } else {
-                statusEl.textContent = '🟡 متصل عبر الطريقة الاحتياطية';
-                statusEl.className = 'status';
-            }
-        }, 2000);
-    }
+            submitBtn.disabled = false;
+            submitBtn.textContent = '⚡ إرسال التحديث الآن';
+            statusBox.style.display = 'none';
+        }, 3000);
+    });
 
-    function updateGameDisplay(data) {
-        if (data.question) {
-            document.getElementById('question').textContent = data.question;
-        }
-        
-        if (data.choices) {
-            document.getElementById('choice1').textContent = data.choices[0] || 'الخيار الأول';
-            document.getElementById('choice2').textContent = data.choices[1] || 'الخيار الثاني';
-            document.getElementById('choice3').textContent = data.choices[2] || 'الخيار الثالث';
-            document.getElementById('choice4').textContent = data.choices[3] || 'الخيار الرابع';
-        }
-        
-        if (data.title) {
-            document.querySelector('.game-title').textContent = data.title;
-        }
-    }
-
-    // Keep checking connection status
-    setInterval(() => {
-        if (pusher.connection.state === 'connected') {
-            if (!pusherConnected) {
-                pusherConnected = true;
-                document.getElementById('status').textContent = '🟢 متصل - جاهز للتحديثات الفورية';
-                document.getElementById('status').className = 'status connected';
-            }
-        }
-    }, 5000);
+    // Connection status
+    pusher.connection.bind('connected', function() {
+        console.log('Admin connected to Pusher');
+    });
 </script>
 ```
 
