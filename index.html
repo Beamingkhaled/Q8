@@ -129,6 +129,9 @@
 </div>
 
 <script>
+/* ⭐ FORCE RELOAD ON FOCUS — FIX FOR iPHONE ⭐ */
+window.onfocus = () => { location.reload(); };
+
 function updateGameDisplay(data) {
     if (data.title) document.getElementById("title").textContent = data.title;
     if (data.question) document.getElementById("question").textContent = data.question;
