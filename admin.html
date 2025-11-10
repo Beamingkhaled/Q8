@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>لوحة التحكّم — MyJSON (POST داخل Collection)</title>
+<title>لوحة التحكّم — MyJSON (تحديث سجل موجود)</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--accent:#7a5cff}*{box-sizing:border-box}html,body{height:100%}
@@ -10,19 +10,21 @@ body{margin:0;font-family:"Tajawal",sans-serif;background:#0b0b12;color:#fff}
 .wrap{max-width:760px;margin:24px auto;padding:16px}h1{margin:0 0 12px;font-weight:800}
 .card{background:rgba(18,18,40,.9);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:16px}
 .row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;margin:10px 0}
+/* NOTE: Removed Collection ID input for simplicity */
+#col{display:none} 
 input,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-size:16px}
 textarea{min-height:64px}
 button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:800;font-size:16px;cursor:pointer;background:var(--accent);color:#fff}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}.small{font-size:12px;opacity:.8;margin-top:8px}
 .ok{color:#7dff96}.err{color:#ff7d8f}.link{word-break:break-all}
 </style></head><body><div class="wrap">
-<h1>لوحة التحكّم (إنشاء سجل جديد داخل Collection — بدون API Key)</h1>
+<h1>لوحة التحكّم (تحديث سجل MyJSON موجود — باستخدام PUT)</h1>
 
 <div class="card">
-  <div class="row"><label>Collection ID</label><input id="col" placeholder="مثال: 9fb63b72-4017-4756-bd7b-2aeb49c9c574"></div>
-  <div class="row"><label>رابط MyJSON الحالي</label><input id="url" placeholder="https://api.myjson.online/v1/records/xxxxx (يُحدَّث بعد الحفظ)"></div>
+  <div class="row" style="display:none"><label>Collection ID</label><input id="col" placeholder="مثال: 9fb63b72-4017-4756-bd7b-2aeb49c9c574"></div>
+  <div class="row"><label>رابط MyJSON الحالي</label><input id="url" placeholder="https://api.myjson.online/v1/records/xxxxx (يُستخدم للتحديث)"></div>
   <div class="btn-row">
-    <button id="saveMeta" style="background:#444">حفظ المعرّف/الرابط</button>
+    <button id="saveMeta" style="background:#444">حفظ الرابط</button>
     <button id="load"    >تحميل المحتوى الحالي</button>
     <button id="openView" style="background:#2c2c3f">فتح صفحة العرض</button>
     <button id="openEdit" style="background:#2c2c3f">فتح سجل MyJSON</button>
@@ -36,8 +38,8 @@ button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-wei
   <div class="row"><label>الخيار ١</label><input id="choice1" placeholder="…"></div>
   <div class="row"><label>الخيار ٢</label><input id="choice2" placeholder="…"></div>
   <div class="row"><label>الخلفية</label><input id="bg" placeholder="bg.jpg أو رابط صورة"></div>
-  <div class="btn-row"><button id="save">حفظ الآن (ينشئ سجلًا جديدًا في الـCollection)</button></div>
-  <div class="small">كل حفظ = POST إلى الـCollection المحدد. يتم تحديث رابط العرض تلقائيًا.</div>
+  <div class="btn-row"><button id="save">حفظ الآن (يُحدِّث السجل الحالي باستخدام PUT)</button></div>
+  <div class="small">كل حفظ = PUT إلى الرابط المحدد أعلاه. يجب أن يحتوي الرابط على ID سجل صالح.</div>
 </div>
 </div>
 
@@ -51,21 +53,23 @@ const setStatus=(m,ok)=>{$('status').innerHTML=ok?`<span class="ok">${m}</span>`
 $('col').value=localStorage.getItem('myjson_collection_id')||"";
 $('url').value=localStorage.getItem('myjson_data_url')||"";
 
-$('saveMeta').onclick=()=>{localStorage.setItem('myjson_collection_id',$('col').value.trim());
+$('saveMeta').onclick=()=>{
+                           // We only need to save the URL now
                            localStorage.setItem('myjson_data_url',$('url').value.trim());
-                           setStatus('تم حفظ المعرّف/الرابط ✅',true);};
+                           setStatus('تم حفظ الرابط ✅',true);};
 
 $('openView').onclick=()=>{const u=$('url').value.trim(); if(!u) return setStatus('لا يوجد رابط بعد',false); window.open(viewerLink(u),'_blank');};
 $('openEdit').onclick=()=>{const u=$('url').value.trim(); if(!u) return setStatus('لا يوجد رابط بعد',false); window.open(u,'_blank');};
 
-$('load').onclick=async()=>{const u=$('url').value.trim(); if(!u) return setStatus('أدخل أو أنشئ رابطًا أولًا',false);
+$('load').onclick=async()=>{const u=$('url').value.trim(); if(!u) return setStatus('أدخل رابطًا أولًا',false);
   try{const r=await fetch(u+(u.includes('?')?'&':'?')+'_ts='+Date.now()); const j=await r.json(); const d=j&&j.data?j.data:j;
       $('title').value=d.title||''; $('question').value=d.question||''; $('choice1').value=d.choice1||''; $('choice2').value=d.choice2||''; $('bg').value=d.bg||'';
       setStatus('تم التحميل ✅',true);}catch(e){setStatus('فشل التحميل ❌',false);}};
 
 $('save').onclick=async()=>{
-  const col=$('col').value.trim(); if(!col) return setStatus('أدخل Collection ID أولًا',false);
+  const url=$('url').value.trim(); if(!url || url.length < 50) return setStatus('يجب تحديد رابط سجل MyJSON صالح أولاً',false);
 
+  // 1. Create the data object (NO stringify needed here yet)
   const dataObj = {
     title:$('title').value.trim()||'Avenues & Dragons',
     question:$('question').value.trim()||'…',
@@ -74,18 +78,20 @@ $('save').onclick=async()=>{
     bg:$('bg').value.trim()||''
   };
 
-  // MyJSON expects jsonData to be a STRING inside POST with collectionId
-  const body={ collectionId: col, jsonData: JSON.stringify(dataObj) };
-
   try{
-    const r=await fetch(`${API_BASE}/records`,{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)
+    // 2. Use PUT method on the specific URL
+    const r=await fetch(url,{
+      method:'PUT', // CHANGED FROM POST TO PUT
+      headers:{'Content-Type':'application/json'},
+      // 3. The body is the direct data object, stringified
+      body:JSON.stringify(dataObj)
     });
+    
     if(!r.ok) throw new Error(await r.text()||('HTTP '+r.status));
-    const j=await r.json(); const id=j.id||j.recordId; if(!id) throw new Error('لم يتم إرجاع id');
-    const newUrl=`${API_BASE}/records/${id}`;
-    localStorage.setItem('myjson_data_url',newUrl); $('url').value=newUrl;
-    setStatus(`تم الحفظ ✅ — <span class="link">${newUrl}</span>`,true);
+    const j=await r.json(); 
+    
+    // We expect success if no error was thrown
+    setStatus(`تم التحديث ✅ — <span class="link">${url}</span>`,true);
   }catch(e){ setStatus('فشل الحفظ ❌ — '+(e.message||e),false);}
 };
 </script>
