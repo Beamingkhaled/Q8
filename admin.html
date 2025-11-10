@@ -1,200 +1,390 @@
 <!DOCTYPE html>
+
 <html dir="rtl" lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة التحكم - Admin Panel</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{
-      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);
-      min-height:100vh;padding:20px;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        min-height: 100vh;
+        padding: 20px;
     }
-    .admin-container{
-      max-width:900px;margin:0 auto;background:#fff;border-radius:20px;padding:40px;
-      box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    
+    .admin-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    .header{text-align:center;margin-bottom:40px}
-    .header h1{color:#1e3a8a;font-size:2.5em;margin-bottom:10px}
-    .header p{color:#666;font-size:1.1em}
-
-    .form-group{margin-bottom:25px}
-    label{display:block;color:#1e3a8a;font-weight:600;margin-bottom:8px;font-size:1.1em}
-
-    input[type="text"], textarea{
-      width:100%;padding:15px;border:2px solid #e5e7eb;border-radius:10px;font-size:1em;transition:border-color .3s ease;
-      font-family:inherit;
+    
+    .header {
+        text-align: center;
+        margin-bottom: 40px;
     }
-    input[type="text"]:focus, textarea:focus{outline:none;border-color:#3b82f6}
-    textarea{min-height:120px;resize:vertical}
-
-    .choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px}
-
-    .save-btn{
-      width:100%;padding:20px;background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border:none;border-radius:12px;
-      font-size:1.3em;font-weight:600;cursor:pointer;transition:.3s;box-shadow:0 5px 15px rgba(16,185,129,0.3);margin-top:30px;
+    
+    .header h1 {
+        color: #1e3a8a;
+        font-size: 2.5em;
+        margin-bottom: 10px;
     }
-    .save-btn:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 8px 20px rgba(16,185,129,0.4)}
-    .save-btn:disabled{opacity:.6;cursor:not-allowed}
-
-    .status-box{margin-top:20px;padding:15px;border-radius:10px;text-align:center;font-weight:600;display:none}
-    .status-box.success{background:#d1fae5;color:#065f46;border:2px solid #10b981;display:block}
-    .status-box.error{background:#fee2e2;color:#991b1b;border:2px solid #ef4444;display:block}
-    .status-box.sending{background:#fef3c7;color:#92400e;border:2px solid #f59e0b;display:block}
-
-    .url-box{margin-top:30px;padding:20px;background:#f0f9ff;border:2px solid #3b82f6;border-radius:10px}
-    .url-box h3{color:#1e3a8a;margin-bottom:15px;font-size:1.2em}
-    .url-display{display:flex;gap:10px;margin-bottom:10px}
-    .url-input{flex:1;padding:12px;border:2px solid #e5e7eb;border-radius:8px;font-size:.9em;background:#fff}
-    .copy-btn{padding:12px 24px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:background .3s}
-    .copy-btn:hover{background:#2563eb}
-    .instruction{color:#666;font-size:.9em;margin-top:10px}
-
-    .preview-section{margin-top:40px;padding:30px;background:#f9fafb;border-radius:15px;border:2px dashed #d1d5db}
-    .preview-section h2{color:#1e3a8a;margin-bottom:20px;text-align:center}
-    .preview-content{background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
-    .preview-question{
-      background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);color:#fff;padding:20px;border-radius:10px;margin-bottom:15px;font-size:1.2em;text-align:center
+    
+    .header p {
+        color: #666;
+        font-size: 1.1em;
     }
-    .preview-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .preview-choice{background:#e0e7ff;padding:15px;border-radius:8px;text-align:center;color:#1e3a8a;font-weight:500}
-
-    @media(max-width:600px){
-      .admin-container{padding:20px}
-      .header h1{font-size:1.8em}
-      .choices-grid,.preview-choices{grid-template-columns:1fr}
+    
+    .form-group {
+        margin-bottom: 25px;
     }
-  </style>
+    
+    label {
+        display: block;
+        color: #1e3a8a;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1.1em;
+    }
+    
+    input[type="text"],
+    textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: border-color 0.3s ease;
+        font-family: inherit;
+    }
+    
+    input[type="text"]:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+    
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    .choices-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 10px;
+    }
+    
+    .save-btn {
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.3em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        margin-top: 30px;
+    }
+    
+    .save-btn:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .status-box {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        display: none;
+    }
+    
+    .status-box.success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 2px solid #10b981;
+        display: block;
+    }
+    
+    .status-box.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+        display: block;
+    }
+    
+    .status-box.sending {
+        background: #fef3c7;
+        color: #92400e;
+        border: 2px solid #f59e0b;
+        display: block;
+    }
+    
+    .preview-section {
+        margin-top: 40px;
+        padding: 30px;
+        background: #f9fafb;
+        border-radius: 15px;
+        border: 2px dashed #d1d5db;
+    }
+    
+    .preview-section h2 {
+        color: #1e3a8a;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .preview-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .preview-question {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+        text-align: center;
+    }
+    
+    .preview-choices {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .preview-choice {
+        background: #e0e7ff;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        color: #1e3a8a;
+        font-weight: 500;
+    }
+
+    .url-box {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f0f9ff;
+        border: 2px solid #3b82f6;
+        border-radius: 10px;
+    }
+
+    .url-box h3 {
+        color: #1e3a8a;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+    }
+
+    .url-display {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .url-input {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.9em;
+        background: white;
+    }
+
+    .copy-btn {
+        padding: 12px 24px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .copy-btn:hover {
+        background: #2563eb;
+    }
+
+    .instruction {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 10px;
+    }
+    
+    @media (max-width: 600px) {
+        .admin-container {
+            padding: 20px;
+        }
+        
+        .header h1 {
+            font-size: 1.8em;
+        }
+        
+        .choices-grid,
+        .preview-choices {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+```
+
 </head>
 <body>
-  <div class="admin-container">
-    <div class="header">
-      <h1>🎮 لوحة التحكم</h1>
-      <p>تحديثات فورية للمشاهدين</p>
-    </div>
-
-    <form id="gameForm">
-      <div class="form-group">
-        <label for="gameTitle">عنوان اللعبة:</label>
-        <input type="text" id="gameTitle" value="أفينوز والتنانين" required>
-      </div>
-
-      <div class="form-group">
-        <label for="question">السؤال:</label>
-        <textarea id="question" placeholder="اكتب السؤال هنا..." required></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>الخيارات:</label>
-        <div class="choices-grid">
-          <input type="text" id="choice1" placeholder="الخيار الأول" required>
-          <input type="text" id="choice2" placeholder="الخيار الثاني" required>
-          <input type="text" id="choice3" placeholder="الخيار الثالث" required>
-          <input type="text" id="choice4" placeholder="الخيار الرابع" required>
+    <div class="admin-container">
+        <div class="header">
+            <h1>🎮 لوحة التحكم</h1>
+            <p>تحديثات فورية للمشاهدين</p>
         </div>
-      </div>
 
-      <!-- ONLY new field you asked for -->
-      <div class="form-group">
-        <label for="bgInput">الخلفية (رابط صورة):</label>
-        <input type="text" id="bgInput" placeholder="https://example.com/bg.jpg">
-      </div>
-
-      <button type="submit" class="save-btn" id="submitBtn">⚡ إرسال التحديث الآن</button>
+```
+    <form id="gameForm">
+        <div class="form-group">
+            <label for="gameTitle">عنوان اللعبة:</label>
+            <input type="text" id="gameTitle" value="أفينوز والتنانين" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="question">السؤال:</label>
+            <textarea id="question" placeholder="اكتب السؤال هنا..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>الخيارات:</label>
+            <div class="choices-grid">
+                <input type="text" id="choice1" placeholder="الخيار الأول" required>
+                <input type="text" id="choice2" placeholder="الخيار الثاني" required>
+                <input type="text" id="choice3" placeholder="الخيار الثالث" required>
+                <input type="text" id="choice4" placeholder="الخيار الرابع" required>
+            </div>
+        </div>
+        
+        <button type="submit" class="save-btn" id="submitBtn">
+            ⚡ إرسال التحديث الآن
+        </button>
     </form>
-
+    
     <div id="statusBox" class="status-box"></div>
 
     <div class="url-box">
-      <h3>📱 رابط صفحة المشاهدين</h3>
-      <div class="url-display">
-        <input type="text" class="url-input" id="viewerUrl" readonly value="">
-        <button type="button" class="copy-btn" onclick="copyUrl()">نسخ</button>
-      </div>
-      <p class="instruction">افتح هذا الرابط على أجهزة المشاهدين أو شاركه في TikTok</p>
-    </div>
-
-    <div class="preview-section">
-      <h2>📱 معاينة ما سيراه المشاهدون</h2>
-      <div class="preview-content">
-        <div class="preview-question" id="previewQuestion">السؤال سيظهر هنا...</div>
-        <div class="preview-choices">
-          <div class="preview-choice" id="previewChoice1">الخيار 1</div>
-          <div class="preview-choice" id="previewChoice2">الخيار 2</div>
-          <div class="preview-choice" id="previewChoice3">الخيار 3</div>
-          <div class="preview-choice" id="previewChoice4">الخيار 4</div>
+        <h3>📱 رابط صفحة المشاهدين</h3>
+        <div class="url-display">
+            <input type="text" class="url-input" id="viewerUrl" readonly value="">
+            <button type="button" class="copy-btn" onclick="copyUrl()">نسخ</button>
         </div>
-      </div>
+        <p class="instruction">افتح هذا الرابط على أجهزة المشاهدين أو شاركه في TikTok</p>
     </div>
-  </div>
+    
+    <div class="preview-section">
+        <h2>📱 معاينة ما سيراه المشاهدون</h2>
+        <div class="preview-content">
+            <div class="preview-question" id="previewQuestion">
+                السؤال سيظهر هنا...
+            </div>
+            <div class="preview-choices">
+                <div class="preview-choice" id="previewChoice1">الخيار 1</div>
+                <div class="preview-choice" id="previewChoice2">الخيار 2</div>
+                <div class="preview-choice" id="previewChoice3">الخيار 3</div>
+                <div class="preview-choice" id="previewChoice4">الخيار 4</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-  <script>
-    // Viewer URL
+<script>
+    // Set viewer URL
     const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
     document.getElementById('viewerUrl').value = baseUrl + 'index.html';
 
-    function copyUrl(){
-      const input = document.getElementById('viewerUrl');
-      input.select(); document.execCommand('copy');
-      alert('تم نسخ الرابط!');
+    function copyUrl() {
+        const input = document.getElementById('viewerUrl');
+        input.select();
+        document.execCommand('copy');
+        alert('تم نسخ الرابط!');
     }
-
-    // Live preview
-    document.getElementById('question').addEventListener('input', function(){
-      document.getElementById('previewQuestion').textContent = this.value || 'السؤال سيظهر هنا...';
+    
+    document.getElementById('question').addEventListener('input', function() {
+        document.getElementById('previewQuestion').textContent = this.value || 'السؤال سيظهر هنا...';
     });
-    ['choice1','choice2','choice3','choice4'].forEach((id,i)=>{
-      document.getElementById(id).addEventListener('input', function(){
-        document.getElementById(`previewChoice${i+1}`).textContent = this.value || `الخيار ${i+1}`;
-      });
+    
+    ['choice1', 'choice2', 'choice3', 'choice4'].forEach((id, index) => {
+        document.getElementById(id).addEventListener('input', function() {
+            document.getElementById(`previewChoice${index + 1}`).textContent = this.value || `الخيار ${index + 1}`;
+        });
     });
 
-    // Submit (same original behavior: localStorage + manual storage event)
-    document.getElementById('gameForm').addEventListener('submit', function(e){
-      e.preventDefault();
-
-      const statusBox = document.getElementById('statusBox');
-      const submitBtn = document.getElementById('submitBtn');
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ جاري الإرسال...';
-
-      statusBox.className = 'status-box sending';
-      statusBox.textContent = '⏳ جاري حفظ البيانات...';
-
-      const gameData = {
-        title: document.getElementById('gameTitle').value,
-        question: document.getElementById('question').value,
-        choices: [
-          document.getElementById('choice1').value,
-          document.getElementById('choice2').value,
-          document.getElementById('choice3').value,
-          document.getElementById('choice4').value
-        ],
-        bg: document.getElementById('bgInput').value,  // NEW
-        timestamp: Date.now()
-      };
-
-      // Save to localStorage
-      localStorage.setItem('q8_game_data', JSON.stringify(gameData));
-
-      // Trigger storage event (same-device updates)
-      window.dispatchEvent(new StorageEvent('storage', {
-        key:'q8_game_data',
-        newValue: JSON.stringify(gameData),
-        url: window.location.href
-      }));
-
-      statusBox.className = 'status-box success';
-      statusBox.textContent = '✅ تم الحفظ! افتح رابط المشاهدين على جهاز آخر لرؤية التحديث';
-
-      submitBtn.textContent = '✅ تم الإرسال';
-      setTimeout(()=>{
-        submitBtn.disabled = false;
-        submitBtn.textContent = '⚡ إرسال التحديث الآن';
-      }, 3000);
+    document.getElementById('gameForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const statusBox = document.getElementById('statusBox');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ جاري الإرسال...';
+        
+        statusBox.className = 'status-box sending';
+        statusBox.textContent = '⏳ جاري حفظ البيانات...';
+        
+        const gameData = {
+            title: document.getElementById('gameTitle').value,
+            question: document.getElementById('question').value,
+            choices: [
+                document.getElementById('choice1').value,
+                document.getElementById('choice2').value,
+                document.getElementById('choice3').value,
+                document.getElementById('choice4').value
+            ],
+            timestamp: Date.now()
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('q8_game_data', JSON.stringify(gameData));
+        
+        // Trigger storage event manually for same-page updates
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'q8_game_data',
+            newValue: JSON.stringify(gameData),
+            url: window.location.href
+        }));
+        
+        statusBox.className = 'status-box success';
+        statusBox.textContent = '✅ تم الحفظ! افتح رابط المشاهدين على جهاز آخر لرؤية التحديث';
+        
+        submitBtn.textContent = '✅ تم الإرسال';
+        
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '⚡ إرسال التحديث الآن';
+            statusBox.style.display = 'none';
+        }, 5000);
     });
-  </script>
+</script>
+```
+
 </body>
 </html>
