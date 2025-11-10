@@ -20,6 +20,7 @@ font-size:16px;font-weight:800;color:#fff;border:1px solid rgba(255,255,255,.45)
 .ctrl{position:fixed;right:12px;bottom:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
 border-radius:12px;padding:8px 12px;font-weight:800;color:#fff;text-decoration:none;z-index:4}
 </style>
+<script src="https://js.pusher.com/8.4/pusher.min.js"></script>
 </head>
 <body>
 <div id="bg" class="bg"></div>
@@ -53,6 +54,7 @@ function apply(d){
 async function fetchData(){
   if(!DATA_URL){ el.st.textContent="أدخل رابط MyJSON من صفحة التحكم"; return; }
   try{
+    // Ensure we always fetch the newest data from MyJSON by adding a unique timestamp
     const r=await fetch(DATA_URL + (DATA_URL.includes('?')?'&':'?') + '_ts=' + Date.now());
     const j=await r.json();
     const d=j && j.data ? j.data : j;
@@ -61,13 +63,32 @@ async function fetchData(){
   }catch(e){ el.st.textContent="غير متصل"; }
 }
 
-// follow the newest URL saved by admin
-setInterval(()=>{
+// --- PUSHER REAL-TIME LISTENER ---
+
+// 1. Initialize Pusher with your credentials
+const PUSHER_KEY = 'e3e71f98de794afeae8e';
+const PUSHER_CLUSTER = 'ap2';
+
+const pusher = new Pusher(PUSHER_KEY, {
+  cluster: PUSHER_CLUSTER
+});
+
+// 2. Subscribe to the control channel
+const channel = pusher.subscribe('game-control');
+
+// 3. Bind to the 'scene-updated' event. This replaces the slow setInterval.
+channel.bind('scene-updated', function(data) {
   const u = localStorage.getItem('myjson_data_url') || DATA_URL;
-  if(u && u!==DATA_URL){ DATA_URL=u; }
-  fetchData();
-}, 1000);
+  if(u && u!==DATA_URL){ DATA_URL=u; } // Check for new URL saved by admin
+  
+  fetchData(); 
+  el.st.textContent = "تم استلام تحديث! جارٍ التحميل..."; 
+});
+
+
+// Initial load
 fetchData();
+el.st.textContent = "متصل، ينتظر تحديث المدير..."; // Set status to 'waiting' after initial load
 </script>
 </body>
 </html>
