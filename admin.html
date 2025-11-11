@@ -49,53 +49,57 @@
         background: #fff3cd;
         border: 2px solid #ffc107;
         border-radius: 10px;
-        padding: 20px;
+        padding: 25px;
         margin-bottom: 30px;
     }
 
     .setup-box h3 {
         color: #856404;
         margin-bottom: 15px;
+        font-size: 1.3em;
     }
 
-    .setup-box ol {
+    .setup-box label {
+        display: block;
         color: #856404;
-        margin-right: 20px;
-    }
-
-    .setup-box li {
-        margin-bottom: 8px;
-    }
-
-    .setup-box a {
-        color: #0066cc;
         font-weight: 600;
+        margin-top: 15px;
+        margin-bottom: 5px;
     }
 
     .setup-box input {
         width: 100%;
         padding: 12px;
-        margin-top: 10px;
         border: 2px solid #ffc107;
         border-radius: 8px;
         font-size: 1em;
+        font-family: monospace;
     }
 
     .setup-box button {
         width: 100%;
-        padding: 12px;
-        margin-top: 10px;
+        padding: 15px;
+        margin-top: 20px;
         background: #28a745;
         color: white;
         border: none;
         border-radius: 8px;
-        font-size: 1.1em;
+        font-size: 1.2em;
         font-weight: 600;
         cursor: pointer;
     }
 
     .setup-box button:hover {
         background: #218838;
+    }
+
+    .reset-link {
+        text-align: center;
+        margin-top: 15px;
+        color: #856404;
+        font-size: 0.9em;
+        cursor: pointer;
+        text-decoration: underline;
     }
     
     .form-group {
@@ -325,16 +329,17 @@
 
 ```
     <div class="setup-box" id="setupBox">
-        <h3>⚙️ إعداد سريع (خطوة واحدة فقط)</h3>
-        <ol>
-            <li>اذهب إلى: <a href="https://jsonbin.io" target="_blank">jsonbin.io</a></li>
-            <li>اضغط "Create Bin" (لا حاجة للتسجيل)</li>
-            <li>احذف كل شيء واكتب: <code>{"test":"data"}</code></li>
-            <li>اضغط "Create"</li>
-            <li>انسخ الـ "Bin ID" (يبدأ بـ: 67...)</li>
-        </ol>
+        <h3>⚙️ إعداد لمرة واحدة فقط</h3>
+        
+        <label>Bin ID:</label>
         <input type="text" id="binId" placeholder="الصق Bin ID هنا (مثال: 673d28aead19ca34f8c9b123)">
-        <button onclick="saveBinId()">✅ حفظ والبدء</button>
+        
+        <label>API Key (Master Key):</label>
+        <input type="text" id="apiKey" placeholder="الصق Master Key هنا (يبدأ بـ $2a$10$...)">
+        
+        <button onclick="saveConfig()">✅ حفظ والبدء</button>
+        
+        <div class="reset-link" onclick="resetConfig()">🔄 إعادة تعيين الإعدادات</div>
     </div>
 
     <form id="gameForm">
@@ -392,29 +397,35 @@
 
 <script>
     let BIN_ID = localStorage.getItem('q8_bin_id');
+    let API_KEY = localStorage.getItem('q8_api_key');
 
-    function saveBinId() {
+    function saveConfig() {
         const binId = document.getElementById('binId').value.trim();
-        if (!binId) {
-            alert('الرجاء إدخال Bin ID');
+        const apiKey = document.getElementById('apiKey').value.trim();
+        
+        if (!binId || !apiKey) {
+            alert('الرجاء إدخال Bin ID و API Key');
             return;
         }
         
         localStorage.setItem('q8_bin_id', binId);
+        localStorage.setItem('q8_api_key', apiKey);
         BIN_ID = binId;
+        API_KEY = apiKey;
         
-        document.getElementById('setupBox').style.display = 'none';
-        document.getElementById('gameForm').classList.add('active');
-        document.getElementById('urlBox').style.display = 'block';
-        document.getElementById('previewSection').style.display = 'block';
-        
-        const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
-        document.getElementById('viewerUrl').value = baseUrl + 'index.html';
-        
+        showGameForm();
         alert('✅ تم الحفظ! يمكنك الآن إرسال التحديثات');
     }
 
-    if (BIN_ID) {
+    function resetConfig() {
+        if (confirm('هل تريد حذف الإعدادات الحالية؟')) {
+            localStorage.removeItem('q8_bin_id');
+            localStorage.removeItem('q8_api_key');
+            location.reload();
+        }
+    }
+
+    function showGameForm() {
         document.getElementById('setupBox').style.display = 'none';
         document.getElementById('gameForm').classList.add('active');
         document.getElementById('urlBox').style.display = 'block';
@@ -422,6 +433,10 @@
         
         const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
         document.getElementById('viewerUrl').value = baseUrl + 'index.html';
+    }
+
+    if (BIN_ID && API_KEY) {
+        showGameForm();
     }
 
     function copyUrl() {
@@ -444,8 +459,8 @@
     document.getElementById('gameForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        if (!BIN_ID) {
-            alert('الرجاء إدخال Bin ID أولاً');
+        if (!BIN_ID || !API_KEY) {
+            alert('الرجاء إدخال الإعدادات أولاً');
             return;
         }
         
@@ -474,21 +489,26 @@
             const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': API_KEY
                 },
                 body: JSON.stringify(gameData)
             });
             
+            const result = await response.json();
+            
             if (response.ok) {
                 statusBox.className = 'status-box success';
-                statusBox.textContent = '✅ تم الإرسال! جميع الأجهزة المتصلة سترى التحديث خلال ثانية';
+                statusBox.textContent = '✅ تم الإرسال بنجاح! جميع الأجهزة سترى التحديث خلال ثانية';
                 submitBtn.textContent = '✅ تم الإرسال';
+                console.log('Update sent successfully:', result);
             } else {
-                throw new Error('Failed to update');
+                throw new Error(result.message || 'فشل التحديث');
             }
         } catch(err) {
+            console.error('Error:', err);
             statusBox.className = 'status-box error';
-            statusBox.textContent = '❌ فشل الإرسال. تأكد من صحة Bin ID وحاول مرة أخرى';
+            statusBox.textContent = '❌ فشل الإرسال: ' + err.message;
             submitBtn.textContent = '⚡ إرسال التحديث الآن';
             submitBtn.disabled = false;
         }
@@ -496,7 +516,9 @@
         setTimeout(() => {
             submitBtn.disabled = false;
             submitBtn.textContent = '⚡ إرسال التحديث الآن';
-            statusBox.style.display = 'none';
+            if (statusBox.className.includes('success')) {
+                statusBox.style.display = 'none';
+            }
         }, 5000);
     });
 </script>
