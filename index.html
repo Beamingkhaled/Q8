@@ -222,6 +222,9 @@
         <label>Bin ID:</label>
         <input type="text" id="binIdInput" placeholder="الصق Bin ID هنا">
         
+        <label>API Key (Master Key):</label>
+        <input type="text" id="apiKeyInput" placeholder="الصق Master Key هنا">
+        
         <button onclick="saveBinIdViewer()">✅ حفظ والبدء</button>
         
         <div class="reset-link" onclick="resetViewer()">🔄 إعادة تعيين</div>
@@ -247,17 +250,21 @@
     let lastTimestamp = 0;
     let checkInterval;
     let BIN_ID = localStorage.getItem('q8_bin_id');
+    let API_KEY = localStorage.getItem('q8_api_key');
     
     function saveBinIdViewer() {
         const binId = document.getElementById('binIdInput').value.trim();
+        const apiKey = document.getElementById('apiKeyInput').value.trim();
         
-        if (!binId) {
-            alert('الرجاء إدخال Bin ID');
+        if (!binId || !apiKey) {
+            alert('الرجاء إدخال Bin ID و API Key');
             return;
         }
         
         localStorage.setItem('q8_bin_id', binId);
+        localStorage.setItem('q8_api_key', apiKey);
         BIN_ID = binId;
+        API_KEY = apiKey;
         document.getElementById('setupPrompt').style.display = 'none';
         startChecking();
         loadInitialData();
@@ -266,11 +273,12 @@
     function resetViewer() {
         if (confirm('هل تريد حذف الإعدادات؟')) {
             localStorage.removeItem('q8_bin_id');
+            localStorage.removeItem('q8_api_key');
             location.reload();
         }
     }
 
-    if (!BIN_ID) {
+    if (!BIN_ID || !API_KEY) {
         document.getElementById('setupPrompt').style.display = 'block';
     }
 
@@ -315,13 +323,13 @@
     }
     
     async function checkForUpdates() {
-        if (!BIN_ID) return;
+        if (!BIN_ID || !API_KEY) return;
         
         try {
             const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
                 method: 'GET',
                 headers: {
-                    'X-Access-Key': '$2a$10$pZ7MxPQ0fHhG.pCc1w6mHOLnBF3K8R1RQ9Q1mHOLnBF3K8R1RQ9Q1m'
+                    'X-Master-Key': API_KEY
                 }
             });
             
@@ -344,14 +352,17 @@
     }
     
     async function loadInitialData() {
-        if (!BIN_ID) return;
+        if (!BIN_ID || !API_KEY) return;
         
         document.getElementById('status').textContent = '🔄 جاري التحميل...';
         document.getElementById('status').className = 'status';
         
         try {
             const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                method: 'GET'
+                method: 'GET',
+                headers: {
+                    'X-Master-Key': API_KEY
+                }
             });
             
             if (response.ok) {
@@ -366,7 +377,7 @@
                     document.getElementById('status').className = 'status connected';
                 }
             } else {
-                document.getElementById('status').textContent = '⚠️ تأكد من صحة Bin ID';
+                document.getElementById('status').textContent = '⚠️ تأكد من صحة Bin ID و API Key';
                 document.getElementById('status').className = 'status error';
             }
         } catch(err) {
@@ -381,7 +392,7 @@
         checkInterval = setInterval(checkForUpdates, 1000);
     }
 
-    if (BIN_ID) {
+    if (BIN_ID && API_KEY) {
         loadInitialData();
         startChecking();
     }
