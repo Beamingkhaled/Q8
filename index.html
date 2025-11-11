@@ -170,58 +170,8 @@
 
 <script>
     let lastTimestamp = 0;
-    let bc = null;
+    let checkInterval;
     
-    // Try BroadcastChannel API (works for same-origin tabs)
-    try {
-        bc = new BroadcastChannel('q8_game_channel');
-        bc.onmessage = function(event) {
-            console.log('Received via BroadcastChannel:', event.data);
-            if (event.data && event.data.timestamp > lastTimestamp) {
-                lastTimestamp = event.data.timestamp;
-                showUpdateAnimation();
-                updateGameDisplay(event.data);
-            }
-        };
-    } catch(e) {
-        console.log('BroadcastChannel not supported');
-    }
-    
-    // Listen for storage events
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'q8_game_data' && e.newValue) {
-            try {
-                const data = JSON.parse(e.newValue);
-                console.log('Received via storage event:', data);
-                if (data.timestamp > lastTimestamp) {
-                    lastTimestamp = data.timestamp;
-                    showUpdateAnimation();
-                    updateGameDisplay(data);
-                }
-            } catch(err) {
-                console.error('Parse error:', err);
-            }
-        }
-    });
-    
-    // Poll localStorage every second
-    setInterval(function() {
-        try {
-            const stored = localStorage.getItem('q8_game_data');
-            if (stored) {
-                const data = JSON.parse(stored);
-                if (data.timestamp > lastTimestamp) {
-                    lastTimestamp = data.timestamp;
-                    console.log('Received via polling:', data);
-                    showUpdateAnimation();
-                    updateGameDisplay(data);
-                }
-            }
-        } catch(err) {
-            console.error('Poll error:', err);
-        }
-    }, 1000);
-
     function showUpdateAnimation() {
         const statusEl = document.getElementById('status');
         const questionEl = document.getElementById('question');
@@ -262,26 +212,47 @@
         }
     }
     
-    // Load initial data on page load
-    try {
-        const initialData = localStorage.getItem('q8_game_data');
-        if (initialData) {
-            const data = JSON.parse(initialData);
-            lastTimestamp = data.timestamp;
-            updateGameDisplay(data);
-            console.log('Loaded initial data:', data);
+    // Check for updates every second
+    async function checkForUpdates() {
+        try {
+            const result = await window.storage.get('q8_game_data', true);
+            if (result && result.value) {
+                const data = JSON.parse(result.value);
+                if (data.timestamp > lastTimestamp) {
+                    lastTimestamp = data.timestamp;
+                    console.log('New update received:', data);
+                    showUpdateAnimation();
+                    updateGameDisplay(data);
+                }
+            }
+        } catch(err) {
+            console.log('Check error:', err);
         }
-    } catch(err) {
-        console.error('Initial load error:', err);
     }
-
-    // Broadcast updates if we receive them
-    window.addEventListener('storage', function(e) {
-        if (e.key === 'q8_game_data' && e.newValue && bc) {
-            try {
-                const data = JSON.parse(e.newValue);
-                bc.postMessage(data);
-            } catch(err) {}
+    
+    // Load initial data
+    async function loadInitialData() {
+        try {
+            const result = await window.storage.get('q8_game_data', true);
+            if (result && result.value) {
+                const data = JSON.parse(result.value);
+                lastTimestamp = data.timestamp;
+                updateGameDisplay(data);
+                console.log('Loaded initial data:', data);
+            }
+        } catch(err) {
+            console.log('Initial load error:', err);
+        }
+    }
+    
+    // Start checking for updates
+    loadInitialData();
+    checkInterval = setInterval(checkForUpdates, 1000);
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (checkInterval) {
+            clearInterval(checkInterval);
         }
     });
 </script>
