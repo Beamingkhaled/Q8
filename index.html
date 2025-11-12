@@ -5,62 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>أفينوز والتنانين - Avenues & Dragons</title>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      font-family:"Tajawal",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:#000;color:#fff;overflow:hidden
-    }
+    *{box-sizing:border-box;margin:0;padding:0} html,body{height:100%}
+    body{font-family:"Tajawal",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#000;color:#fff;overflow:hidden}
 
-    /* Background video — iOS/Safari safe */
-    #bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none}
-    #bg-video{
-      position:absolute;inset:0;width:100%;height:100%;
-      object-fit:cover;filter:brightness(55%)
-    }
+    /* --- BACKGROUND LAYER (iframe player + mp4 fallback) --- */
+    #bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+    #bg-player, #bg-video{position:absolute;inset:0;width:100%;height:100%}
+    #bg-player{border:0;opacity:1;filter:brightness(55%)}
+    #bg-video{object-fit:cover;filter:brightness(55%)}
     .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
       background:radial-gradient(120% 120% at 50% 50%,rgba(0,0,0,0) 40%,rgba(0,0,0,.25) 100%)}
 
-    /* Card */
+    /* --- CARD / NEON --- */
     .game-wrap{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;padding:24px;z-index:2}
-    .card{width:min(92vw,720px);background:rgba(10,10,16,.65);
-      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    .card{width:min(92vw,720px);background:rgba(10,10,16,.65);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
       border-radius:22px;border:1px solid rgba(255,255,255,.08);
-      box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03);
-      padding:26px 22px 32px}
+      box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03);padding:26px 22px 32px}
     .title{font-weight:800;letter-spacing:.5px;font-size:clamp(22px,5.2vw,38px);text-align:center;margin-bottom:10px;
       background:linear-gradient(135deg,#7D5EFF,#9A68FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .question{text-align:center;color:#d9d9e6;font-size:clamp(16px,4.2vw,22px);
-      margin:4px auto 18px;min-height:60px;display:flex;align-items:center;justify-content:center}
+    .question{text-align:center;color:#d9d9e6;font-size:clamp(16px,4.2vw,22px);margin:4px auto 18px;min-height:60px;display:flex;align-items:center;justify-content:center}
     @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
     .question.updating{animation:pulse .5s ease}
 
     .choices{display:grid;gap:16px}
-    .choice{position:relative}
-    .choice.hidden{display:none}
-    .choice::before{
-      content:attr(data-sticker);position:absolute;top:-10px;left:10px;padding:8px 14px;
-      background:rgba(255,255,255,.16);color:#fff;border-radius:12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-      font-weight:800;font-size:14px;line-height:1;border:1px solid rgba(255,255,255,.25);box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:1}
-    .btn{
-      width:100%;border:0;outline:0;border-radius:18px;padding:18px 20px;text-align:center;
-      font-weight:700;font-size:clamp(16px,4.4vw,22px);color:#e9e7ff;cursor:default;
-      background:linear-gradient(180deg,#0d0d15,#12121c);
-      box-shadow:0 0 0 1px rgba(125,94,255,.25) inset,0 0 14px rgba(125,94,255,.45),0 0 50px rgba(125,94,255,.28);
-      position:relative;transition:all .3s ease}
-    .btn::after{
-      content:"";position:absolute;inset:0;border-radius:18px;padding:1px;
-      background:linear-gradient(90deg,#7D5EFF,#9A68FF,#7D5EFF);
-      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-      -webkit-mask-composite:xor;mask-composite:exclude;opacity:.9}
+    .choice{position:relative}.choice.hidden{display:none}
+    .choice::before{content:attr(data-sticker);position:absolute;top:-10px;left:10px;padding:8px 14px;background:rgba(255,255,255,.16);color:#fff;
+      border-radius:12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-weight:800;font-size:14px;line-height:1;
+      border:1px solid rgba(255,255,255,.25);box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:1}
+    .btn{width:100%;border:0;outline:0;border-radius:18px;padding:18px 20px;text-align:center;font-weight:700;
+      font-size:clamp(16px,4.4vw,22px);color:#e9e7ff;cursor:default;background:linear-gradient(180deg,#0d0d15,#12121c);
+      box-shadow:0 0 0 1px rgba(125,94,255,.25) inset,0 0 14px rgba(125,94,255,.45),0 0 50px rgba(125,94,255,.28);position:relative;transition:all .3s ease}
+    .btn::after{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(90deg,#7D5EFF,#9A68FF,#7D5EFF);
+      -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.9}
     .btn.updating{animation:pulse .5s ease}
 
     .status{text-align:center;margin-top:16px;color:#bdb8ff;font-size:14px;opacity:.85;padding:8px;border-radius:8px}
     .status.connected{color:#10b981}.status.updating{color:#f59e0b;font-weight:600}.status.error{color:#ef4444}
 
-    /* Setup overlay (first screen) */
-    .setup-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);
-      display:flex;justify-content:center;align-items:center;padding:24px}
+    /* --- SETUP OVERLAY --- */
+    .setup-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center;padding:24px}
     .setup-inner{width:min(92vw,640px);max-height:calc(100dvh - 48px);overflow:auto;border-radius:20px;background:#fff8dc;color:#2b2b2b;
       border:2px solid #ffc107;box-shadow:0 20px 60px rgba(0,0,0,.5);padding:22px}
     .setup-title{color:#8a6d00;font-size:22px;font-weight:800;text-align:center;margin-bottom:10px}
@@ -81,22 +64,24 @@
 </head>
 <body>
 
-  <!-- Background video wrapper -->
-  <div id="bg-wrap" aria-hidden="true">
-    <video id="bg-video"
-           autoplay
-           muted
-           playsinline
-           webkit-playsinline
-           loop
-           preload="auto"
-           poster="https://res.cloudinary.com/dkaldddme/video/upload/so_0/v1/copy_CDC85CC8-6581-4C3F-B5E2-46DC4C3A0C86_b2infi.jpg">
+  <!-- BACKGROUND: Cloudinary player (reliable on iPhone) -->
+  <div id="bg-layer" aria-hidden="true">
+    <iframe id="bg-player"
+      src="https://player.cloudinary.com/embed/?cloud_name=dkaldddme&public_id=copy_CDC85CC8-6581-4C3F-B5E2-46DC4C3A0C86_b2infi&player[autoplay]=true&player[muted]=true&player[loop]=true&player[controls]=false&player[preload]=auto"
+      allow="autoplay; fullscreen; picture-in-picture"
+      loading="eager">
+    </iframe>
+
+    <!-- Fallback MP4 (in case iframe is blocked) -->
+    <video id="bg-video" autoplay muted playsinline webkit-playsinline loop preload="auto"
+      poster="https://res.cloudinary.com/dkaldddme/video/upload/so_0/v1/copy_CDC85CC8-6581-4C3F-B5E2-46DC4C3A0C86_b2infi.jpg">
       <source src="https://res.cloudinary.com/dkaldddme/video/upload/f_mp4,vc_h264,q_auto/v1/copy_CDC85CC8-6581-4C3F-B5E2-46DC4C3A0C86_b2infi.mp4" type="video/mp4" />
     </video>
   </div>
-  <div class="vignette"></div>
 
-  <!-- First-time setup (unchanged logic) -->
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- FIRST-TIME SETUP (unchanged logic) -->
   <div id="setupOverlay" class="setup-overlay">
     <div class="setup-inner" role="dialog" aria-modal="true">
       <div class="setup-title">⚙️ إعداد لمرة واحدة</div>
@@ -112,7 +97,7 @@
     </div>
   </div>
 
-  <!-- Viewer neon card -->
+  <!-- VIEWER CARD -->
   <div class="game-wrap">
     <div class="card">
       <div class="title" id="title">Avenues & Dragons</div>
@@ -130,32 +115,27 @@
   </div>
 
   <script>
-    /* Keep your exact JSONBin polling logic */
-    let lastTimestamp = 0;
-    let checkInterval;
-    let BIN_ID  = localStorage.getItem('q8_bin_id');
-    let API_KEY = localStorage.getItem('q8_api_key');
+    /* ====== SAME JSONBIN LOGIC ====== */
+    let lastTimestamp=0, checkInterval;
+    let BIN_ID=localStorage.getItem('q8_bin_id');
+    let API_KEY=localStorage.getItem('q8_api_key');
 
-    const setupOverlay = document.getElementById('setupOverlay');
-    const binInput     = document.getElementById('binIdInput');
-    const keyInput     = document.getElementById('apiKeyInput');
-    if (BIN_ID)  binInput.value = BIN_ID;
-    if (API_KEY) keyInput.value = API_KEY;
+    const setupOverlay=document.getElementById('setupOverlay');
+    const binInput=document.getElementById('binIdInput');
+    const keyInput=document.getElementById('apiKeyInput');
+    if(BIN_ID) binInput.value=BIN_ID; if(API_KEY) keyInput.value=API_KEY;
 
-    function hideSetup(){ setupOverlay.classList.add('hidden'); document.body.style.overflow='hidden'; }
-    function showSetup(){ setupOverlay.classList.remove('hidden'); document.body.style.overflow='auto'; setTimeout(()=>binInput.focus(),50); }
-    if (!BIN_ID || !API_KEY) showSetup(); else hideSetup();
+    function hideSetup(){setupOverlay.classList.add('hidden');document.body.style.overflow='hidden'}
+    function showSetup(){setupOverlay.classList.remove('hidden');document.body.style.overflow='auto';setTimeout(()=>binInput.focus(),50)}
+    if(!BIN_ID||!API_KEY) showSetup(); else hideSetup();
 
-    document.getElementById('saveSetupBtn').addEventListener('click', function(){
-      const b = binInput.value.trim();
-      const k = keyInput.value.trim();
-      if(!b || !k){ alert('من فضلك أدخل Bin ID و Master Key'); return; }
-      localStorage.setItem('q8_bin_id', b);
-      localStorage.setItem('q8_api_key', k);
-      BIN_ID=b; API_KEY=k;
-      hideSetup(); startChecking(); loadInitialData();
+    document.getElementById('saveSetupBtn').addEventListener('click',()=>{
+      const b=binInput.value.trim(), k=keyInput.value.trim();
+      if(!b||!k){alert('من فضلك أدخل Bin ID و Master Key');return}
+      localStorage.setItem('q8_bin_id',b); localStorage.setItem('q8_api_key',k);
+      BIN_ID=b; API_KEY=k; hideSetup(); startChecking(); loadInitialData();
     });
-    document.getElementById('resetSetupBtn').addEventListener('click', function(){
+    document.getElementById('resetSetupBtn').addEventListener('click',()=>{
       if(!confirm('هل تريد حذف الإعدادات؟')) return;
       localStorage.removeItem('q8_bin_id'); localStorage.removeItem('q8_api_key');
       BIN_ID=null; API_KEY=null; showSetup();
@@ -175,23 +155,22 @@
     }
 
     function updateGameDisplay(data){
-      if (data.title)    document.getElementById('title').textContent=data.title;
-      if (data.question) document.getElementById('question').textContent=data.question;
-      if (data.choices){
+      if(data.title) document.getElementById('title').textContent=data.title;
+      if(data.question) document.getElementById('question').textContent=data.question;
+      if(data.choices){
         for(let i=0;i<4;i++){
           const t=(data.choices[i]||'').trim();
           const el=document.getElementById('choice'+(i+1));
           const wrap=document.getElementById('choiceWrapper'+(i+1));
-          if(t){ el.textContent=t; wrap.classList.remove('hidden'); }
-          else { wrap.classList.add('hidden'); }
+          if(t){el.textContent=t;wrap.classList.remove('hidden')} else {wrap.classList.add('hidden')}
         }
       }
     }
 
     async function checkForUpdates(){
-      if(!BIN_ID || !API_KEY) return;
+      if(!BIN_ID||!API_KEY) return;
       try{
-        const r = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest', {method:'GET', headers:{'X-Master-Key':API_KEY}});
+        const r=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{method:'GET',headers:{'X-Master-Key':API_KEY}});
         if(r.ok){
           const result=await r.json(); const data=result.record;
           if(data.timestamp && data.timestamp>lastTimestamp){
@@ -202,35 +181,36 @@
     }
 
     async function loadInitialData(){
-      if(!BIN_ID || !API_KEY) return;
+      if(!BIN_ID||!API_KEY) return;
       const statusEl=document.getElementById('status');
       statusEl.textContent='🔄 جاري التحميل...'; statusEl.className='status';
       try{
         const r=await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest',{method:'GET',headers:{'X-Master-Key':API_KEY}});
         if(r.ok){
           const result=await r.json(); const data=result.record;
-          if(data.timestamp){ lastTimestamp=data.timestamp; updateGameDisplay(data);
-            statusEl.textContent='🟢 متصل ومحدث'; statusEl.className='status connected'; }
+          if(data.timestamp){lastTimestamp=data.timestamp; updateGameDisplay(data);
+            statusEl.textContent='🟢 متصل ومحدث'; statusEl.className='status connected'}
         }else{
-          statusEl.textContent='⚠️ تأكد من صحة Bin ID و API Key'; statusEl.className='status error';
+          statusEl.textContent='⚠️ تأكد من صحة Bin ID و API Key'; statusEl.className='status error'
         }
       }catch(e){
-        statusEl.textContent='❌ خطأ في الاتصال'; statusEl.className='status error';
+        statusEl.textContent='❌ خطأ في الاتصال'; statusEl.className='status error'
       }
     }
 
-    function startChecking(){ if(checkInterval) clearInterval(checkInterval); checkInterval=setInterval(checkForUpdates,1000); }
-    if(BIN_ID && API_KEY){ loadInitialData(); startChecking(); }
-    window.addEventListener('beforeunload', ()=>{ if(checkInterval) clearInterval(checkInterval); });
+    function startChecking(){ if(checkInterval) clearInterval(checkInterval); checkInterval=setInterval(checkForUpdates,1000) }
+    if(BIN_ID&&API_KEY){ loadInitialData(); startChecking() }
+    window.addEventListener('beforeunload',()=>{ if(checkInterval) clearInterval(checkInterval) });
 
-    /* iOS autoplay nudge (does NOT change gameplay) */
+    /* iOS: make sure the iframe/muted video starts after first touch (doesn't change gameplay) */
     (function(){
-      const v=document.getElementById('bg-video');
-      const tryPlay=()=>{ v.play().catch(()=>{}); };
-      document.addEventListener('touchstart', tryPlay, {once:true,passive:true});
-      document.addEventListener('click', tryPlay, {once:true});
-      if (document.visibilityState==='visible') tryPlay();
-      document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') tryPlay(); });
+      const nudge=()=>{
+        const ifr=document.getElementById('bg-player');
+        try{ ifr.contentWindow.postMessage(JSON.stringify({event:'command',func:'play'}),'*'); }catch(e){}
+        const v=document.getElementById('bg-video'); if(v) v.play().catch(()=>{});
+      };
+      document.addEventListener('touchstart',nudge,{once:true,passive:true});
+      document.addEventListener('click',nudge,{once:true});
     })();
   </script>
 </body>
