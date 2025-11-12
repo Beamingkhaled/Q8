@@ -8,22 +8,25 @@
     <style>
         /* ---------- Base & Background ---------- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; }
+        html, body { height: 100%; overflow: hidden; }
         body {
             font-family: "Tajawal", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
             background: #000; 
-            color: #fff; 
-            overflow-x: hidden;
+            color: #fff;
         }
 
 ```
-    /* Fullscreen looping video background */
+    /* Fullscreen looping video background - ZOOMED IN TO FIT */
     #bg-video {
         position: fixed; 
-        inset: 0;
-        width: 100%; 
-        height: 100%;
-        object-fit: cover; 
+        top: 50%;
+        left: 50%;
+        min-width: 100vw;
+        min-height: 100vh;
+        width: auto;
+        height: auto;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
         z-index: -3;
         filter: brightness(58%);
     }
@@ -38,24 +41,27 @@
             rgba(0,0,0,0) 40%, rgba(0,0,0,0.25) 100%);
     }
 
-    /* ---------- Card ---------- */
+    /* ---------- Card OVERLAY ---------- */
     .game-wrap {
-        min-height: 100vh; 
-        width: 100%;
-        display: grid; 
-        place-items: center; 
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         padding: 24px;
+        z-index: 10;
     }
     
     .card {
         width: min(92vw, 720px);
-        background: rgba(10, 10, 16, 0.55);
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
+        background: rgba(10, 10, 16, 0.65);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-radius: 22px;
-        border: 1px solid rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.08);
         box-shadow:
-            0 10px 40px rgba(0,0,0,0.45),
+            0 10px 40px rgba(0,0,0,0.5),
             inset 0 0 0 1px rgba(255,255,255,0.03);
         padding: 26px 22px 32px;
     }
@@ -93,15 +99,18 @@
         50% { transform: scale(1.05); }
     }
 
-    /* ---------- Choices (4) with Neon ---------- */
+    /* ---------- Choices (dynamic) with Neon ---------- */
     .choices {
         display: grid; 
         gap: 16px;
     }
 
-    /* Each choice gets a sticker via data attribute */
     .choice {
         position: relative;
+    }
+
+    .choice.hidden {
+        display: none;
     }
 
     .choice::before {
@@ -274,7 +283,7 @@
 </head>
 <body>
 
-<!-- Background video (Cloudinary, looped) -->
+<!-- Background video (Cloudinary, looped, FULL SCREEN) -->
 
 <video id="bg-video" autoplay muted loop playsinline>
     <source src="https://res.cloudinary.com/dkaldddme/video/upload/f_auto,q_auto/v1/copy_A02E4E6D-2A21-48D1-B12F-3B3343D20C85_bp4lka.mp4" type="video/mp4" />
@@ -304,16 +313,16 @@
     <div id="question" class="question">انتظر السؤال من المقدم...</div>
 
     <div class="choices">
-        <div class="choice" data-sticker="اكتبوا ١">
+        <div class="choice" data-sticker="اكتبوا ١" id="choiceWrapper1">
             <div id="choice1" class="btn">الخيار الأول</div>
         </div>
-        <div class="choice" data-sticker="اكتبوا ٢">
+        <div class="choice" data-sticker="اكتبوا ٢" id="choiceWrapper2">
             <div id="choice2" class="btn">الخيار الثاني</div>
         </div>
-        <div class="choice" data-sticker="اكتبوا ٣">
+        <div class="choice" data-sticker="اكتبوا ٣" id="choiceWrapper3">
             <div id="choice3" class="btn">الخيار الثالث</div>
         </div>
-        <div class="choice" data-sticker="اكتبوا ٤">
+        <div class="choice" data-sticker="اكتبوا ٤" id="choiceWrapper4">
             <div id="choice4" class="btn">الخيار الرابع</div>
         </div>
     </div>
@@ -389,10 +398,19 @@
         }
         
         if (data.choices) {
-            document.getElementById('choice1').textContent = data.choices[0] || 'الخيار الأول';
-            document.getElementById('choice2').textContent = data.choices[1] || 'الخيار الثاني';
-            document.getElementById('choice3').textContent = data.choices[2] || 'الخيار الثالث';
-            document.getElementById('choice4').textContent = data.choices[3] || 'الخيار الرابع';
+            // Update all 4 choices and show/hide based on content
+            for (let i = 0; i < 4; i++) {
+                const choiceText = data.choices[i] || '';
+                const choiceEl = document.getElementById(`choice${i + 1}`);
+                const wrapperEl = document.getElementById(`choiceWrapper${i + 1}`);
+                
+                if (choiceText.trim()) {
+                    choiceEl.textContent = choiceText;
+                    wrapperEl.classList.remove('hidden');
+                } else {
+                    wrapperEl.classList.add('hidden');
+                }
+            }
         }
         
         if (data.title) {
