@@ -142,6 +142,18 @@
         gap: 15px;
         margin-top: 10px;
     }
+
+    .choice-input-wrapper {
+        position: relative;
+    }
+
+    .choice-input-wrapper small {
+        display: block;
+        color: #666;
+        font-size: 0.85em;
+        margin-top: 4px;
+        font-style: italic;
+    }
     
     .save-btn {
         width: 100%;
@@ -242,6 +254,10 @@
         text-align: center;
         color: #1e3a8a;
         font-weight: 500;
+    }
+
+    .preview-choice.hidden {
+        display: none;
     }
 
     .url-box {
@@ -356,10 +372,20 @@
         <div class="form-group">
             <label>الخيارات:</label>
             <div class="choices-grid">
-                <input type="text" id="choice1" placeholder="الخيار الأول" required>
-                <input type="text" id="choice2" placeholder="الخيار الثاني" required>
-                <input type="text" id="choice3" placeholder="الخيار الثالث" required>
-                <input type="text" id="choice4" placeholder="الخيار الرابع" required>
+                <div class="choice-input-wrapper">
+                    <input type="text" id="choice1" placeholder="الخيار الأول" required>
+                </div>
+                <div class="choice-input-wrapper">
+                    <input type="text" id="choice2" placeholder="الخيار الثاني" required>
+                </div>
+                <div class="choice-input-wrapper">
+                    <input type="text" id="choice3" placeholder="الخيار الثالث">
+                    <small>اتركه فارغاً إذا كنت تريد خيارين فقط</small>
+                </div>
+                <div class="choice-input-wrapper">
+                    <input type="text" id="choice4" placeholder="الخيار الرابع">
+                    <small>اتركه فارغاً إذا كنت تريد خيارين أو ثلاثة فقط</small>
+                </div>
             </div>
         </div>
         
@@ -445,15 +471,33 @@
         document.execCommand('copy');
         alert('تم نسخ الرابط!');
     }
-    
-    document.getElementById('question').addEventListener('input', function() {
-        document.getElementById('previewQuestion').textContent = this.value || 'السؤال سيظهر هنا...';
-    });
-    
-    ['choice1', 'choice2', 'choice3', 'choice4'].forEach((id, index) => {
-        document.getElementById(id).addEventListener('input', function() {
-            document.getElementById(`previewChoice${index + 1}`).textContent = this.value || `الخيار ${index + 1}`;
+
+    function updatePreview() {
+        const question = document.getElementById('question').value;
+        const choices = [
+            document.getElementById('choice1').value,
+            document.getElementById('choice2').value,
+            document.getElementById('choice3').value,
+            document.getElementById('choice4').value
+        ];
+
+        document.getElementById('previewQuestion').textContent = question || 'السؤال سيظهر هنا...';
+
+        choices.forEach((choice, index) => {
+            const previewEl = document.getElementById(`previewChoice${index + 1}`);
+            if (choice.trim()) {
+                previewEl.textContent = choice;
+                previewEl.classList.remove('hidden');
+            } else {
+                previewEl.classList.add('hidden');
+            }
         });
+    }
+    
+    document.getElementById('question').addEventListener('input', updatePreview);
+    
+    ['choice1', 'choice2', 'choice3', 'choice4'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updatePreview);
     });
 
     document.getElementById('gameForm').addEventListener('submit', async function(e) {
