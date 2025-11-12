@@ -16,17 +16,15 @@
         }
 
 ```
-    /* Fullscreen looping video background - ZOOMED IN TO FIT */
+    /* Fullscreen looping video background - FULL WIDTH, CENTERED */
     #bg-video {
         position: fixed; 
         top: 50%;
         left: 50%;
-        min-width: 100vw;
-        min-height: 100vh;
-        width: auto;
+        width: 100vw;
         height: auto;
         transform: translate(-50%, -50%);
-        object-fit: cover;
+        object-fit: contain;
         z-index: -3;
         filter: brightness(58%);
     }
@@ -283,12 +281,11 @@
 </head>
 <body>
 
-<!-- Background video (Cloudinary, looped, FULL SCREEN) -->
+<!-- Background video (Cloudinary, looped, FULL WIDTH) -->
 
 <video id="bg-video" autoplay muted loop playsinline>
-    <source src="https://res.cloudinary.com/dkaldddme/video/upload/f_auto,q_auto/v1/copy_A02E4E6D-2A21-48D1-B12F-3B3343D20C85_lnps8f.mp4" />
+    <source src="https://res.cloudinary.com/dkaldddme/video/upload/f_auto,q_auto/v1/copy_A02E4E6D-2A21-48D1-B12F-3B3343D20C85_bp4lka.mp4" type="video/mp4" />
 </video>
-<div class="vignette" aria-hidden="true"></div>
 
 <div class="game-wrap">
     <div class="card">
