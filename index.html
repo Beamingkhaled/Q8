@@ -2,795 +2,332 @@
 <html lang="ar" dir="rtl">
 <head>
     <!-- =====================================================================================
-         Avenues & Dragons - Viewer (Neon) - FULL EXPANDED VERSION (no condensation)
+         Avenues & Dragons - Viewer (Neon) - FULL EXPANDED VERSION
          - First-screen setup (Bin ID + Master Key) fixed for iPhone keyboard + scrolling
          - Same JSONBin polling logic (unchanged)
          - Neon UI + stickers: اكتبوا ١ / اكتبوا ٢ / اكتبوا ٣ / اكتبوا ٤
-         - Cloudinary looping background video
+         - Cloudinary looping background video (NEW ID)
          ===================================================================================== -->
 
     <meta charset="UTF-8" />
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-
-    <title>
-        أفينوز والتنانين - Avenues & Dragons
-    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>أفينوز والتنانين - Avenues & Dragons</title>
 
     <style>
         /* =================================================================================
            RESET / BASE
            ================================================================================= */
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html,
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
         body {
-            height: 100%;
-        }
-
-        body {
-            font-family:
-                "Tajawal",
-                system-ui,
-                -apple-system,
-                Segoe UI,
-                Roboto,
-                Arial,
-                sans-serif;
-            background: #000000;
-            color: #ffffff;
+            font-family: "Tajawal", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: #000;
+            color: #fff;
             overflow: hidden;
         }
 
         /* =================================================================================
-           BACKGROUND VIDEO (Cloudinary)
-           - stays behind everything
-           - brightness reduced so neon pops
+           BACKGROUND VIDEO (Cloudinary) — iPhone friendly (H.264 MP4) + poster
            ================================================================================= */
-
-        #bg-video {
+        #bg-video{
             position: fixed;
             top: 50%;
             left: 50%;
             width: 100vw;
-            height: auto;
+            height: 100vh;
             transform: translate(-50%, -50%);
-            object-fit: contain;
+            object-fit: cover;        /* fill screen */
             z-index: -3;
-            filter: brightness(58%);
+            filter: brightness(55%);  /* make neon pop */
         }
-
-        .vignette {
-            position: fixed;
-            inset: 0;
-            z-index: -2;
-            pointer-events: none;
-            background:
-                radial-gradient(
-                    120% 120% at 50% 50%,
-                    rgba(0, 0, 0, 0.00) 40%,
-                    rgba(0, 0, 0, 0.25) 100%
-                );
-        }
+        .vignette{ position:fixed; inset:0; z-index:-2; pointer-events:none;
+            background: radial-gradient(120% 120% at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.25) 100%); }
 
         /* =================================================================================
-           SETUP OVERLAY (FIRST PAGE)
-           - Full screen
-           - Scrollable container to avoid iPhone keyboard overlap
-           - Inputs at 16px to prevent Safari auto-zoom
-           - Only UI; does not touch data logic
+           SETUP OVERLAY (FIRST PAGE) — avoids keyboard overlap
            ================================================================================= */
-
-        .setup-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.60);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 24px;
+        .setup-overlay{
+            position:fixed; inset:0; z-index:9999;
+            background:rgba(0,0,0,.6);
+            display:flex; justify-content:center; align-items:center; padding:24px;
         }
-
-        .setup-inner {
-            width: min(92vw, 640px);
-            max-height: calc(100dvh - 48px);
-            overflow: auto;
-            border-radius: 20px;
-            background: #fff8dc;
-            color: #2b2b2b;
-            border: 2px solid #ffc107;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.50);
-            padding: 22px;
+        .setup-inner{
+            width:min(92vw,640px);
+            max-height:calc(100dvh - 48px);
+            overflow:auto;
+            border-radius:20px;
+            background:#fff8dc;
+            color:#2b2b2b;
+            border:2px solid #ffc107;
+            box-shadow:0 20px 60px rgba(0,0,0,.5);
+            padding:22px;
         }
-
-        .setup-title {
-            color: #8a6d00;
-            font-size: 22px;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .setup-desc {
-            color: #8a6d00;
-            text-align: center;
-            margin: 6px 0 12px 0;
-            font-size: 14px;
-        }
-
-        .setup-label {
-            display: block;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            color: #8a6d00;
-            font-weight: 700;
-        }
-
-        .setup-input {
-            width: 100%;
-            padding: 14px;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            background: #ffffff;
-            font-family: monospace;
-            font-size: 16px; /* prevents iOS zoom */
-        }
-
-        .setup-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .setup-button-save {
-            padding: 14px 24px;
-            border: 0;
-            border-radius: 10px;
-            font-weight: 800;
-            cursor: pointer;
-            background: #28a745;
-            color: #ffffff;
-        }
-
-        .setup-button-reset {
-            padding: 14px 24px;
-            border: 0;
-            border-radius: 10px;
-            font-weight: 800;
-            cursor: pointer;
-            background: #eeeeee;
-            color: #333333;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        .setup-title{ color:#8a6d00; font-size:22px; font-weight:800; text-align:center; margin-bottom:10px; }
+        .setup-desc { color:#8a6d00; text-align:center; margin:6px 0 12px; font-size:14px; }
+        .setup-label{ display:block; margin-top:12px; margin-bottom:6px; color:#8a6d00; font-weight:700; }
+        .setup-input{ width:100%; padding:14px; border:2px solid #ffc107; border-radius:10px; background:#fff; font-family:monospace; font-size:16px; }
+        .setup-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+        .setup-button-save{ padding:14px 24px; border:0; border-radius:10px; font-weight:800; cursor:pointer; background:#28a745; color:#fff; }
+        .setup-button-reset{ padding:14px 24px; border:0; border-radius:10px; font-weight:800; cursor:pointer; background:#eee; color:#333; }
+        .hidden{ display:none !important; }
 
         /* =================================================================================
            GAME WRAP + CARD (NEON)
            ================================================================================= */
-
-        .game-wrap {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 24px;
-            z-index: 10;
+        .game-wrap{ position:fixed; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; z-index:10; }
+        .card{
+            width:min(92vw,720px);
+            background:rgba(10,10,16,.65);
+            backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+            border-radius:22px; border:1px solid rgba(255,255,255,.08);
+            box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.03);
+            padding:26px 22px 32px;
         }
-
-        .card {
-            width: min(92vw, 720px);
-            background: rgba(10, 10, 16, 0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 22px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow:
-                0 10px 40px rgba(0, 0, 0, 0.50),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-            padding: 26px 22px 32px;
+        .title{
+            font-weight:800; letter-spacing:.5px;
+            font-size:clamp(22px, 5.2vw, 38px);
+            text-align:center; margin-bottom:10px;
+            background:linear-gradient(135deg,#7D5EFF,#9A68FF);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
         }
-
-        .title {
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            font-size: clamp(22px, 5.2vw, 38px);
-            text-align: center;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #7D5EFF, #9A68FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .question{
+            text-align:center; color:#d9d9e6;
+            font-size:clamp(16px, 4.2vw, 22px);
+            margin:4px auto 18px; min-height:60px;
+            display:flex; align-items:center; justify-content:center;
         }
-
-        .question {
-            text-align: center;
-            color: #d9d9e6;
-            font-size: clamp(16px, 4.2vw, 22px);
-            margin: 4px auto 18px auto;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @keyframes pulse {
-            0%   { transform: scale(1.00); }
-            50%  { transform: scale(1.05); }
-            100% { transform: scale(1.00); }
-        }
-
-        .question.updating {
-            animation: pulse 0.5s ease;
-        }
+        @keyframes pulse{ 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+        .question.updating{ animation:pulse .5s ease; }
 
         /* =================================================================================
            CHOICES + NEON BUTTONS + STICKERS
            ================================================================================= */
-
-        .choices {
-            display: grid;
-            gap: 16px;
+        .choices{ display:grid; gap:16px; }
+        .choice{ position:relative; }
+        .choice.hidden{ display:none; }
+        .choice::before{
+            content:attr(data-sticker); position:absolute; top:-10px; left:10px; padding:8px 14px;
+            background:rgba(255,255,255,.16); color:#fff; border-radius:12px;
+            backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+            font-weight:800; font-size:14px; line-height:1;
+            border:1px solid rgba(255,255,255,.25); box-shadow:0 4px 14px rgba(0,0,0,.35); z-index:1;
         }
-
-        .choice {
-            position: relative;
+        .btn{
+            width:100%; border:0; outline:0; border-radius:18px; padding:18px 20px; text-align:center;
+            font-weight:700; font-size:clamp(16px, 4.4vw, 22px); color:#e9e7ff; cursor:default;
+            background:linear-gradient(180deg,#0d0d15,#12121c);
+            box-shadow:0 0 0 1px rgba(125,94,255,.25) inset, 0 0 14px rgba(125,94,255,.45), 0 0 50px rgba(125,94,255,.28);
+            position:relative; transition:all .3s ease;
         }
-
-        .choice.hidden {
-            display: none;
+        .btn::after{
+            content:""; position:absolute; inset:0; border-radius:18px; padding:1px;
+            background:linear-gradient(90deg,#7D5EFF,#9A68FF,#7D5EFF);
+            -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite:xor; mask-composite:exclude; opacity:.9;
         }
-
-        .choice::before {
-            content: attr(data-sticker);
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            padding: 8px 14px;
-            background: rgba(255, 255, 255, 0.16);
-            color: #ffffff;
-            border-radius: 12px;
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            font-weight: 800;
-            font-size: 14px;
-            line-height: 1;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-            z-index: 1;
-        }
-
-        .btn {
-            width: 100%;
-            border: 0;
-            outline: 0;
-            border-radius: 18px;
-            padding: 18px 20px;
-            text-align: center;
-            font-weight: 700;
-            font-size: clamp(16px, 4.4vw, 22px);
-            color: #e9e7ff;
-            cursor: default;
-            background: linear-gradient(180deg, #0d0d15, #12121c);
-            box-shadow:
-                0 0 0 1px rgba(125, 94, 255, 0.25) inset,
-                0 0 14px rgba(125, 94, 255, 0.45),
-                0 0 50px rgba(125, 94, 255, 0.28);
-            position: relative;
-            transition: all 0.30s ease;
-        }
-
-        .btn::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 18px;
-            padding: 1px;
-            background: linear-gradient(90deg, #7D5EFF, #9A68FF, #7D5EFF);
-            -webkit-mask:
-                linear-gradient(#000 0 0) content-box,
-                linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.90;
-        }
-
-        .btn.updating {
-            animation: pulse 0.5s ease;
-        }
+        .btn.updating{ animation:pulse .5s ease; }
 
         /* =================================================================================
            STATUS
            ================================================================================= */
-
-        .status {
-            text-align: center;
-            margin-top: 16px;
-            color: #bdb8ff;
-            font-size: 14px;
-            opacity: 0.85;
-            padding: 8px;
-            border-radius: 8px;
-        }
-
-        .status.connected {
-            color: #10b981;
-        }
-
-        .status.updating {
-            color: #f59e0b;
-            font-weight: 600;
-        }
-
-        .status.error {
-            color: #ef4444;
-        }
+        .status{ text-align:center; margin-top:16px; color:#bdb8ff; font-size:14px; opacity:.85; padding:8px; border-radius:8px; }
+        .status.connected{ color:#10b981; }
+        .status.updating{ color:#f59e0b; font-weight:600; }
+        .status.error{ color:#ef4444; }
 
         /* =================================================================================
-           RESPONSIVE TWEAKS
+           RESPONSIVE
            ================================================================================= */
-
-        @media (max-width: 480px) {
-            .choice::before {
-                top: -12px;
-                left: 8px;
-                font-size: 13px;
-            }
-
-            .btn {
-                padding: 16px 16px;
-                border-radius: 16px;
-            }
-
-            .btn::after {
-                border-radius: 16px;
-            }
+        @media (max-width:480px){
+            .choice::before{ top:-12px; left:8px; font-size:13px; }
+            .btn{ padding:16px 16px; border-radius:16px; }
+            .btn::after{ border-radius:16px; }
         }
     </style>
 </head>
 <body>
 
     <!-- =================================================================================
-         BACKGROUND VIDEO (Cloudinary direct URL)
+         BACKGROUND VIDEO (Cloudinary direct URL) — NEW ID
          ================================================================================= -->
-    <video
-        id="bg-video"
-        autoplay
-        muted
-        loop
-        playsinline
-    >
-        <source
-            src="https://res.cloudinary.com/dkaldddme/video/upload/f_auto,q_auto/v1/copy_A02E4E6D-2A21-48D1-B12F-3B3343D20C86_bp4lka.mp4"
-            type="video/mp4"
-        />
+    <video id="bg-video" autoplay muted loop playsinline preload="auto"
+           poster="https://res.cloudinary.com/dkaldddme/video/upload/so_0/v1/copy_CDC85CC8-6581-4C3F-B5E2-46DC4C3A0C86_b2infi.jpg">
+        <source src="https://res.cloudinary.com/dkaldddme/video/upload/f_mp4,vc_h264,q_auto/v1/copy_CDC85CC8-6581-4C3F-B5E2-46DC4C3A0C86_b2infi.mp4" type="video/mp4" />
     </video>
-
-    <div
-        class="vignette"
-        aria-hidden="true"
-    ></div>
+    <div class="vignette" aria-hidden="true"></div>
 
     <!-- =================================================================================
          FIRST PAGE: SETUP OVERLAY (UI ONLY)
          ================================================================================= -->
-    <div
-        id="setupOverlay"
-        class="setup-overlay"
-    >
-        <div
-            class="setup-inner"
-            role="dialog"
-            aria-modal="true"
-        >
-            <div
-                class="setup-title"
-            >
-                ⚙️ إعداد لمرة واحدة
-            </div>
+    <div id="setupOverlay" class="setup-overlay">
+      <div class="setup-inner" role="dialog" aria-modal="true">
+        <div class="setup-title">⚙️ إعداد لمرة واحدة</div>
+        <div class="setup-desc">أدخل <strong>Bin ID</strong> و<strong>Master Key</strong> الخاصة بـ JSONBin، ثم اضغط حفظ.</div>
 
-            <div
-                class="setup-desc"
-            >
-                أدخل <strong>Bin ID</strong> و <strong>Master Key</strong> الخاصة بـ JSONBin، ثم اضغط حفظ.
-            </div>
+        <label class="setup-label" for="binIdInput">Bin ID</label>
+        <input id="binIdInput" class="setup-input" placeholder="مثال: 66xxxx..." inputmode="text" autocomplete="off" />
 
-            <label
-                class="setup-label"
-                for="binIdInput"
-            >
-                Bin ID
-            </label>
+        <label class="setup-label" for="apiKeyInput">API Key (Master Key)</label>
+        <input id="apiKeyInput" class="setup-input" placeholder="ابدأ بـ $2b$..." inputmode="text" autocomplete="off" />
 
-            <input
-                id="binIdInput"
-                class="setup-input"
-                placeholder="مثال: 66xxxx..."
-                inputmode="text"
-                autocomplete="off"
-            />
-
-            <label
-                class="setup-label"
-                for="apiKeyInput"
-            >
-                API Key (Master Key)
-            </label>
-
-            <input
-                id="apiKeyInput"
-                class="setup-input"
-                placeholder="ابدأ بـ $2b$..."
-                inputmode="text"
-                autocomplete="off"
-            />
-
-            <div
-                class="setup-actions"
-            >
-                <button
-                    id="saveSetupBtn"
-                    class="setup-button-save"
-                    type="button"
-                >
-                    ✅ حفظ والبدء
-                </button>
-
-                <button
-                    id="resetSetupBtn"
-                    class="setup-button-reset"
-                    type="button"
-                >
-                    إعادة تعيين
-                </button>
-            </div>
+        <div class="setup-actions">
+          <button id="saveSetupBtn"  class="setup-button-save"  type="button">✅ حفظ والبدء</button>
+          <button id="resetSetupBtn" class="setup-button-reset" type="button">إعادة تعيين</button>
         </div>
+      </div>
     </div>
 
     <!-- =================================================================================
-         VIEWER CARD (NEON) — GAME UI
+         VIEWER CARD (NEON)
          ================================================================================= -->
-    <div
-        class="game-wrap"
-    >
-        <div
-            class="card"
-        >
-            <div
-                class="title"
-                id="title"
-            >
-                Avenues & Dragons
-            </div>
+    <div class="game-wrap">
+      <div class="card">
+        <div class="title" id="title">Avenues & Dragons</div>
 
-            <div
-                id="question"
-                class="question"
-            >
-                انتظر السؤال من المقدم...
-            </div>
+        <div id="question" class="question">انتظر السؤال من المقدم...</div>
 
-            <div
-                class="choices"
-            >
-                <div
-                    class="choice"
-                    data-sticker="اكتبوا ١"
-                    id="choiceWrapper1"
-                >
-                    <div
-                        id="choice1"
-                        class="btn"
-                    >
-                        الخيار الأول
-                    </div>
-                </div>
-
-                <div
-                    class="choice"
-                    data-sticker="اكتبوا ٢"
-                    id="choiceWrapper2"
-                >
-                    <div
-                        id="choice2"
-                        class="btn"
-                    >
-                        الخيار الثاني
-                    </div>
-                </div>
-
-                <div
-                    class="choice"
-                    data-sticker="اكتبوا ٣"
-                    id="choiceWrapper3"
-                >
-                    <div
-                        id="choice3"
-                        class="btn"
-                    >
-                        الخيار الثالث
-                    </div>
-                </div>
-
-                <div
-                    class="choice"
-                    data-sticker="اكتبوا ٤"
-                    id="choiceWrapper4"
-                >
-                    <div
-                        id="choice4"
-                        class="btn"
-                    >
-                        الخيار الرابع
-                    </div>
-                </div>
-            </div>
-
-            <div
-                id="status"
-                class="status connected"
-            >
-                🟢 جاهز - في انتظار التحديثات
-            </div>
+        <div class="choices">
+          <div class="choice" data-sticker="اكتبوا ١" id="choiceWrapper1"><div id="choice1" class="btn">الخيار الأول</div></div>
+          <div class="choice" data-sticker="اكتبوا ٢" id="choiceWrapper2"><div id="choice2" class="btn">الخيار الثاني</div></div>
+          <div class="choice" data-sticker="اكتبوا ٣" id="choiceWrapper3"><div id="choice3" class="btn">الخيار الثالث</div></div>
+          <div class="choice" data-sticker="اكتبوا ٤" id="choiceWrapper4"><div id="choice4" class="btn">الخيار الرابع</div></div>
         </div>
+
+        <div id="status" class="status connected">🟢 جاهز - في انتظار التحديثات</div>
+      </div>
     </div>
 
     <!-- =================================================================================
          SCRIPT — SAME LOGIC (JSONBin polling, timestamps, updates)
-         NO Firebase, NO MyJSON changes, NOTHING else altered.
          ================================================================================= -->
     <script>
-        /* -------------------------------------------------------------------------
-           State
-           ------------------------------------------------------------------------- */
-        let lastTimestamp = 0;
-        let checkInterval;
+      /* ----------------------------------------------------------------------- */
+      /* State                                                                   */
+      /* ----------------------------------------------------------------------- */
+      let lastTimestamp = 0;
+      let checkInterval;
+      let BIN_ID  = localStorage.getItem('q8_bin_id');
+      let API_KEY = localStorage.getItem('q8_api_key');
 
-        let BIN_ID = localStorage.getItem('q8_bin_id');
-        let API_KEY = localStorage.getItem('q8_api_key');
+      /* ----------------------------------------------------------------------- */
+      /* Setup overlay controls (UI ONLY)                                        */
+      /* ----------------------------------------------------------------------- */
+      const setupOverlay = document.getElementById('setupOverlay');
+      const binInput     = document.getElementById('binIdInput');
+      const keyInput     = document.getElementById('apiKeyInput');
 
-        /* -------------------------------------------------------------------------
-           Setup overlay controls (UI ONLY)
-           ------------------------------------------------------------------------- */
-        const setupOverlay = document.getElementById('setupOverlay');
-        const binInput     = document.getElementById('binIdInput');
-        const keyInput     = document.getElementById('apiKeyInput');
+      if (BIN_ID)  binInput.value = BIN_ID;
+      if (API_KEY) keyInput.value = API_KEY;
 
-        if (BIN_ID) {
-            binInput.value = BIN_ID;
+      function hideSetup(){ setupOverlay.classList.add('hidden'); document.body.style.overflow='hidden'; }
+      function showSetup(){ setupOverlay.classList.remove('hidden'); document.body.style.overflow='auto'; setTimeout(()=>binInput.focus(),50); }
+
+      if (!BIN_ID || !API_KEY) showSetup(); else hideSetup();
+
+      document.getElementById('saveSetupBtn').addEventListener('click', function(){
+        const b = binInput.value.trim();
+        const k = keyInput.value.trim();
+        if (!b || !k){ alert('من فضلك أدخل Bin ID و Master Key'); return; }
+        localStorage.setItem('q8_bin_id', b);
+        localStorage.setItem('q8_api_key', k);
+        BIN_ID=b; API_KEY=k;
+        hideSetup(); startChecking(); loadInitialData();
+      });
+
+      document.getElementById('resetSetupBtn').addEventListener('click', function(){
+        if (!confirm('هل تريد حذف الإعدادات؟')) return;
+        localStorage.removeItem('q8_bin_id');
+        localStorage.removeItem('q8_api_key');
+        BIN_ID=null; API_KEY=null; showSetup();
+      });
+
+      /* ----------------------------------------------------------------------- */
+      /* Animations / Status                                                     */
+      /* ----------------------------------------------------------------------- */
+      function showUpdateAnimation(){
+        const statusEl   = document.getElementById('status');
+        const questionEl = document.getElementById('question');
+        statusEl.textContent = '⚡ تم التحديث للتو!'; statusEl.className='status updating';
+        questionEl.classList.add('updating');
+        document.querySelectorAll('.btn').forEach(btn=>btn.classList.add('updating'));
+        setTimeout(()=>{
+          questionEl.classList.remove('updating');
+          document.querySelectorAll('.btn').forEach(btn=>btn.classList.remove('updating'));
+          statusEl.textContent='🟢 متصل ومحدث'; statusEl.className='status connected';
+        },2000);
+      }
+
+      /* ----------------------------------------------------------------------- */
+      /* Update UI with data                                                     */
+      /* ----------------------------------------------------------------------- */
+      function updateGameDisplay(data){
+        if (data.title)    document.getElementById('title').textContent    = data.title;
+        if (data.question) document.getElementById('question').textContent = data.question;
+        if (data.choices){
+          for (let i=0;i<4;i++){
+            const t=(data.choices[i]||'').trim();
+            const el=document.getElementById('choice'+(i+1));
+            const wrap=document.getElementById('choiceWrapper'+(i+1));
+            if (t){ el.textContent=t; wrap.classList.remove('hidden'); }
+            else  { wrap.classList.add('hidden'); }
+          }
         }
+      }
 
-        if (API_KEY) {
-            keyInput.value = API_KEY;
+      /* ----------------------------------------------------------------------- */
+      /* Poll JSONBin latest record                                              */
+      /* ----------------------------------------------------------------------- */
+      async function checkForUpdates(){
+        if (!BIN_ID || !API_KEY) return;
+        try{
+          const r = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest', { method:'GET', headers:{'X-Master-Key': API_KEY}});
+          if (r.ok){
+            const result = await r.json();
+            const data   = result.record;
+            if (data.timestamp && data.timestamp > lastTimestamp){
+              lastTimestamp = data.timestamp;
+              showUpdateAnimation();
+              updateGameDisplay(data);
+            }
+          }
+        }catch(e){ /* silent */ }
+      }
+
+      /* ----------------------------------------------------------------------- */
+      /* Load initial data                                                       */
+      /* ----------------------------------------------------------------------- */
+      async function loadInitialData(){
+        if (!BIN_ID || !API_KEY) return;
+        const statusEl = document.getElementById('status');
+        statusEl.textContent='🔄 جاري التحميل...'; statusEl.className='status';
+        try{
+          const r = await fetch('https://api.jsonbin.io/v3/b/'+BIN_ID+'/latest', { method:'GET', headers:{'X-Master-Key': API_KEY}});
+          if (r.ok){
+            const result = await r.json();
+            const data   = result.record;
+            if (data.timestamp){
+              lastTimestamp = data.timestamp;
+              updateGameDisplay(data);
+              statusEl.textContent='🟢 متصل ومحدث'; statusEl.className='status connected';
+            }
+          }else{
+            statusEl.textContent='⚠️ تأكد من صحة Bin ID و API Key'; statusEl.className='status error';
+          }
+        }catch(e){
+          statusEl.textContent='❌ خطأ في الاتصال'; statusEl.className='status error';
         }
+      }
 
-        function hideSetup() {
-            setupOverlay.classList.add('hidden');
-            document.body.style.overflow = 'hidden';
-        }
+      /* ----------------------------------------------------------------------- */
+      /* Start polling                                                           */
+      /* ----------------------------------------------------------------------- */
+      function startChecking(){
+        if (checkInterval) clearInterval(checkInterval);
+        checkInterval = setInterval(checkForUpdates, 1000);
+      }
 
-        function showSetup() {
-            setupOverlay.classList.remove('hidden');
-            document.body.style.overflow = 'auto';
-            setTimeout(function () {
-                binInput.focus();
-            }, 50);
-        }
-
-        if (!BIN_ID || !API_KEY) {
-            showSetup();
-        } else {
-            hideSetup();
-        }
-
-        document.getElementById('saveSetupBtn').addEventListener('click', function () {
-            const b = binInput.value.trim();
-            const k = keyInput.value.trim();
-
-            if (!b || !k) {
-                alert('من فضلك أدخل Bin ID و Master Key');
-                return;
-            }
-
-            localStorage.setItem('q8_bin_id', b);
-            localStorage.setItem('q8_api_key', k);
-
-            BIN_ID = b;
-            API_KEY = k;
-
-            hideSetup();
-            startChecking();
-            loadInitialData();
-        });
-
-        document.getElementById('resetSetupBtn').addEventListener('click', function () {
-            if (!confirm('هل تريد حذف الإعدادات؟')) {
-                return;
-            }
-
-            localStorage.removeItem('q8_bin_id');
-            localStorage.removeItem('q8_api_key');
-
-            BIN_ID  = null;
-            API_KEY = null;
-
-            showSetup();
-        });
-
-        /* -------------------------------------------------------------------------
-           Animations / Status (unchanged)
-           ------------------------------------------------------------------------- */
-        function showUpdateAnimation() {
-            const statusEl   = document.getElementById('status');
-            const questionEl = document.getElementById('question');
-
-            statusEl.textContent = '⚡ تم التحديث للتو!';
-            statusEl.className   = 'status updating';
-
-            questionEl.classList.add('updating');
-
-            document
-                .querySelectorAll('.btn')
-                .forEach(function (btn) {
-                    btn.classList.add('updating');
-                });
-
-            setTimeout(function () {
-                questionEl.classList.remove('updating');
-
-                document
-                    .querySelectorAll('.btn')
-                    .forEach(function (btn) {
-                        btn.classList.remove('updating');
-                    });
-
-                statusEl.textContent = '🟢 متصل ومحدث';
-                statusEl.className   = 'status connected';
-            }, 2000);
-        }
-
-        /* -------------------------------------------------------------------------
-           Update UI with data (unchanged)
-           ------------------------------------------------------------------------- */
-        function updateGameDisplay(data) {
-            if (data.title) {
-                document.getElementById('title').textContent = data.title;
-            }
-
-            if (data.question) {
-                document.getElementById('question').textContent = data.question;
-            }
-
-            if (data.choices) {
-                for (let i = 0; i < 4; i++) {
-                    const t    = (data.choices[i] || '').trim();
-                    const el   = document.getElementById('choice' + (i + 1));
-                    const wrap = document.getElementById('choiceWrapper' + (i + 1));
-
-                    if (t) {
-                        el.textContent = t;
-                        wrap.classList.remove('hidden');
-                    } else {
-                        wrap.classList.add('hidden');
-                    }
-                }
-            }
-        }
-
-        /* -------------------------------------------------------------------------
-           Poll JSONBin latest record (unchanged)
-           ------------------------------------------------------------------------- */
-        async function checkForUpdates() {
-            if (!BIN_ID || !API_KEY) {
-                return;
-            }
-
-            try {
-                const r = await fetch(
-                    'https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest',
-                    {
-                        method: 'GET',
-                        headers: {
-                            'X-Master-Key': API_KEY
-                        }
-                    }
-                );
-
-                if (r.ok) {
-                    const result = await r.json();
-                    const data   = result.record;
-
-                    if (data.timestamp && data.timestamp > lastTimestamp) {
-                        lastTimestamp = data.timestamp;
-                        showUpdateAnimation();
-                        updateGameDisplay(data);
-                    }
-                } else {
-                    // Silent: keep viewer up; admin will push next
-                }
-            } catch (e) {
-                // Silent network failure
-            }
-        }
-
-        /* -------------------------------------------------------------------------
-           Load initial data (unchanged)
-           ------------------------------------------------------------------------- */
-        async function loadInitialData() {
-            if (!BIN_ID || !API_KEY) {
-                return;
-            }
-
-            const statusEl = document.getElementById('status');
-
-            statusEl.textContent = '🔄 جاري التحميل...';
-            statusEl.className   = 'status';
-
-            try {
-                const r = await fetch(
-                    'https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest',
-                    {
-                        method: 'GET',
-                        headers: {
-                            'X-Master-Key': API_KEY
-                        }
-                    }
-                );
-
-                if (r.ok) {
-                    const result = await r.json();
-                    const data   = result.record;
-
-                    if (data.timestamp) {
-                        lastTimestamp = data.timestamp;
-                        updateGameDisplay(data);
-                        statusEl.textContent = '🟢 متصل ومحدث';
-                        statusEl.className   = 'status connected';
-                    }
-                } else {
-                    statusEl.textContent = '⚠️ تأكد من صحة Bin ID و API Key';
-                    statusEl.className   = 'status error';
-                }
-            } catch (e) {
-                statusEl.textContent = '❌ خطأ في الاتصال';
-                statusEl.className   = 'status error';
-            }
-        }
-
-        /* -------------------------------------------------------------------------
-           Start polling (unchanged)
-           ------------------------------------------------------------------------- */
-        function startChecking() {
-            if (checkInterval) {
-                clearInterval(checkInterval);
-            }
-            checkInterval = setInterval(checkForUpdates, 1000);
-        }
-
-        if (BIN_ID && API_KEY) {
-            loadInitialData();
-            startChecking();
-        }
-
-        window.addEventListener('beforeunload', function () {
-            if (checkInterval) {
-                clearInterval(checkInterval);
-            }
-        });
+      if (BIN_ID && API_KEY){ loadInitialData(); startChecking(); }
+      window.addEventListener('beforeunload', ()=>{ if (checkInterval) clearInterval(checkInterval); });
     </script>
 </body>
 </html>
