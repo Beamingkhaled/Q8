@@ -7,6 +7,7 @@
          - First-screen setup (Bin ID + Master Key) kept as-is
          - JSONBin polling logic unchanged
          - Stickers: اكتبوا ١ / اكتبوا ٢ / اكتبوا ٣ / اكتبوا ٤
+         - Title/subtitle visual upgrade only (mega purple shadow title + bold white subtitle)
          ===================================================================================== -->
 
     <meta charset="UTF-8" />
@@ -192,27 +193,41 @@
             padding: 26px 22px 32px;
         }
 
+        /* =================================================================================
+           TITLE (Top line): mega size, purple drop-shadow like your reference
+           ================================================================================= */
         .title {
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            font-size: clamp(22px, 5.2vw, 38px);
+            /* Old gradient text removed in favor of solid color + shadow */
+            font-weight: 900;                     /* extra bold */
+            font-size: clamp(40px, 9vw, 92px);    /* MEGA */
+            line-height: 1.05;
             text-align: center;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #7D5EFF, #9A68FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #b47cff;                       /* lilac/purple body */
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            /* purple shadow stack for chunky comic-style look */
+            text-shadow:
+                0.5px 0.5px 0 #5e1aff,
+                1px 1px 0 #5e1aff,
+                2px 2px 0 #5e1aff,
+                4px 4px 12px rgba(94, 26, 255, 0.45);
         }
 
+        /* =================================================================================
+           QUESTION (Second line): bold white with subtle dark glow for readability
+           ================================================================================= */
         .question {
             text-align: center;
-            color: #d9d9e6;
-            font-size: clamp(16px, 4.2vw, 22px);
-            margin: 4px auto 18px auto;
+            color: #ffffff;                        /* WHITE */
+            font-weight: 800;                      /* BOLD */
+            font-size: clamp(20px, 5vw, 38px);     /* big but under title */
+            margin: 6px auto 18px auto;
             min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-shadow: 0 2px 7px rgba(0, 0, 0, 0.40);  /* gentle pop */
         }
 
         @keyframes pulse {
@@ -380,8 +395,10 @@
          ================================================================================= -->
     <div class="game-wrap">
         <div class="card">
+            <!-- Title now mega with purple shadow -->
             <div class="title" id="title">Avenues & Dragons</div>
 
+            <!-- Subtitle now bold white -->
             <div id="question" class="question">انتظر السؤال من المقدم...</div>
 
             <div class="choices">
